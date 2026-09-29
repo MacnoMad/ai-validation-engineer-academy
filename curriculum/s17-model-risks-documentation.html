@@ -139,11 +139,14 @@
 
   <p>There's also a hard regulatory edge to this. Frameworks such as the <strong>EU AI Act</strong> impose
     transparency obligations that require clear documentation of a model's decisions, limitations, and
-    interpretability measures. For high-risk AI systems, passing a documentation audit can be a legal
+    interpretability measures. For high-risk AI systems, passing a documentation audit is meant to be a legal
     prerequisite for deployment — which means a documentation review isn't just quality assurance, it can be a
-    compliance gate.</p>
+    compliance gate. That said, the exact deadline is a moving target: a 2026 amendment (the "Digital Omnibus")
+    pushed most standalone high-risk obligations from August 2026 to December 2027 (and product-embedded
+    high-risk obligations to August 2028), so don't treat any specific date here as fixed — the underlying
+    point (documentation as a compliance gate, not just a nice-to-have) is what to hold onto.</p>
 
-  <h2>6. Two standard documentation frameworks</h2>
+  <h2>6. Documentation frameworks</h2>
   <div class="grid-2">
     <div class="card">
       <strong>Model Cards</strong>
@@ -158,6 +161,17 @@
         than a model — its motivation, composition, collection process, and intended uses. It's the data-side
         counterpart to a model card, and the two are usually read together: a model card that references a
         well-documented dataset is far more trustworthy than one that doesn't.</p>
+    </div>
+  </div>
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div class="body">
+      <strong class="title">A newer sibling: System Cards</strong>
+      Model Cards and Datasheets describe one artifact each (a model, a dataset). As deployed AI systems
+      increasingly chain multiple components together — a router, several fine-tunes, retrieval, tool use — many
+      labs now also publish a <strong>System Card</strong> covering the deployed system as a whole: its safety
+      evaluation, and how those components behave together, not just any single piece in isolation. Same idea as
+      a model card, one level up.
     </div>
   </div>
 

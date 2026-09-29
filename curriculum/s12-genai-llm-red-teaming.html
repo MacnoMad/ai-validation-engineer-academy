@@ -126,11 +126,13 @@
     <li>Analyze what failed, and understand the underlying threat, not just the one bad output.</li>
     <li>Turn the findings into a dataset that drives mitigations and system improvements.</li>
   </ol>
-  <p>The core activity is often <strong>interactive, multi-turn prompting</strong> — real sessions run 15–20
-    turns deep, because many harmful behaviors only emerge after a conversation builds context. To scale
-    coverage beyond a small expert team, organizations add crowd-sourced prompt generation and automated
-    approaches (one LLM generates attack prompts, a second checks the outputs) — often blended into a hybrid of
-    human creativity and automated scale.</p>
+  <p>The core activity is often <strong>interactive, multi-turn prompting</strong> — a single-turn prompt rarely
+    tells you much, because many harmful behaviors only emerge after a conversation builds up context over many
+    turns. Automated multi-turn techniques have pushed this further than manual sessions typically go, sometimes
+    escalating gradually across dozens of turns, or packing large numbers of prior turns into one long context
+    window to wear down a model's guardrails. To scale coverage beyond a small expert team, organizations add
+    crowd-sourced prompt generation and automated approaches (one LLM generates attack prompts, a second checks
+    the outputs) — often blended into a hybrid of human creativity and automated scale.</p>
 
   <div class="callout warn">
     <div class="icon">⚠</div>
