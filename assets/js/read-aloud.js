@@ -14,9 +14,9 @@ const ReadAloud = (() => {
   function buildSegments(root) {
     const segments = [];
 
-    function pushText(text) {
+    function pushText(text, opts = {}) {
       const t = (text || "").replace(/\s+/g, " ").trim();
-      if (t) segments.push({ type: "text", text: t });
+      if (t) segments.push({ type: "text", text: t, chapter: !!opts.chapter, chapterLabel: opts.chapterLabel });
     }
 
     function walk(node) {
@@ -33,7 +33,12 @@ const ReadAloud = (() => {
           return;
         }
         if (el.matches(SKIP_SELECTOR)) return;
-        if (el.matches("h1, h2, h3")) { pushText(el.textContent); return; }
+        // h2 marks the start of each numbered section ("1. ...", "2. ...") — the
+        // Next chapter button jumps forward to the next one of these.
+        if (el.matches("h1, h2, h3")) {
+          pushText(el.textContent, { chapter: el.tagName === "H2", chapterLabel: el.textContent.trim() });
+          return;
+        }
         if (el.matches("p, li")) { pushText(el.textContent); return; }
         if (el.classList.contains("card") || el.classList.contains("callout")) {
           pushText(el.textContent);
@@ -71,6 +76,7 @@ const ReadAloud = (() => {
     widget.innerHTML = `
       <div class="ra-controls" id="ra-controls" hidden>
         <button class="ra-btn" id="ra-restart" type="button" title="Restart this lesson from the beginning">↺</button>
+        <button class="ra-btn" id="ra-next-chapter" type="button" title="Skip to the next section">⏭</button>
         <button class="ra-btn ra-speed" id="ra-speed" type="button" title="Playback speed">1×</button>
         <span class="ra-status" id="ra-status">Ready</span>
         <button class="ra-btn ra-collapse" id="ra-collapse" type="button" title="Hide controls (keeps playing)">✕</button>
@@ -83,6 +89,7 @@ const ReadAloud = (() => {
       controls: document.getElementById("ra-controls"),
       collapse: document.getElementById("ra-collapse"),
       restart: document.getElementById("ra-restart"),
+      nextChapter: document.getElementById("ra-next-chapter"),
       speed: document.getElementById("ra-speed"),
       status: document.getElementById("ra-status"),
     };
@@ -158,11 +165,37 @@ const ReadAloud = (() => {
       setStatus("Ready");
     }
 
+    // Jumps forward to the next section heading — for when you're picking this
+    // lesson back up (today, tomorrow, whenever) and don't want to sit through
+    // everything you already heard last time. Works whether or not it's
+    // currently speaking: playing, it jumps and keeps reading from there;
+    // paused/stopped, it just repositions for the next time you press play.
+    function nextChapter() {
+      let target = -1;
+      for (let i = idx + 1; i < segments.length; i++) {
+        if (segments[i].type === "text" && segments[i].chapter) { target = i; break; }
+      }
+      if (target === -1) {
+        setStatus("No more sections ahead — that was the last one.");
+        return;
+      }
+      const wasSpeaking = speaking;
+      window.speechSynthesis.cancel();
+      idx = target;
+      charOffset = 0;
+      if (wasSpeaking) {
+        speakSegment();
+      } else {
+        setStatus(`Skipped to "${segments[target].chapterLabel}" (${target + 1} of ${segments.length}) — press the speaker to start there.`);
+      }
+    }
+
     // Click the speaker: starts reading right away (and keeps going even if you
     // collapse the panel below); click again to pause — and it resumes from
     // exactly where it paused, not from the beginning.
     els.toggleBtn.addEventListener("click", () => { speaking ? pause() : play(); });
     els.restart.addEventListener("click", restart);
+    els.nextChapter.addEventListener("click", nextChapter);
     els.speed.addEventListener("click", () => {
       rate = RATES[(RATES.indexOf(rate) + 1) % RATES.length];
       els.speed.textContent = rate + "×";
