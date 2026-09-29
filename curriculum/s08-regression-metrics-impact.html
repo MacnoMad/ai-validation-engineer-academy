@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 8 · Model/Dataset Impact &amp; Regression Metrics — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 8 · Chapter 3 — Machine Learning (part 4 of 6)</div>
+  <h1>What Changes When You Swap the Model or the Dataset</h1>
+  <p class="lede">Session 7 taught you to score <em>one</em> trained model. Today's real skill is comparing —
+    running different model and dataset combinations against each other so you can say, with evidence,
+    which choice actually moved the needle. Then, as a shorter supplementary detour, you'll pick up the
+    error metrics used for ML regression (predicting numbers, not categories).</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip">Hands-on (H2)</span>
+    <span class="chip k3">K3 · Apply</span>
+    <span class="chip">LO: HO-3.3.3 (+ supplementary regression metrics)</span>
+    <span class="chip">Exam weight: part of 7 questions for Chapter 3</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">model comparison</span><span class="kw">dataset comparison</span>
+    <span class="kw">training time</span><span class="kw">ML regression</span>
+    <span class="kw">MAE</span><span class="kw">MSE</span><span class="kw">RMSE</span>
+  </div>
+
+  <h2>1. Beyond a single model: why comparisons matter</h2>
+  <p>In Session 7 you calculated accuracy, precision, recall, and F1 for one trained classifier. In real
+    projects, a single model score is rarely the end of the story. The ML workflow you met in Session 5
+    explicitly loops through "evaluate → tune" precisely because teams almost always train <strong>several</strong>
+    candidate models — different algorithms, different hyperparameters, sometimes different slices of data —
+    and pick the best combination based on the evaluation results.</p>
+  <p>That means two independent things can change between any two training runs: the <strong>model</strong>
+    (which algorithm, how complex, how it's configured) and the <strong>dataset</strong> (how much data, how
+    clean, how balanced). Today's hands-on exercise is about deliberately varying both and observing what
+    happens to training time and to the ML functional performance metrics you already know how to read.</p>
+
+  <h2>2. What actually changes when you swap the model or the dataset</h2>
+  <div class="grid-2">
+    <div class="card">
+      <strong>Swap the model</strong>
+      <p class="small" style="margin-top:.4rem;">A simple linear model (like logistic regression) is fast and
+        easy to inspect, but can only draw a straight-line decision boundary — it underfits patterns that
+        aren't linearly separable. A decision tree can carve out non-linear splits and trains quickly, but can
+        overfit if left unconstrained. A small neural network can model more complex relationships than either,
+        at the cost of needing more training time and, usually, more data before that extra capacity pays off.</p>
+    </div>
+    <div class="card">
+      <strong>Swap the dataset</strong>
+      <p class="small" style="margin-top:.4rem;">Mislabeled training examples ("noisy labels") lower every
+        model's ceiling, because the model partly learns the mistakes as if they were real patterns. Class
+        imbalance can make accuracy look deceptively good while precision and recall for the minority class
+        quietly collapse — the same accuracy-paradox trap from Session 7. A small sample size trains fast but
+        produces noisier, less trustworthy scores, and raises the risk of underfitting you met in the ML
+        workflow discussion (Session 5).</p>
+    </div>
+  </div>
+
+  <h2>3. Running a fair comparison — the tester's angle</h2>
+  <p>If you change the model <em>and</em> the dataset in the same run, and the score moves, you can't say
+    which change caused it. A defensible comparison changes <strong>one variable at a time</strong> and keeps
+    everything else fixed — the same evaluation dataset, the same metrics, the same protocol — so any
+    difference in the result can be attributed to the one thing you changed. This is the same discipline
+    behind the A/B testing and back-to-back testing techniques you'll formalize in Session 20; here, you're
+    building the intuition for it by hand.</p>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div class="body">
+      <strong class="title">What "observe the impact" means in practice</strong>
+      The syllabus hands-on goal for this topic is simple to state: run different model + dataset combinations
+      and watch two things — how long training takes, and what the resulting ML functional performance
+      metrics (accuracy, precision, recall, F1) turn out to be. The lab below lets you do exactly that without
+      needing a live ML environment.
+    </div>
+  </div>
+
+  <h2>4. Hands-on: swap the model, swap the dataset</h2>
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: model × dataset comparison</span></div>
+    <div class="lab-sub">Pick a model and a dataset scenario independently. The numbers below are hand-set to
+      demonstrate real, well-documented patterns — not a live-trained model — but the direction and relative
+      size of each effect is accurate to how these combinations actually behave.</div>
+
+    <div class="controls">
+      <label>Model
+        <select id="model-select" class="chip" style="cursor:pointer;">
+          <option value="logreg">Logistic Regression</option>
+          <option value="tree">Decision Tree</option>
+          <option value="mlp">Small Neural Network (MLP)</option>
+        </select>
+      </label>
+      <label>Dataset scenario
+        <select id="dataset-select" class="chip" style="cursor:pointer;">
+          <option value="clean">Clean &amp; Balanced</option>
+          <option value="noisy">Noisy Labels (~15% mislabeled)</option>
+          <option value="imbalanced">Imbalanced Classes</option>
+          <option value="small">Small Sample (limited data)</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="stat-row" id="combo-stats"></div>
+    <div class="readout" id="combo-readout" style="margin-top:.9rem;">Choose a model and dataset above.</div>
+
+    <div style="margin-top:1.1rem;">
+      <div class="small" style="font-weight:800; text-transform:uppercase; letter-spacing:.04em; margin-bottom:.5rem;">
+        All three models on the selected dataset — training time (relative)</div>
+      <div id="time-bars" style="display:flex; flex-direction:column; gap:.5rem;"></div>
+    </div>
+  </div>
+
+  <h2>5. Supplementary: measuring error for ML regression</h2>
+  <div class="callout exam">
+    <div class="icon">📎</div>
+    <div class="body">
+      <strong class="title">Beyond the official syllabus scope</strong>
+      The certification syllabus only notes, in passing, that ML regression predicts continuous numeric values
+      (Session 5) and that frameworks report "error rates" for regression tasks — it doesn't define specific
+      formulas in this chapter. The three metrics below are standard, universally-used ML vocabulary added
+      here because you'll need them on the job; they are not lifted from, or scored against, the ISTQB
+      syllabus text.
+    </div>
+  </div>
+  <p>Classification predicts a category (spam / not spam). ML regression predicts a number on a continuous
+    scale — a price, an age, a temperature. Because there's no "correct class" to match against, regression
+    error is measured as the numeric gap between what the model predicted and what actually happened. For
+    each data point, define the error as <code>e = actual − predicted</code>. Three metrics turn a whole list
+    of these errors into one summary number:</p>
+
+  <table class="data">
+    <thead><tr><th>Metric</th><th>Formula</th><th>What it tells you</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>MAE</strong><br><span class="small">Mean Absolute Error</span></td>
+        <td><code>(1/n) · Σ|e|</code></td>
+        <td>The average size of the error, in the same units as the target. Every error counts equally —
+          MAE is fairly resistant to a single wild outlier.</td>
+      </tr>
+      <tr>
+        <td><strong>MSE</strong><br><span class="small">Mean Squared Error</span></td>
+        <td><code>(1/n) · Σe²</code></td>
+        <td>Squares each error before averaging. A miss of 10 contributes 100× more than a miss of 1 — large
+          errors are punished disproportionately. Units are squared (e.g., dollars²), which is hard to read
+          intuitively on its own.</td>
+      </tr>
+      <tr>
+        <td><strong>RMSE</strong><br><span class="small">Root Mean Squared Error</span></td>
+        <td><code>√MSE</code></td>
+        <td>Square-roots MSE back into the original units, keeping MSE's "punish big misses harder" property
+          while staying readable. RMSE is always ≥ MAE, and the gap between them widens when a few errors are
+          much larger than the rest.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">Why the choice of metric matters</strong>
+      If a single very-wrong prediction should count as a serious failure (e.g., a pricing model that's off by
+      $50,000 once), RMSE or MSE will surface that clearly. If you want a metric that reflects "typical"
+      day-to-day error without one outlier dominating the score, MAE gives a steadier picture. Choosing the
+      wrong one can make a model look better — or worse — than it really is for your use case.
+    </div>
+  </div>
+
+  <h2>6. Hands-on: MAE / MSE / RMSE calculator</h2>
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: compute the three metrics yourself</span></div>
+    <div class="lab-sub">Edit the actual/predicted pairs below, or load one of the two worked examples, then
+      press Calculate.</div>
+
+    <div class="controls">
+      <button class="btn btn-ghost" id="load-a">Load Example A (no outlier)</button>
+      <button class="btn btn-ghost" id="load-b">Load Example B (one outlier)</button>
+    </div>
+
+    <table class="data" id="calc-table">
+      <thead><tr><th>#</th><th>Actual</th><th>Predicted</th></tr></thead>
+      <tbody id="calc-rows"></tbody>
+    </table>
+
+    <div class="controls">
+      <button class="btn btn-primary" id="calc-run">Calculate MAE / MSE / RMSE</button>
+    </div>
+
+    <div class="stat-row" id="calc-stats"></div>
+    <div class="readout" id="calc-readout" style="margin-top:.9rem;">Enter values above and press Calculate.</div>
+  </div>
+
+  <h2>7. Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s08");
+    App.buildSessionNav("session-nav", "s08");
+    App.wireMarkComplete("mark-complete", "s08");
+
+    // ---- Model × dataset comparison lab ----
+    const models = {
+      logreg: { name: "Logistic Regression", base: { acc: 89, prec: 87, rec: 85, f1: 86, time: 2 },
+        note: "a simple linear model — fast to train and easy to inspect, but it can only draw a straight-line decision boundary." },
+      tree:   { name: "Decision Tree", base: { acc: 92, prec: 90, rec: 89, f1: 89, time: 6 },
+        note: "captures non-linear splits in the data and trains quickly, but can memorize noise (overfit) if left unconstrained." },
+      mlp:    { name: "Small Neural Network (MLP)", base: { acc: 94, prec: 92, rec: 92, f1: 92, time: 35 },
+        note: "can model more complex, non-linear relationships than the other two, at the cost of longer training and a bigger appetite for data." },
+    };
+    const datasets = {
+      clean:      { name: "Clean & Balanced", mod: { acc: 0, prec: 0, rec: 0, f1: 0 }, timeMult: 1,
+        note: "the best-case scenario — enough examples of every class, minimal label noise. This is the baseline every other scenario is compared against." },
+      noisy:      { name: "Noisy Labels (~15% mislabeled)", mod: { acc: -9, prec: -10, rec: -8, f1: -9 }, timeMult: 1.1,
+        note: "some training labels are simply wrong. Every model's ceiling drops, because it partly learns the mistakes as if they were real patterns — no amount of model sophistication fully cancels bad ground truth." },
+      imbalanced: { name: "Imbalanced Classes", mod: { acc: 2, prec: -14, rec: -22, f1: -18 }, timeMult: 0.9,
+        note: "one class dominates the data. Accuracy can look deceptively high (the model can “win” by favoring the majority class), while precision and recall for the minority class collapse — the accuracy-paradox trap from Session 7." },
+      small:      { name: "Small Sample (limited data)", mod: { acc: -6, prec: -7, rec: -9, f1: -8 }, timeMult: 0.4,
+        note: "less data to learn from means a noisier signal for every model. Training finishes fast, but scores are less trustworthy as an estimate of real-world performance — the underfitting risk from Session 5." },
+    };
+    // Extra sensitivity: more complex models tend to suffer more from noisy or scarce data,
+    // and gain less protection from it than simple models — a well-documented general pattern.
+    const sensitivity = {
+      logreg: { noisy: 0,  imbalanced: 0,  small: 0  },
+      tree:   { noisy: -2, imbalanced: 0,  small: -3 },
+      mlp:    { noisy: -6, imbalanced: -2, small: -10 },
+    };
+    const clamp = (v) => Math.max(1, Math.min(99, Math.round(v)));
+
+    function computeCombo(modelKey, datasetKey) {
+      const m = models[modelKey], d = datasets[datasetKey];
+      const sens = sensitivity[modelKey][datasetKey] || 0;
+      const metrics = {};
+      ["acc", "prec", "rec", "f1"].forEach(k => {
+        metrics[k] = clamp(m.base[k] + d.mod[k] + (datasetKey === "clean" ? 0 : sens));
+      });
+      metrics.time = Math.max(0.5, +(m.base.time * d.timeMult).toFixed(1));
+      return metrics;
+    }
+
+    function renderStats(mountId, metrics) {
+      const el = document.getElementById(mountId);
+      el.innerHTML = `
+        <div class="stat-tile"><div class="label">Accuracy</div><div class="value">${metrics.acc}%</div></div>
+        <div class="stat-tile"><div class="label">Precision</div><div class="value">${metrics.prec}%</div></div>
+        <div class="stat-tile"><div class="label">Recall</div><div class="value">${metrics.rec}%</div></div>
+        <div class="stat-tile"><div class="label">F1-score</div><div class="value">${metrics.f1}%</div></div>
+        <div class="stat-tile"><div class="label">Training time</div><div class="value">${metrics.time}×</div></div>`;
+    }
+
+    function renderTimeBars(datasetKey) {
+      const d = datasets[datasetKey];
+      const maxTime = Math.max(...Object.keys(models).map(k => computeCombo(k, datasetKey).time));
+      const el = document.getElementById("time-bars");
+      el.innerHTML = Object.entries(models).map(([key, m]) => {
+        const t = computeCombo(key, datasetKey).time;
+        const pct = Math.max(6, Math.round((t / maxTime) * 100));
+        return `<div>
+          <div class="small" style="display:flex; justify-content:space-between;"><span>${m.name}</span><span>${t}×</span></div>
+          <div class="progress-bar"><span style="width:${pct}%;"></span></div>
+        </div>`;
+      }).join("");
+    }
+
+    function updateCombo() {
+      const modelKey = document.getElementById("model-select").value;
+      const datasetKey = document.getElementById("dataset-select").value;
+      const m = models[modelKey], d = datasets[datasetKey];
+      const metrics = computeCombo(modelKey, datasetKey);
+      renderStats("combo-stats", metrics);
+      renderTimeBars(datasetKey);
+      document.getElementById("combo-readout").innerHTML =
+        `<strong>${m.name}</strong> is ${m.note}<br><br>
+         <strong>${d.name}:</strong> ${d.note}`;
+    }
+    document.getElementById("model-select").addEventListener("change", updateCombo);
+    document.getElementById("dataset-select").addEventListener("change", updateCombo);
+    updateCombo();
+
+    // ---- MAE / MSE / RMSE calculator lab ----
+    const exampleA = [[220, 215], [340, 355], [180, 175], [410, 400], [275, 280]]; // apartment prices, $1000s
+    const exampleB = [[220, 215], [340, 355], [180, 175], [410, 400], [275, 610]]; // last point is a wild outlier
+
+    function renderCalcRows(pairs) {
+      const rows = document.getElementById("calc-rows");
+      rows.innerHTML = pairs.map((p, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td><input type="number" class="calc-actual" value="${p[0]}" style="width:5.5rem;"></td>
+          <td><input type="number" class="calc-predicted" value="${p[1]}" style="width:5.5rem;"></td>
+        </tr>`).join("");
+    }
+    renderCalcRows(exampleA);
+
+    document.getElementById("load-a").addEventListener("click", () => renderCalcRows(exampleA));
+    document.getElementById("load-b").addEventListener("click", () => renderCalcRows(exampleB));
+
+    document.getElementById("calc-run").addEventListener("click", () => {
+      const actuals = Array.from(document.querySelectorAll(".calc-actual")).map(i => parseFloat(i.value) || 0);
+      const predicteds = Array.from(document.querySelectorAll(".calc-predicted")).map(i => parseFloat(i.value) || 0);
+      const n = actuals.length;
+      const errors = actuals.map((a, i) => a - predicteds[i]);
+      const mae = errors.reduce((s, e) => s + Math.abs(e), 0) / n;
+      const mse = errors.reduce((s, e) => s + e * e, 0) / n;
+      const rmse = Math.sqrt(mse);
+
+      document.getElementById("calc-stats").innerHTML = `
+        <div class="stat-tile"><div class="label">MAE</div><div class="value">${mae.toFixed(2)}</div></div>
+        <div class="stat-tile"><div class="label">MSE</div><div class="value">${mse.toFixed(2)}</div></div>
+        <div class="stat-tile"><div class="label">RMSE</div><div class="value">${rmse.toFixed(2)}</div></div>`;
+
+      const gap = rmse - mae;
+      document.getElementById("calc-readout").innerHTML =
+        `RMSE (${rmse.toFixed(2)}) is ${gap > 15 ? "much" : gap > 3 ? "somewhat" : "only slightly"} larger than
+         MAE (${mae.toFixed(2)}). ${gap > 15
+          ? "That large a gap is a strong signal that one or two points have a much bigger error than the rest — exactly what happens with an outlier."
+          : "A small, steady gap like this suggests the errors are fairly consistent in size across all points, without a dominant outlier."}`;
+    });
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "HO-3.3.3", k: "K2", type: "single",
+        prompt: "You train the exact same model architecture on two datasets — one clean and balanced, one with 15% mislabeled training examples — and compare the resulting ML functional performance metrics. What's the most likely explanation if the noisy-data run scores lower on every metric?",
+        choices: [
+          { text: "The model partly learned the incorrect labels as if they were real patterns, lowering its achievable ceiling regardless of the model chosen.", correct: true },
+          { text: "The model architecture itself must be broken.", correct: false },
+          { text: "Noisy labels always make training finish faster, which explains the lower scores.", correct: false },
+          { text: "ML functional performance metrics cannot be compared across different datasets under any circumstances.", correct: false },
+        ],
+        explain: "Label noise directly damages what the model can learn — the model isn't malfunctioning, it's faithfully learning a corrupted signal." },
+      { lo: "HO-3.3.3", k: "K3", type: "single",
+        prompt: "Which experimental setup lets you validly claim “Model B performs better than Model A”?",
+        choices: [
+          { text: "Train both models on the same dataset, evaluate both with the same metrics and the same held-out test set, and change only the model.", correct: true },
+          { text: "Train Model A on a small clean dataset and Model B on a large noisy dataset, then compare their accuracy.", correct: false },
+          { text: "Use a different confusion matrix layout for each model so each looks its best.", correct: false },
+          { text: "Compare Model A's validation score to Model B's test score.", correct: false },
+        ],
+        explain: "A fair, attributable comparison changes exactly one variable — here, the model — while holding the dataset and evaluation protocol constant." },
+      { lo: "HO-3.3.3", k: "K2", type: "multi",
+        prompt: "Given the same dataset, which of the following commonly explain why a small neural network takes noticeably longer to train than logistic regression (select all that apply)?",
+        choices: [
+          { text: "It typically has many more parameters (weights and biases) to adjust.", correct: true },
+          { text: "Training it usually requires more iterations (epochs) to converge.", correct: true },
+          { text: "It always requires less training data than logistic regression.", correct: false },
+          { text: "It can only be trained on categorical data.", correct: false },
+        ],
+        explain: "More parameters and more iterations both add computation per training run — data requirements and data type support aren't the reason for the slower training time." },
+      { lo: "HO-3.3.3", k: "K2", type: "single",
+        prompt: "Why can a model trained on a heavily imbalanced dataset show high overall accuracy but poor recall for the minority class?",
+        choices: [
+          { text: "Predicting the majority class most of the time already satisfies most of the data, so accuracy stays high while minority-class cases are frequently missed.", correct: true },
+          { text: "Imbalanced datasets always contain more label noise than balanced ones.", correct: false },
+          { text: "Accuracy cannot be calculated on an imbalanced dataset.", correct: false },
+          { text: "Imbalance only affects training time, never the resulting metrics.", correct: false },
+        ],
+        explain: "This is the accuracy-paradox pattern from Session 7 — accuracy alone hides how the model is treating the minority class." },
+      { lo: "AI-3.1.1", k: "K1", type: "single",
+        prompt: "What does ML regression predict, as distinct from classification?",
+        choices: [
+          { text: "A continuous numeric value, such as a price or a temperature.", correct: true },
+          { text: "One of a fixed set of predefined categories.", correct: false },
+          { text: "A cluster assignment with no labels involved.", correct: false },
+          { text: "A binary true/false confusion-matrix outcome only.", correct: false },
+        ],
+        explain: "Classification assigns discrete categories; ML regression estimates a number on a continuous scale." },
+      { k: "K2", type: "single",
+        prompt: "Which statement correctly describes Mean Absolute Error (MAE)?",
+        choices: [
+          { text: "The average of the absolute differences between actual and predicted values, expressed in the same units as the target.", correct: true },
+          { text: "The square root of the average squared error.", correct: false },
+          { text: "The percentage of predictions that were exactly correct.", correct: false },
+          { text: "The largest single error observed across all predictions.", correct: false },
+        ],
+        explain: "MAE averages |actual − predicted| across all points — straightforward and in the target's own units." },
+      { k: "K2", type: "single",
+        prompt: "Why does RMSE typically penalize a few very large errors more heavily than MAE does?",
+        choices: [
+          { text: "Because errors are squared before averaging, so large errors contribute disproportionately more before the final square root is taken.", correct: true },
+          { text: "Because RMSE ignores small errors entirely.", correct: false },
+          { text: "Because RMSE is always calculated on a smaller sample than MAE.", correct: false },
+          { text: "There is no real difference — RMSE and MAE always produce the same value.", correct: false },
+        ],
+        explain: "Squaring amplifies large errors far more than small ones (a miss of 10 contributes 100 to the sum vs. a miss of 1 contributing 1), which is why RMSE reacts more strongly to outliers." },
+      { k: "K3", type: "single",
+        prompt: "Two actual/predicted pairs are (actual=10, predicted=12) and (actual=20, predicted=15). What is the MAE?",
+        choices: [
+          { text: "3.5", correct: true },
+          { text: "2.0", correct: false },
+          { text: "5.0", correct: false },
+          { text: "7.0", correct: false },
+        ],
+        explain: "Errors: |10−12|=2 and |20−15|=5. MAE = (2 + 5) / 2 = 3.5." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s08", passPct: 65 });
+  });
+</script>
+</body>
+</html>

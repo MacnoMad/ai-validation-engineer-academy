@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 2 · The AI Landscape — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 2 · Chapter 1 — Introduction to AI (part 1 of 2)</div>
+  <h1>The AI Landscape</h1>
+  <p class="lede">Today you're building the vocabulary everything else in this course leans on: what actually
+    makes a system "AI-based," the capability spectrum from narrow to super AI, the family tree of AI
+    technologies, and what's really happening inside generative AI.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">LOs: AI-1.1.1 – AI-1.1.4</span>
+    <span class="chip">Exam weight: part of 6 questions for Chapter 1</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">AI-based system</span><span class="kw">artificial intelligence</span>
+    <span class="kw">narrow AI</span><span class="kw">general AI</span><span class="kw">super AI</span>
+    <span class="kw">machine learning</span>
+  </div>
+
+  <h2>1. AI-based systems vs. conventional systems</h2>
+  <p>A conventional system is <strong>programmed</strong>: a developer writes explicit, step-by-step instructions
+    — <code>if</code>, <code>else</code>, loops — and the same input always produces the same output. An
+    AI-based system, particularly one built on machine learning, is <strong>trained</strong>: instead of coding
+    the rules directly, you show it examples and it infers the patterns itself, then applies those patterns to
+    new inputs it has never seen.</p>
+
+  <table class="data">
+    <thead><tr><th>Dimension</th><th>Conventional system</th><th>AI-based system (typical ML)</th></tr></thead>
+    <tbody>
+      <tr><td>How behavior is defined</td><td>Explicit rules written by developers</td><td>Patterns learned from training data</td></tr>
+      <tr><td>Predictability</td><td>Deterministic — same input, same output</td><td>Often probabilistic — outputs can vary or carry a confidence level</td></tr>
+      <tr><td>Explainability</td><td>You can read the source and trace the logic</td><td>Can be a "black box," especially deep learning with millions/billions of parameters</td></tr>
+      <tr><td>Adaptability</td><td>Static until a developer manually changes the code</td><td>Can self-learn and keep improving as it sees new data</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">Why this matters for testing</strong>
+      A black-box, adaptive system is exactly why AI testing needs statistical thinking (Session 11) and ongoing
+      monitoring (Session 3, Session 19) — you can't just "read the code" to know it's correct, and correctness
+      measured today might not hold tomorrow.
+    </div>
+  </div>
+
+  <h2>2. Narrow AI, General AI, and Super AI</h2>
+  <p>Every AI-based system that exists in production today — the recommendation engine, the chatbot, the fraud
+    detector — is <strong>narrow AI</strong>. It's what the other two categories are defined in contrast to.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: the AI capability spectrum</span></div>
+    <div class="lab-sub">Click each stage to read what distinguishes it. Only one of these three exists today.</div>
+    <div id="spectrum" style="display:flex; gap:.6rem; flex-wrap:wrap; margin:1rem 0;"></div>
+    <div class="readout" id="spectrum-readout">Click a stage above to begin.</div>
+  </div>
+
+  <p>Two more terms sit inside this spectrum worth knowing precisely:</p>
+  <ul>
+    <li><strong>Frontier AI</strong> — a subset of narrow AI: today's most advanced, large-scale generative AI
+      models. Highly capable and increasingly autonomous, but still task-specific — not general intelligence.</li>
+    <li><strong>Technological singularity</strong> — the hypothetical point at which AI would cross from general
+      AI into super AI. No system has reached general AI, so this remains theoretical.</li>
+  </ul>
+
+  <h2>3. The AI technology family tree</h2>
+  <p>"AI" is an umbrella term. Machine learning is one branch of it; deep learning is a branch of machine
+    learning; and several other technology families sit alongside ML entirely. Explore the tree below — click
+    any node.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: AI technology families</span></div>
+    <div class="lab-sub">This is the map Chapter 3 zooms into for machine learning specifically.</div>
+    <div id="tech-tree"></div>
+    <div class="readout" id="tech-readout">Click a technology above to see what it's used for.</div>
+  </div>
+
+  <h2>4. Generative AI, up close</h2>
+  <p>Generative AI (GenAI) systems are specialized in <strong>creating</strong> new content — text, images,
+    video, music, or complex data — rather than only classifying or predicting. Three technologies power most of
+    today's GenAI:</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Generative Adversarial Networks (GANs)</strong>
+      <p class="small" style="margin-top:.4rem;">Two neural networks compete: a <em>generator</em> creates fake
+        samples, a <em>discriminator</em> tries to catch them. Each makes the other better until the generator's
+        output is convincingly realistic.</p>
+    </div>
+    <div class="card">
+      <strong>Diffusion models</strong>
+      <p class="small" style="margin-top:.4rem;">Start from pure noise and gradually remove it, step by step,
+        guided by what the model learned about real data — the reverse of gradually adding noise to a real image
+        during training.</p>
+    </div>
+    <div class="card">
+      <strong>Transformers</strong>
+      <p class="small" style="margin-top:.4rem;">Use a "self-attention" mechanism to weigh how relevant every
+        other word (or pixel) is to the one being generated — the backbone of large language models (LLMs) and
+        increasingly of image/video models too.</p>
+    </div>
+    <div class="card">
+      <strong>Foundation &amp; multimodal models</strong>
+      <p class="small" style="margin-top:.4rem;">Most practical GenAI tools start from a large general-purpose
+        "foundation model" that's then fine-tuned for a specific job. The field is moving toward multimodal
+        models that handle text, image, and audio together.</p>
+    </div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: watch a GAN converge</span></div>
+    <div class="lab-sub">A simplified, illustrative animation of adversarial training — not a real model, but the
+      dynamic is accurate: as the generator improves, the discriminator's job gets harder.</div>
+    <div class="controls">
+      <button class="btn btn-primary" id="gan-run">▶ Run training</button>
+      <button class="btn btn-ghost" id="gan-reset">Reset</button>
+      <span class="small" id="gan-epoch">Epoch 0</span>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:.6rem; max-width:420px;">
+      <div>
+        <div class="small">Generator: how realistic its fakes look (0–100)</div>
+        <div class="progress-bar"><span id="gan-gen-fill" style="width:5%; background:linear-gradient(90deg,var(--accent-2),var(--accent));"></span></div>
+      </div>
+      <div>
+        <div class="small">Discriminator: how often it correctly spots a fake (0–100)</div>
+        <div class="progress-bar"><span id="gan-disc-fill" style="width:95%;"></span></div>
+      </div>
+    </div>
+    <div class="readout" id="gan-readout" style="margin-top:.9rem;">Press "Run training" to start.</div>
+  </div>
+
+  <h3>The concerns this raises</h3>
+  <p>GenAI's ability to create convincing synthetic content cuts both ways. As a tester, three areas belong on
+    your radar specifically because they're testable risks, not just ethical footnotes:</p>
+  <ul>
+    <li><strong>Misuse potential</strong> — deepfakes, misinformation, and fraudulent content that erode trust in
+      digital media. This is a big part of why <strong>red teaming</strong> (Session 12) exists as a testing
+      discipline.</li>
+    <li><strong>Workforce impact</strong> — automation of writing, design, coding, and documentation tasks raises
+      real questions about displacement vs. augmentation.</li>
+    <li><strong>Sustainability</strong> — training and running large GenAI models consumes significant compute,
+      energy, and carbon budget, which is increasingly part of "quality" conversations at an organizational
+      level.</li>
+  </ul>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s02");
+    App.buildSessionNav("session-nav", "s02");
+    App.wireMarkComplete("mark-complete", "s02");
+
+    // ---- Spectrum interactive ----
+    const stages = [
+      { name: "Narrow AI", tag: "Exists today", desc: "Designed to perform specific tasks — image recognition, translation, fraud detection. Highly efficient within its domain, but can't generalize beyond what it was built or trained for. Every deployed AI system today is narrow AI. Frontier AI (today's most advanced GenAI) is a subset of narrow AI." },
+      { name: "General AI", tag: "Hypothetical", desc: "Would perform most intellectual tasks a human can, learning and reasoning across domains without needing retraining for each new task. No AI-based system today possesses general intelligence." },
+      { name: "Super AI", tag: "Hypothetical", desc: "Would continuously improve itself beyond human control, surpassing both human intelligence and general AI. The shift from general to super AI, if it happened, is called the technological singularity." },
+    ];
+    const specEl = document.getElementById("spectrum");
+    stages.forEach((s, i) => {
+      const btn = document.createElement("button");
+      btn.className = "btn btn-ghost";
+      btn.style.cssText = "flex:1; min-width:150px; flex-direction:column; align-items:flex-start; gap:.2rem;";
+      btn.innerHTML = `<span style="font-weight:800;">${i+1}. ${s.name}</span><span class="small">${s.tag}</span>`;
+      btn.addEventListener("click", () => {
+        document.getElementById("spectrum-readout").innerHTML = `<strong>${s.name}:</strong> ${s.desc}`;
+        specEl.querySelectorAll("button").forEach(b => b.style.borderColor = "var(--border)");
+        btn.style.borderColor = "var(--accent)";
+      });
+      specEl.appendChild(btn);
+    });
+
+    // ---- Tech tree interactive ----
+    const techs = [
+      { group: "Machine Learning", items: [
+        { name: "Supervised learning", desc: "Learns from labeled data using algorithms like linear regression and decision trees — used for prediction and classification." },
+        { name: "Unsupervised learning", desc: "Finds patterns in unlabeled data, typically through clustering algorithms." },
+        { name: "Reinforcement learning", desc: "An agent learns optimal behavior through trial-and-error interaction with an environment, guided by rewards." },
+      ]},
+      { group: "Deep Learning", items: [
+        { name: "CNN (Convolutional Neural Network)", desc: "Highly effective for image recognition and object detection." },
+        { name: "RNN (Recurrent Neural Network)", desc: "Specializes in sequential data such as text or time series." },
+        { name: "Transformer", desc: "Handles long-range dependencies in sequences using self-attention — powers modern LLMs and vision transformers." },
+      ]},
+      { group: "Other AI technology families", items: [
+        { name: "NLP (Natural Language Processing)", desc: "Language analysis tasks like sentiment analysis and machine translation." },
+        { name: "Computer vision", desc: "Analyzing visual data — facial recognition, robotics." },
+        { name: "Fuzzy logic", desc: "Reasoning under uncertainty, using degrees of truth rather than strict true/false." },
+        { name: "Search algorithms", desc: "Solving optimization problems — navigation, strategic decision-making." },
+        { name: "Rule-based / expert systems", desc: "Structured decision support built from explicit rules, not learned patterns." },
+        { name: "Agentic AI", desc: "Autonomous agents that plan, reason, and act independently to achieve goals in dynamic environments — often built on top of LLMs." },
+      ]},
+    ];
+    const treeEl = document.getElementById("tech-tree");
+    techs.forEach(g => {
+      const gwrap = document.createElement("div");
+      gwrap.style.marginBottom = ".8rem";
+      const gtitle = document.createElement("div");
+      gtitle.className = "small";
+      gtitle.style.cssText = "font-weight:800; text-transform:uppercase; letter-spacing:.04em; margin-bottom:.4rem;";
+      gtitle.textContent = g.group;
+      gwrap.appendChild(gtitle);
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex; flex-wrap:wrap; gap:.5rem;";
+      g.items.forEach(t => {
+        const chip = document.createElement("button");
+        chip.className = "chip";
+        chip.style.cssText = "cursor:pointer; font-weight:700;";
+        chip.textContent = t.name;
+        chip.addEventListener("click", () => {
+          document.getElementById("tech-readout").innerHTML = `<strong>${t.name}:</strong> ${t.desc}`;
+        });
+        row.appendChild(chip);
+      });
+      gwrap.appendChild(row);
+      treeEl.appendChild(gwrap);
+    });
+
+    // ---- GAN convergence animation ----
+    let ganTimer = null, epoch = 0, genScore = 5, discScore = 95;
+    const genFill = document.getElementById("gan-gen-fill");
+    const discFill = document.getElementById("gan-disc-fill");
+    const readout = document.getElementById("gan-readout");
+    const epochLbl = document.getElementById("gan-epoch");
+    function ganStep() {
+      epoch++;
+      genScore = Math.min(92, genScore + (8 + Math.random() * 6));
+      discScore = Math.max(52, discScore - (4 + Math.random() * 5) + Math.random() * 2);
+      genFill.style.width = genScore.toFixed(0) + "%";
+      discFill.style.width = discScore.toFixed(0) + "%";
+      epochLbl.textContent = `Epoch ${epoch}`;
+      if (epoch >= 12 || genScore >= 90) {
+        clearInterval(ganTimer); ganTimer = null;
+        readout.textContent = `Training stabilized around epoch ${epoch}: the generator's fakes are realistic enough that the discriminator is barely better than a coin flip. This is the point a GAN is considered well-trained.`;
+        document.getElementById("gan-run").disabled = false;
+        document.getElementById("gan-run").textContent = "▶ Run training";
+      } else {
+        readout.textContent = `The generator is improving (${genScore.toFixed(0)}/100 realism) which is making the discriminator's job harder (${discScore.toFixed(0)}/100 detection rate).`;
+      }
+    }
+    document.getElementById("gan-run").addEventListener("click", (e) => {
+      if (ganTimer) return;
+      e.target.disabled = true;
+      ganTimer = setInterval(ganStep, 550);
+    });
+    document.getElementById("gan-reset").addEventListener("click", () => {
+      clearInterval(ganTimer); ganTimer = null; epoch = 0; genScore = 5; discScore = 95;
+      genFill.style.width = "5%"; discFill.style.width = "95%";
+      epochLbl.textContent = "Epoch 0";
+      readout.textContent = 'Press "Run training" to start.';
+      document.getElementById("gan-run").disabled = false;
+      document.getElementById("gan-run").textContent = "▶ Run training";
+    });
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AI-1.1.1", k: "K2", type: "single",
+        prompt: "What is the key difference in how conventional systems and AI-based systems determine their behavior?",
+        choices: [
+          { text: "Conventional systems follow explicit, developer-written rules; AI-based systems learn patterns from data.", correct: true },
+          { text: "AI-based systems are always written in Python.", correct: false },
+          { text: "Conventional systems cannot process numeric data.", correct: false },
+          { text: "There is no real difference once a system is deployed.", correct: false },
+        ],
+        explain: "This is the foundational distinction: rule-based determinism vs. learned, data-driven behavior." },
+      { lo: "AI-1.1.1", k: "K2", type: "multi",
+        prompt: "Which of the following are commonly cited challenges specific to AI-based systems (select all that apply)?",
+        choices: [
+          { text: "Limited explainability / “black-box” behavior", correct: true },
+          { text: "Outputs that are not always predictable", correct: true },
+          { text: "Needing continuous monitoring for adaptive systems", correct: true },
+          { text: "Being fundamentally impossible to test", correct: false },
+        ],
+        explain: "Explainability, unpredictability, and the need for ongoing monitoring are real challenges — but AI-based systems absolutely can and must be tested; that's this entire course." },
+      { lo: "AI-1.1.2", k: "K2", type: "single",
+        prompt: "Which statement about narrow AI is correct?",
+        choices: [
+          { text: "It represents every AI-based system currently deployed in the real world.", correct: true },
+          { text: "It can generalize to any task without retraining.", correct: false },
+          { text: "It has surpassed human intelligence.", correct: false },
+          { text: "It is the same thing as super AI.", correct: false },
+        ],
+        explain: "All AI-based systems in production today are narrow AI — task-specific, not generally intelligent." },
+      { lo: "AI-1.1.2", k: "K2", type: "single",
+        prompt: "What is “Frontier AI” best described as?",
+        choices: [
+          { text: "A subset of narrow AI representing today's most advanced, large-scale GenAI systems.", correct: true },
+          { text: "A synonym for general AI.", correct: false },
+          { text: "Hardware designed only for AI training.", correct: false },
+          { text: "A regulatory classification defined by the EU AI Act.", correct: false },
+        ],
+        explain: "Frontier AI is still narrow (task-specific), just highly advanced and increasingly autonomous within that scope." },
+      { lo: "AI-1.1.2", k: "K2", type: "single",
+        prompt: "What is the “technological singularity”?",
+        choices: [
+          { text: "The hypothetical point where AI transitions from general AI to super AI.", correct: true },
+          { text: "The moment a neural network finishes training.", correct: false },
+          { text: "A specific benchmark score on an ML performance metric.", correct: false },
+          { text: "The point at which an AI model is first deployed to production.", correct: false },
+        ],
+        explain: "It's a theoretical threshold, not something that has occurred — no system has reached general AI yet." },
+      { lo: "AI-1.1.3", k: "K2", type: "multi",
+        prompt: "Which of these are types of machine learning (select all that apply)?",
+        choices: [
+          { text: "Supervised learning", correct: true },
+          { text: "Unsupervised learning", correct: true },
+          { text: "Reinforcement learning", correct: true },
+          { text: "Fuzzy logic", correct: false },
+        ],
+        explain: "Fuzzy logic is a separate AI technology family (reasoning under uncertainty) — it isn't one of the three forms of machine learning." },
+      { lo: "AI-1.1.3", k: "K2", type: "single",
+        prompt: "Which deep learning architecture is most associated with processing sequential data like text or time series?",
+        choices: [
+          { text: "RNN (Recurrent Neural Network)", correct: true },
+          { text: "CNN (Convolutional Neural Network)", correct: false },
+          { text: "A decision tree", correct: false },
+          { text: "A support vector machine", correct: false },
+        ],
+        explain: "RNNs specialize in sequences; CNNs are the ones most associated with image recognition." },
+      { lo: "AI-1.1.4", k: "K2", type: "single",
+        prompt: "In a Generative Adversarial Network (GAN), what is the role of the discriminator?",
+        choices: [
+          { text: "To try to distinguish generated (fake) samples from real ones, pushing the generator to improve.", correct: true },
+          { text: "To generate the synthetic content directly.", correct: false },
+          { text: "To label the training dataset before training begins.", correct: false },
+          { text: "To remove noise from an image step by step.", correct: false },
+        ],
+        explain: "The generator creates fakes; the discriminator tries to catch them. Their competition is what drives both to improve." },
+      { lo: "AI-1.1.4", k: "K2", type: "single",
+        prompt: "How do diffusion models generate content?",
+        choices: [
+          { text: "By starting from noise and progressively removing it to reveal a coherent output.", correct: true },
+          { text: "By pitting two competing neural networks against each other.", correct: false },
+          { text: "By applying only hand-written image-editing rules.", correct: false },
+          { text: "By memorizing and replaying exact training images.", correct: false },
+        ],
+        explain: "Diffusion models learn to reverse a noise-adding process, generating new content by denoising step by step." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s02", passPct: 65 });
+  });
+</script>
+</body>
+</html>

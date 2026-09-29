@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 17 · Model Risks, Documentation &amp; Review — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 17 · Chapter 6 — Model Testing for Machine Learning Systems (part 1 of 4)</div>
+  <h1>Model Risks, Documentation &amp; Review</h1>
+  <p class="lede">You've spent Sessions 14–16 testing the <em>data</em> going into a machine learning system. Now the
+    lens shifts to the <em>model</em> itself: the catalog of things that specifically go wrong once data has been
+    turned into a trained model, and why the paperwork that describes that model is one of the highest-leverage
+    testing artifacts you'll ever review.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">LOs: AI-6.1.1 – AI-6.1.2</span>
+    <span class="chip">🎯 Chapter 6 carries the heaviest exam weight of any chapter: 9 of 40 questions</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">model risk</span><span class="kw">risk mitigation</span><span class="kw">reward hacking</span>
+    <span class="kw">side-effects testing</span><span class="kw">ethical system testing</span>
+    <span class="kw">model card</span><span class="kw">datasheet for datasets</span>
+    <span class="kw">documentation review</span><span class="kw">transparency</span>
+  </div>
+
+  <h2>1. Why Model Testing is the biggest chapter in this course</h2>
+  <p>Nine of the exam's 40 reference questions map to this single chapter — more than any other topic area, and
+    more than double the weight of Chapters 2 or 7. That's not an accident of syllabus design; it reflects where
+    the real risk concentrates in a machine learning system's lifecycle. Data can be clean, the pipeline can be
+    solid, and the model can <em>still</em> be biased, brittle, undocumented, or trivially foolable by an attacker.
+    Sessions 17–20 (four full sessions, this being the first) exist to make sure you can catch all of that.</p>
+
+  <div class="callout tip">
+    <div class="icon">🗺</div>
+    <div class="body">
+      <strong class="title">Where this session sits</strong>
+      Today covers 6.1.1 (the model risk catalog) and 6.1.2 (model documentation and review). Session 18 covers
+      statistical performance testing and adversarial testing. Session 19 covers metamorphic testing, drift, and
+      over/underfitting. Session 20 covers A/B and back-to-back testing, then reviews the whole chapter.
+    </div>
+  </div>
+
+  <h2>2. Model risks are a different surface than data risks</h2>
+  <p>It's worth being precise about the boundary here, because the exam will test it. Chapter 5 (Sessions 14–16)
+    dealt with risks that live <strong>upstream</strong> of the model — bad labels, unrepresentative samples, a
+    leaky pipeline, a poorly constrained dataset. Chapter 6 deals with risks that live <strong>in the model
+    itself</strong> (and in how it's operated and documented) once training is done: a model that has memorized
+    its training set instead of learning to generalize, a model that can be fooled by a handful of altered pixels,
+    a model nobody documented well enough to safely deploy or roll back.</p>
+  <p>The two surfaces interact constantly — biased data produces a biased model — but the <em>test approach</em>
+    differs. Testing for bias in a dataset (5.1.2) is a data-testing activity; testing whether the resulting model
+    <em>behaves</em> fairly across groups is a model-testing activity. Keep that distinction in mind as you work
+    through the risk catalog below.</p>
+
+  <h2>3. The ML model risk catalog</h2>
+  <p>The syllabus organizes model-specific risks into three broad families: <strong>functional risks</strong>
+    (the model doesn't do its job correctly), <strong>non-functional risks</strong> (the model does its job, but
+    poorly — slow, fragile, unsafe), and <strong>deployment/lifecycle risks</strong> (things break when the model
+    ships or changes). Each risk in the syllabus is paired with at least one mitigating test approach — several of
+    which are their own future sessions.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: risk → mitigation explorer</span></div>
+    <div class="lab-sub">Click a risk to see its official mitigation(s) and which future session covers the
+      technique. This is the exact risk table the syllabus uses — memorize the shape of it, not just the words.</div>
+    <div id="risk-groups"></div>
+    <div class="readout" id="risk-readout">Click a risk chip above to see its mitigation.</div>
+  </div>
+
+  <h2>4. Two risks worth a closer look: reward hacking and side-effects</h2>
+  <p>Most of the risk catalog is intuitive once you've met the mitigation technique (overfitting → session 19,
+    adversarial examples → session 18, drift → session 19). Two entries are easy to gloss over but come up in
+    real reinforcement-learning and agentic-AI deployments, so they're worth sitting with:</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Reward hacking</strong>
+      <p class="small" style="margin-top:.4rem;">A model — typically one trained with reinforcement learning —
+        finds an unintended shortcut that maximizes its reward signal without actually achieving the goal the
+        reward was meant to represent. Classic example: an agent rewarded for "finishing the race quickly" learns
+        to spin in a small circle through a bonus-point zone instead of racing to the finish line. The reward
+        number goes up; the actual objective is not met. <strong>Reward hacking testing</strong> means designing
+        scenarios that probe for this gap between the proxy metric and the true goal.</p>
+    </div>
+    <div class="card">
+      <strong>Side-effects</strong>
+      <p class="small" style="margin-top:.4rem;">A model achieves its stated goal but causes unintended, often
+        harmful, changes to its environment along the way — a warehouse-routing model that hits its delivery
+        target by damaging fragile stock, or a resource-allocation agent that starves a low-priority but still
+        important process. <strong>Side-effects testing</strong> deliberately looks beyond the primary success
+        metric at everything else the model's actions touched.</p>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">Why these matter more every year</strong>
+      Reward hacking and side-effects were historically niche reinforcement-learning concerns. As agentic AI
+      (Session 2) takes real actions in real systems — placing orders, editing files, calling APIs — both risks
+      move from "interesting edge case" to "things that can cause real damage in production."
+    </div>
+  </div>
+
+  <h2>5. Why model documentation is a testing concern, not just paperwork</h2>
+  <p>With conventional software, you can always fall back on reading the source code to understand what a system
+    does. Machine learning systems take that option away, or at least make it much less useful: the model's
+    "logic" is encoded in millions or billions of learned parameters, not in something a human can trace line by
+    line. Add to that the fact that models are frequently retrained and redeployed, and documentation stops being
+    a nice-to-have — it becomes the <strong>primary tool</strong> developers, testers, and regulators have for
+    understanding, evaluating, and trusting the system at all.</p>
+
+  <div class="callout tip">
+    <div class="icon">🔗</div>
+    <div class="body">
+      <strong class="title">Tying back to Session 4</strong>
+      Session 4 will introduce <strong>Transparency</strong> as one of ISO/IEC 25059's AI-specific quality
+      characteristics: the degree to which appropriate information about an AI-based system is communicated to
+      its stakeholders. Model documentation — and reviewing it — is the concrete mechanism by which transparency
+      actually gets delivered. When you review a model card for completeness, you are directly testing this
+      quality characteristic, not doing something adjacent to it.
+    </div>
+  </div>
+
+  <p>There's also a hard regulatory edge to this. Frameworks such as the <strong>EU AI Act</strong> impose
+    transparency obligations that require clear documentation of a model's decisions, limitations, and
+    interpretability measures. For high-risk AI systems, passing a documentation audit can be a legal
+    prerequisite for deployment — which means a documentation review isn't just quality assurance, it can be a
+    compliance gate.</p>
+
+  <h2>6. Two standard documentation frameworks</h2>
+  <div class="grid-2">
+    <div class="card">
+      <strong>Model Cards</strong>
+      <p class="small" style="margin-top:.4rem;">A concise, standardized overview of a specific trained model:
+        what it's intended to be used for, how it performed during evaluation, and what ethical considerations
+        apply. Think of it as the model's "nutrition label" — short enough that a non-specialist stakeholder can
+        skim it and understand what they're trusting.</p>
+    </div>
+    <div class="card">
+      <strong>Datasheets for Datasets</strong>
+      <p class="small" style="margin-top:.4rem;">A standardized format for describing a <em>dataset</em> rather
+        than a model — its motivation, composition, collection process, and intended uses. It's the data-side
+        counterpart to a model card, and the two are usually read together: a model card that references a
+        well-documented dataset is far more trustworthy than one that doesn't.</p>
+    </div>
+  </div>
+
+  <h2>7. What comprehensive ML model documentation should contain</h2>
+  <p>The syllabus lays out eight categories of documentation content. Treat this as a checklist you can literally
+    run against any model card you're handed — in fact, that's exactly what the lab at the end of this session
+    asks you to do.</p>
+
+  <table class="data">
+    <thead><tr><th>Category</th><th>Typical contents</th></tr></thead>
+    <tbody>
+      <tr><td><strong>General</strong></td><td>Identifiers, description, developer, version, date, contact, license, hardware needs</td></tr>
+      <tr><td><strong>Design</strong></td><td>Assumptions, technical decisions, the ML algorithm used</td></tr>
+      <tr><td><strong>Usage</strong></td><td>Intended purpose, primary/secondary uses, users, self-learning approach, bias, ethics, safety, transparency, thresholds, platform, data drift, concept drift</td></tr>
+      <tr><td><strong>Datasets</strong></td><td>Features, source, collection, availability, preprocessing, use, content, labels, size, privacy, security, bias/fairness, restrictions</td></tr>
+      <tr><td><strong>Testing</strong></td><td>Test dataset details, independence of testing, test results, test activities (functional, adversarial, etc.)</td></tr>
+      <tr><td><strong>Functional</strong></td><td>Performance measures, validation dataset, thresholds, actual performance</td></tr>
+      <tr><td><strong>Non-Functional</strong></td><td>Scalability, reliability, availability, performance efficiency (latency, resource utilization), maintainability, AI robustness</td></tr>
+      <tr><td><strong>Operational</strong></td><td>Deployment plan/environment, computational resources, monitoring metrics/alerts, retraining strategy, update/rollback plan, deprecation plan, security (adversarial risks), explainability methods</td></tr>
+    </tbody>
+  </table>
+
+  <h2>8. Documentation review as a core testing activity</h2>
+  <p>Reviewing documentation against a checklist like the one above isn't a bureaucratic side-quest — it's listed
+    in the syllabus as a direct mitigation for several risks, including "poor model documentation" itself and
+    contributing to catching "poor system requirements." As a reviewer, you're working toward five concrete
+    goals:</p>
+  <ul>
+    <li><strong>Find gaps</strong> — missing information, inaccuracies, and inconsistencies between what's
+      documented and what the model actually does.</li>
+    <li><strong>Improve clarity</strong> — flag sections that are technically present but unreadable or ambiguous
+      to their intended audience.</li>
+    <li><strong>Improve maintainability</strong> — identify where the documentation itself needs upkeep as the
+      model changes.</li>
+    <li><strong>Enable downstream work</strong> — verify there's enough detail here for testers and deployment
+      engineers to actually do their jobs from this document alone.</li>
+    <li><strong>Verify compliance</strong> — confirm relevant regulatory requirements (e.g., EU AI Act
+      transparency obligations) are actually satisfied, not just gestured at.</li>
+  </ul>
+
+  <div class="callout exam">
+    <div class="icon">🎯</div>
+    <div class="body">
+      <strong class="title">Exam angle</strong>
+      AI-6.1.2 asks you to explain the <em>purpose and focus</em> of reviewing ML model documentation — expect a
+      question that gives you a documentation gap (e.g., "no rollback plan is documented") and asks which review
+      goal or risk it maps to.
+    </div>
+  </div>
+
+  <h2>9. Lab: review the PulseGuard-ECG model card</h2>
+  <p>Below is a (fictional, deliberately imperfect) draft model card for a cardiac-anomaly detection model.
+    Read each section, then use the checklist to judge whether that documentation category is <strong>adequate</strong>
+    or <strong>needs work</strong> — exactly the judgment call a documentation reviewer makes. Check your review
+    against the answer key when you're done.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: documentation review simulator</span></div>
+    <div class="lab-sub">This is a "documentation review" test activity, not a quiz about facts — read the card,
+      form a judgment, then compare notes.</div>
+
+    <div id="card-sample" style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.2rem; font-size:.9rem;"></div>
+
+    <div id="review-checklist" style="margin-top:1.2rem;"></div>
+
+    <div class="controls">
+      <button class="btn btn-primary" id="review-check">Check my review</button>
+      <button class="btn btn-ghost" id="review-reset">Reset</button>
+      <span class="small" id="review-score"></span>
+    </div>
+    <div class="readout" id="review-readout">Mark each category above, then check your review.</div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s17");
+    App.buildSessionNav("session-nav", "s17");
+    App.wireMarkComplete("mark-complete", "s17");
+
+    // ---- Risk → mitigation explorer ----
+    const riskGroups = [
+      { group: "Functional risks", items: [
+        { name: "Biased or unfair model", mit: "Testing for bias (see Session 14, 5.1.2)." },
+        { name: "Unethical model", mit: "Ethical system testing." },
+        { name: "Adversarial examples", mit: "Adversarial testing (Session 18, 6.1.4)." },
+        { name: "Overfitted model", mit: "Testing for overfitting (Session 19, 6.1.8)." },
+        { name: "Underfitted model", mit: "Testing for underfitting (Session 19, 6.1.8)." },
+        { name: "Reward hacking", mit: "Reward hacking testing." },
+        { name: "Model causes side-effects", mit: "Side-effects testing." },
+        { name: "Failure to hit performance targets", mit: "ML functional performance testing (Session 18, 6.1.3) and metamorphic testing (Session 19, 6.1.5)." },
+        { name: "Test oracle problem / poor requirements", mit: "Metamorphic testing, back-to-back testing, A/B testing, requirements review, red teaming." },
+      ]},
+      { group: "Non-functional risks", items: [
+        { name: "Unacceptable data drift", mit: "Drift testing (Session 19, 6.1.7)." },
+        { name: "Unacceptable concept drift", mit: "Drift testing (Session 19, 6.1.7)." },
+        { name: "Lack of AI robustness to unexpected inputs", mit: "Exploratory testing, adversarial testing, fuzz testing." },
+        { name: "Inadequate performance efficiency", mit: "Performance testing." },
+      ]},
+      { group: "Deployment & lifecycle risks", items: [
+        { name: "Poor model documentation", mit: "Model documentation review (this session, 6.1.2), back-to-back testing, A/B testing, smoke testing." },
+        { name: "Model updates introduce defects / regress performance", mit: "Regression testing, red teaming." },
+        { name: "Deployment causes immediate failure or regression", mit: "Smoke testing, regression testing, back-to-back testing." },
+        { name: "Security / safety / privacy vulnerabilities", mit: "Adversarial testing, red teaming, dedicated security & privacy testing." },
+        { name: "Harmful or undesirable outputs", mit: "Red teaming, ethical system testing." },
+      ]},
+    ];
+    const riskEl = document.getElementById("risk-groups");
+    riskGroups.forEach(g => {
+      const gwrap = document.createElement("div");
+      gwrap.style.marginBottom = ".8rem";
+      const gtitle = document.createElement("div");
+      gtitle.className = "small";
+      gtitle.style.cssText = "font-weight:800; text-transform:uppercase; letter-spacing:.04em; margin-bottom:.4rem;";
+      gtitle.textContent = g.group;
+      gwrap.appendChild(gtitle);
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex; flex-wrap:wrap; gap:.5rem;";
+      g.items.forEach(r => {
+        const chip = document.createElement("button");
+        chip.className = "chip";
+        chip.style.cssText = "cursor:pointer; font-weight:700;";
+        chip.textContent = r.name;
+        chip.addEventListener("click", () => {
+          document.getElementById("risk-readout").innerHTML = `<strong>${r.name}:</strong> ${r.mit}`;
+          riskEl.querySelectorAll(".chip").forEach(c => c.style.borderColor = "var(--border)");
+          chip.style.borderColor = "var(--accent)";
+        });
+        row.appendChild(chip);
+      });
+      gwrap.appendChild(row);
+      riskEl.appendChild(gwrap);
+    });
+
+    // ---- Documentation review simulator ----
+    document.getElementById("card-sample").innerHTML = `
+      <h4 style="margin:.2rem 0;">PulseGuard-ECG v2.3 — Model Card (DRAFT)</h4>
+      <p class="small"><strong>General:</strong> ID PulseGuard-ECG-v2.3 · Developer: Frontlion CardioAI team ·
+        Version 2.3 · Released 2026-03-01 · Contact: ml-team@example.org · License: internal use only.</p>
+      <p class="small"><strong>Design:</strong> Gradient-boosted ensemble trained on 12-lead ECG waveform
+        features.</p>
+      <p class="small"><strong>Usage:</strong> "For use by cardiologists to flag possible arrhythmias."</p>
+      <p class="small"><strong>Datasets:</strong> 40,000 de-identified ECG recordings from three partner
+        hospitals (2021–2025). Preprocessing: bandpass filtering, R-peak normalization. Class balance:
+        18% positive / 82% negative, rebalanced via stratified sampling. Access restricted under a data-use
+        agreement; no raw patient identifiers retained.</p>
+      <p class="small"><strong>Testing:</strong> "Model was tested internally before release."</p>
+      <p class="small"><strong>Functional:</strong> 94% accuracy ±4% at a 95% confidence level on a held-out
+        test set of 601 recordings; recall prioritized over precision per clinical review board guidance.</p>
+      <p class="small" style="margin-bottom:0;"><strong>Non-Functional / Operational:</strong> "Runs in the
+        hospital's existing inference environment."</p>`;
+
+    const reviewItems = [
+      { cat: "General", verdict: "adequate", note: "Identifiers, developer, version, date, contact, and license are all present — this is the one category asked for that's fully covered. (Hardware needs are still missing, which a sharper review would flag, but the core fields are there.)" },
+      { cat: "Design", verdict: "needs-work", note: "The algorithm family is named, but there's no documentation of assumptions or the technical decisions behind choosing it — a reviewer can't tell why this architecture was picked or what alternatives were considered." },
+      { cat: "Usage", verdict: "needs-work", note: "One vague sentence. Missing: primary vs. secondary uses, who the users are precisely, self-learning approach, bias/ethics/safety notes, transparency statement, decision thresholds, and drift expectations — most of the required Usage content." },
+      { cat: "Datasets", verdict: "adequate", note: "Source, size, collection window, preprocessing, class balance, and privacy/access controls are all documented — a genuinely solid Datasets section." },
+      { cat: "Testing", verdict: "needs-work", note: "\"Tested internally\" tells a reviewer almost nothing: no statement of test-set independence from training data, no test activities listed (functional? adversarial?), and no link to actual results." },
+      { cat: "Functional", verdict: "adequate", note: "A real statistical result with a stated margin of error and confidence level, plus the metric priority rationale — this is exactly the level of detail 6.1.3 asks for." },
+      { cat: "Non-Functional", verdict: "needs-work", note: "No mention of latency, scalability, reliability, availability, or AI robustness — a single sentence about \"the existing environment\" says nothing about how the model performs under load or adverse conditions." },
+      { cat: "Operational", verdict: "needs-work", note: "No monitoring metrics/alerts, no retraining strategy, no update or rollback plan, no deprecation plan, and no explainability method — for a clinical model, this is the most concerning gap of all." },
+    ];
+    const checklistEl = document.getElementById("review-checklist");
+    reviewItems.forEach((it, i) => {
+      const row = document.createElement("div");
+      row.className = "card";
+      row.style.margin = ".6rem 0";
+      row.dataset.i = i;
+      row.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.6rem;">
+          <strong>${it.cat}</strong>
+          <div style="display:flex; gap:.5rem;">
+            <button class="btn btn-ghost review-btn" data-i="${i}" data-choice="adequate">✓ Adequate</button>
+            <button class="btn btn-ghost review-btn" data-i="${i}" data-choice="needs-work">⚠ Needs work</button>
+          </div>
+        </div>
+        <div class="explain" id="review-explain-${i}" style="margin-top:.6rem;"><strong>Assessment:</strong> ${it.note}</div>`;
+      checklistEl.appendChild(row);
+    });
+
+    const choices = {};
+    checklistEl.addEventListener("click", (e) => {
+      const btn = e.target.closest(".review-btn");
+      if (!btn) return;
+      const i = btn.dataset.i;
+      choices[i] = btn.dataset.choice;
+      checklistEl.querySelectorAll(`.review-btn[data-i="${i}"]`).forEach(b => b.classList.remove("btn-primary"));
+      btn.classList.add("btn-primary");
+    });
+
+    document.getElementById("review-check").addEventListener("click", () => {
+      let correct = 0;
+      reviewItems.forEach((it, i) => {
+        const row = checklistEl.querySelector(`.card[data-i="${i}"]`);
+        const explainEl = document.getElementById(`review-explain-${i}`);
+        const chosen = choices[i];
+        explainEl.style.display = "block";
+        if (chosen === it.verdict) {
+          correct++;
+          row.style.borderColor = "var(--success)";
+        } else if (chosen) {
+          row.style.borderColor = "var(--danger)";
+        } else {
+          row.style.borderColor = "var(--warning)";
+        }
+      });
+      const pct = Math.round((correct / reviewItems.length) * 100);
+      document.getElementById("review-score").textContent = `${correct} / ${reviewItems.length} matched (${pct}%)`;
+      document.getElementById("review-readout").innerHTML =
+        `<strong>Review complete.</strong> A real documentation review would now go back to the model's
+         developers with these gaps — most urgently the Operational section, since deploying a clinical model
+         with no monitoring, rollback, or deprecation plan is the kind of gap that should block release.`;
+    });
+
+    document.getElementById("review-reset").addEventListener("click", () => {
+      Object.keys(choices).forEach(k => delete choices[k]);
+      checklistEl.querySelectorAll(".review-btn").forEach(b => b.classList.remove("btn-primary"));
+      checklistEl.querySelectorAll(".card").forEach(c => c.style.borderColor = "var(--border)");
+      document.getElementById("review-score").textContent = "";
+      document.getElementById("review-readout").textContent = "Mark each category above, then check your review.";
+    });
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AI-6.1.1", k: "K2", type: "single",
+        prompt: "Which testing approach does the syllabus pair directly with the risk of adversarial examples?",
+        choices: [
+          { text: "Adversarial testing", correct: true },
+          { text: "Unit testing", correct: false },
+          { text: "Static code review", correct: false },
+          { text: "Regression testing", correct: false },
+        ],
+        explain: "Adversarial examples are mitigated specifically through adversarial testing, covered in depth in Session 18 (6.1.4)." },
+      { lo: "AI-6.1.1", k: "K2", type: "multi",
+        prompt: "Which of the following are risks that live specifically in the trained model, as opposed to the upstream data or pipeline (select all that apply)?",
+        choices: [
+          { text: "Overfitting", correct: true },
+          { text: "Underfitting", correct: true },
+          { text: "Reward hacking", correct: true },
+          { text: "A dataset collected with an unrepresentative sampling method", correct: false },
+        ],
+        explain: "Overfitting, underfitting, and reward hacking are model-behavior risks addressed in Chapter 6. Unrepresentative sampling is a data risk, addressed in Chapter 5 (Sessions 14–16)." },
+      { lo: "AI-6.1.1", k: "K2", type: "single",
+        prompt: "A reinforcement-learning agent trained to \"win races quickly\" learns to loop through a bonus checkpoint indefinitely instead of finishing the race, because that maximizes its score. What is this an example of?",
+        choices: [
+          { text: "Reward hacking", correct: true },
+          { text: "Concept drift", correct: false },
+          { text: "A side-effect", correct: false },
+          { text: "Underfitting", correct: false },
+        ],
+        explain: "The agent found an unintended shortcut that maximizes the reward signal without achieving the actual intended goal — the definition of reward hacking." },
+      { lo: "AI-6.1.1", k: "K2", type: "multi",
+        prompt: "\"Poor system requirements\" contributing to the test oracle problem is listed with several possible mitigations. Which of these does the syllabus list for it (select all that apply)?",
+        choices: [
+          { text: "Back-to-back testing", correct: true },
+          { text: "A/B testing", correct: true },
+          { text: "Requirements review", correct: true },
+          { text: "Drift testing", correct: false },
+        ],
+        explain: "Back-to-back testing, A/B testing, requirements review, and red teaming are all listed for poor system requirements. Drift testing addresses a different risk (unacceptable data/concept drift over time)." },
+      { lo: "AI-6.1.2", k: "K2", type: "single",
+        prompt: "Why is documentation especially critical for ML models compared to conventional software?",
+        choices: [
+          { text: "Source code can't be inspected the same way; the model is a black box, depends heavily on data, and changes frequently through retraining.", correct: true },
+          { text: "ML models don't have version numbers.", correct: false },
+          { text: "Conventional software is never documented.", correct: false },
+          { text: "Documentation is only required for open-source models.", correct: false },
+        ],
+        explain: "Limited understandability of the model's internals, its dependency on data, and frequent updates all make documentation the primary trust mechanism for ML systems." },
+      { lo: "AI-6.1.2", k: "K2", type: "single",
+        prompt: "What is a Model Card?",
+        choices: [
+          { text: "A concise, standardized overview of a specific model's intended uses, evaluation results, and ethical considerations.", correct: true },
+          { text: "A standardized description of a dataset's composition and collection process.", correct: false },
+          { text: "A legal contract governing model licensing.", correct: false },
+          { text: "A dashboard of live production monitoring metrics.", correct: false },
+        ],
+        explain: "That's a Datasheet for Datasets — the data-side counterpart. A Model Card documents the model itself." },
+      { lo: "AI-6.1.2", k: "K2", type: "multi",
+        prompt: "Which of these are among the eight documentation categories the syllabus lists for comprehensive ML model documentation (select all that apply)?",
+        choices: [
+          { text: "Operational (deployment, monitoring, rollback, deprecation plans)", correct: true },
+          { text: "Non-Functional (scalability, reliability, AI robustness)", correct: true },
+          { text: "Testing (independence of test set, test activities)", correct: true },
+          { text: "Marketing (investor pitch materials)", correct: false },
+        ],
+        explain: "General, Design, Usage, Datasets, Testing, Functional, Non-Functional, and Operational are the eight categories — marketing content is not one of them." },
+      { lo: "AI-6.1.2", k: "K2", type: "single",
+        prompt: "Which AI-specific quality characteristic (introduced in Session 4, from ISO/IEC 25059) is most directly delivered through thorough model documentation and its review?",
+        choices: [
+          { text: "Transparency", correct: true },
+          { text: "Functional adaptability", correct: false },
+          { text: "Intervenability", correct: false },
+          { text: "Societal and ethical risk mitigation", correct: false },
+        ],
+        explain: "Transparency is defined as the degree to which appropriate information about an AI-based system is communicated to stakeholders — documentation is the concrete delivery mechanism for it." },
+      { lo: "AI-6.1.2", k: "K2", type: "multi",
+        prompt: "What are the goals of reviewing ML model documentation, according to the syllabus (select all that apply)?",
+        choices: [
+          { text: "Identify missing information, inaccuracies, and inconsistencies", correct: true },
+          { text: "Verify relevant regulatory requirements have been met", correct: true },
+          { text: "Provide sufficient information for test and deployment activities", correct: true },
+          { text: "Replace the need for functional performance testing entirely", correct: false },
+        ],
+        explain: "Documentation review complements functional performance testing (Session 18) — it doesn't replace it. The other three are explicit goals from the syllabus." },
+      { lo: "AI-6.1.1", k: "K2", type: "single",
+        prompt: "Which risk → mitigation pairing below is correct, per the syllabus's risk catalog?",
+        choices: [
+          { text: "Biased or unfair model → testing for bias", correct: true },
+          { text: "Overfitted model → adversarial testing", correct: false },
+          { text: "Poor model documentation → drift testing", correct: false },
+          { text: "Unacceptable concept drift → testing for underfitting", correct: false },
+        ],
+        explain: "Bias is mitigated by testing for bias (5.1.2). Overfitting has its own dedicated mitigation (testing for overfitting, 6.1.8); poor documentation is mitigated by documentation review and related techniques; concept drift is mitigated by drift testing (6.1.7) — each risk maps to its own specific technique, and mixing them up is a common exam trap." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s17", passPct: 65 });
+  });
+</script>
+</body>
+</html>

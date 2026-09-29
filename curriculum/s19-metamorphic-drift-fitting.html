@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 19 · Metamorphic Testing, Drift &amp; Over/Underfitting — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 19 · Chapter 6 — Model Testing for Machine Learning Systems (part 3 of 4)</div>
+  <h1>Metamorphic Testing, Drift &amp; the Overfitting/Underfitting Line</h1>
+  <p class="lede">Today you pick up a technique for the single hardest problem in AI testing — what do you check
+    when there's no "correct answer" to compare against — and then look at two ways a perfectly good model can
+    quietly stop being good: drifting away from reality, and having been fit to the wrong thing from the start.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k3">K2–K3 · Understand / Apply</span>
+    <span class="chip">LOs: AI-6.1.5, HO-6.1.6, AI-6.1.7, AI-6.1.8</span>
+    <span class="chip">Exam weight: part of 9 questions for Chapter 6 (the heaviest chapter)</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">metamorphic testing</span><span class="kw">metamorphic relation</span>
+    <span class="kw">source test case</span><span class="kw">follow-up test case</span>
+    <span class="kw">consistency</span><span class="kw">monotonicity</span><span class="kw">invariance</span>
+    <span class="kw">data drift</span><span class="kw">concept drift</span>
+    <span class="kw">dynamic drift testing</span><span class="kw">static drift testing</span>
+    <span class="kw">overfitting</span><span class="kw">underfitting</span><span class="kw">learning curve</span>
+  </div>
+
+  <h2>1. When there's no right answer to check against</h2>
+  <p>Most testing assumes you have, or can cheaply produce, an <strong>expected result</strong> — a test oracle.
+    For a lot of machine learning systems that assumption quietly breaks. Ask an image classifier to label a
+    photo of a rare bird species, or ask a large model to summarize a legal document, and there may be no
+    affordable, reliable way to know the single "correct" output in advance. The model itself is often the only
+    thing capable of producing that output at scale, which means you can't use it to check itself.</p>
+  <p><strong>Metamorphic testing (MT)</strong> sidesteps the problem entirely. Instead of asking "is this output
+    correct?", it asks a smaller, checkable question: "if I change the input in a known way, does the output
+    change the way it should?" You never need to know the absolute right answer — only the
+    <em>relationship</em> between two related test cases.</p>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div class="body">
+      <strong class="title">The core move</strong>
+      Start from a <strong>source test case</strong> (an input you already ran). Apply a small, deliberate change
+      to it to produce a <strong>follow-up test case</strong>. A <strong>metamorphic relation (MR)</strong>
+      describes what should happen to the output as a result — same class, a flipped class, a higher score, and
+      so on. If the model breaks that relation, you've found a defect, even though you never wrote down what the
+      "correct" output was supposed to be.
+    </div>
+  </div>
+
+  <p>MT works on almost any test object and both functional and non-functional characteristics. It's the
+    go-to technique whenever any of these are true:</p>
+  <ul>
+    <li>No reliable expected output exists, because the model is opaque or the input space is too vast to label by hand.</li>
+    <li>The system under test is a black box and you can't reason about its internals.</li>
+    <li>A relationship between outputs — not their exact values — is enough to build confidence.</li>
+  </ul>
+  <p>It's been used in practice for testing image recognition, search engines, route optimization, and voice
+    recognition — anywhere "run it and eyeball the answer" doesn't scale.</p>
+
+  <h2>2. The three kinds of relation you'll actually write</h2>
+  <p>An MR is grounded in domain knowledge, requirements, or a real-world property (a law of physics, a business
+    rule, common sense about language). Almost every MR you'll write for an AI-based system falls into one of
+    three testing objectives:</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Invariance</strong>
+      <p class="small" style="margin-top:.4rem;">The output should <strong>stay the same</strong> despite a
+        perturbation that shouldn't matter. Example: rotating a photo of a cat by 10° shouldn't change the
+        classifier's answer from "cat."</p>
+    </div>
+    <div class="card">
+      <strong>Consistency</strong>
+      <p class="small" style="margin-top:.4rem;">Two <strong>related-but-different</strong> inputs that express
+        the same underlying meaning should agree with each other. Example: two paraphrases of the same review,
+        worded completely differently, should get the same sentiment class.</p>
+    </div>
+    <div class="card" style="grid-column: 1 / -1;">
+      <strong>Monotonicity</strong>
+      <p class="small" style="margin-top:.4rem;">The output should change <strong>in a predictable direction</strong>
+        as the input changes in degree. Example: in a risk-assessment model predicting age at death, increasing
+        the number of cigarettes smoked per day should never <em>increase</em> the predicted age at death.</p>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">MT isn't magic</strong>
+      A wrong or incomplete MR — one that overlooks a real interaction between variables — gives you false
+      confidence: the relation looks like it holds, but you tested the wrong thing. MT also only catches
+      <em>relational</em> flaws, not every absolute error, so it's meant to sit alongside other techniques
+      (statistical performance testing, adversarial testing), not replace them.
+    </div>
+  </div>
+
+  <h2>3. Hands-on: build and judge a metamorphic relation</h2>
+  <p>This is the exercise the syllabus calls out by name (<span class="kw">HO-6.1.6</span>) — deriving MRs,
+    generating source and follow-up test cases, and running them to see whether the relation holds. Below is a
+    compressed version you can actually do: pick a system, pick a relation type, then judge each source/follow-up
+    pair for yourself before the tool reveals whether the model actually behaved.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: metamorphic relation builder</span></div>
+    <div class="lab-sub">Step 1 — choose a system under test.</div>
+    <div id="mt-scenario" style="display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:1rem;"></div>
+
+    <div class="lab-sub" id="mt-step2-label" style="display:none;">Step 2 — choose the kind of metamorphic relation to test.</div>
+    <div id="mt-mrtype" style="display:none; gap:.6rem; flex-wrap:wrap; margin-bottom:1rem;"></div>
+    <div class="readout" id="mt-mrdesc" style="display:none; margin-bottom:1rem;"></div>
+
+    <div id="mt-caseviewer" style="display:none;">
+      <div class="lab-sub" id="mt-pair-counter">Pair 1 of 3</div>
+      <div class="grid-2">
+        <div class="card">
+          <strong>Source test case (already run)</strong>
+          <p class="small" id="mt-source-in" style="margin-top:.5rem;"></p>
+          <p class="small" id="mt-source-out" style="margin-top:.3rem; font-weight:700;"></p>
+        </div>
+        <div class="card">
+          <strong>Follow-up test case (after the metamorphic change)</strong>
+          <p class="small" id="mt-follow-in" style="margin-top:.5rem;"></p>
+          <p class="small" id="mt-follow-out" style="margin-top:.3rem; font-weight:700;"></p>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn btn-primary" id="mt-judge-hold">✔ I predict: relation holds</button>
+        <button class="btn btn-ghost" id="mt-judge-violate">✘ I predict: relation violated</button>
+        <button class="btn btn-ghost" id="mt-next" style="display:none;">Next pair →</button>
+        <span class="small" id="mt-score">Judged: 0/0</span>
+      </div>
+      <div class="readout" id="mt-verdict" style="margin-top:.8rem;">Make your prediction above, then it will be checked against what the model actually did.</div>
+    </div>
+  </div>
+
+  <h2>4. Drift testing: when the world moves under the model</h2>
+  <p>A model that passed every test at release can still fail in production — not because it changed, but
+    because the world around it did. Drift testing is how you catch that on an operational system. There are two
+    distinct forms, and mixing them up is a common mistake:</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Data drift</strong>
+      <p class="small" style="margin-top:.4rem;">The statistical properties of the <em>input</em> data change
+        over time — the world sends the model different-looking inputs than it trained on. Example: a spam
+        filter starts seeing phishing techniques that didn't exist when it was trained.</p>
+    </div>
+    <div class="card">
+      <strong>Concept drift</strong>
+      <p class="small" style="margin-top:.4rem;">The <em>relationship</em> between input and correct output
+        changes over time — the meaning of the data shifts, so the model's learned decision boundary becomes
+        outdated. Example: new financial regulations reclassify a transaction type from "low-risk" to
+        "high-risk," even though the transactions themselves look the same as before.</p>
+    </div>
+  </div>
+
+  <p>Testing for either form comes in two flavors:</p>
+  <table class="data">
+    <thead><tr><th>Approach</th><th>How it works</th><th>Needs ground truth?</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Dynamic drift testing</strong></td>
+        <td>Compares the model's output against current ground truth from user feedback (direct, like a rating,
+          or indirect, like which recommendation the user actually watched), flagging when the gap crosses a
+          threshold.</td>
+        <td>Yes — relies on real, current feedback.</td>
+      </tr>
+      <tr>
+        <td><strong>Static drift testing</strong></td>
+        <td>Compares the statistical distribution of current input/output data against the original training
+          distribution (e.g. with a Kolmogorov–Smirnov test), without needing to know what's "correct."</td>
+        <td>No — distribution shift alone is the signal.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <div class="icon">🔗</div>
+    <div class="body">
+      <strong class="title">Ties back to the model risk table</strong>
+      "Unacceptable data drift" and "unacceptable concept drift" are both listed as ML model risks whose
+      mitigation is exactly this: drift testing. It's a monitoring activity as much as a pre-release one — the
+      whole point is that it keeps running after deployment.
+    </div>
+  </div>
+
+  <h2>5. Testing for overfitting and underfitting</h2>
+  <p>A trained model lands in one of three places: <strong>right-fitting</strong> (what you want), or one of two
+    failure modes on either side of it.</p>
+  <div class="grid-2">
+    <div class="card">
+      <strong>Overfitting</strong>
+      <p class="small" style="margin-top:.4rem;">The model learned the training data <em>too</em> well —
+        including its noise, not just its pattern — so it fails to generalize. Symptom: strong performance on
+        training/validation data, noticeably worse performance on a separate test dataset the model never saw
+        during tuning.</p>
+    </div>
+    <div class="card">
+      <strong>Underfitting</strong>
+      <p class="small" style="margin-top:.4rem;">The model is too simple, or the training data lacks the
+        features needed to capture the real relationship. Symptom: consistently poor performance metrics
+        (accuracy, precision, recall, F1) on <em>both</em> the training and validation sets — it never learned
+        the pattern in the first place.</p>
+    </div>
+  </div>
+  <p>Both should be tested for continuously — during training, evaluation, and tuning, not just once at the end.
+    The two main techniques are (1) evaluating performance metrics across training/validation/test splits and
+    comparing them, and (2) visually inspecting <strong>learning curves</strong>: plots of error against training
+    progress for both the training and validation sets.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: learning curve explorer</span></div>
+    <div class="lab-sub">Drag the slider to change model complexity and watch training error and validation
+      error diverge — or stay stubbornly high together.</div>
+    <div class="controls">
+      <label>Model complexity
+        <input type="range" id="fit-slider" min="1" max="10" step="1" value="1">
+      </label>
+      <span class="small" id="fit-complexity-label">Complexity: 1 (very simple model)</span>
+    </div>
+    <div id="fit-chart"></div>
+    <div class="readout" id="fit-readout" style="margin-top:.8rem;">Move the slider to begin.</div>
+  </div>
+
+  <div class="callout warn">
+    <div class="icon">🎯</div>
+    <div class="body">
+      <strong class="title">Read the gap, not just the number</strong>
+      A single accuracy number can't tell you which failure mode (if any) you're looking at. It's the
+      <em>relationship</em> between training-set and validation/test-set performance that diagnoses overfitting
+      vs. underfitting — which is exactly why this pairs conceptually with metamorphic testing earlier in this
+      session: you're reasoning about relationships between results, not absolute values alone.
+    </div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s19");
+    App.buildSessionNav("session-nav", "s19");
+    App.wireMarkComplete("mark-complete", "s19");
+
+    // ============================================================
+    // Metamorphic relation builder lab
+    // ============================================================
+    const MT_DATA = {
+      sentiment: {
+        label: "Sentiment classifier",
+        sub: "Reviews in, Positive / Negative / Neutral + confidence out.",
+        mrs: {
+          invariance: {
+            name: "Invariance",
+            desc: "Swapping a word for a close synonym shouldn't change the predicted class.",
+            pairs: [
+              { srcIn: "“The movie was great and the acting was superb.”", srcOut: "Positive (91%)",
+                fIn: "“The movie was fantastic and the acting was excellent.”", fOut: "Positive (89%)",
+                holds: true, note: "Class unchanged, confidence barely moved — expected under a synonym swap." },
+              { srcIn: "“The service was okay, nothing special.”", srcOut: "Neutral (54%)",
+                fIn: "“The service was fine, nothing special.”", fOut: "Negative (61%)",
+                holds: false, note: "A near-synonym swap flipped the class entirely — a genuine invariance violation, worth investigating as over-sensitivity to one token." },
+              { srcIn: "“Terrible food, I would not come back.”", srcOut: "Negative (95%)",
+                fIn: "“Awful food, I would not come back.”", fOut: "Negative (93%)",
+                holds: true, note: "Class held, confidence nearly identical — generalizes correctly across this synonym." },
+            ],
+          },
+          consistency: {
+            name: "Consistency",
+            desc: "Two differently-worded paraphrases of the same underlying opinion should agree with each other.",
+            pairs: [
+              { srcIn: "“I loved every minute of this book.”", srcOut: "Positive (94%)",
+                fIn: "“This book had me hooked from start to finish.”", fOut: "Positive (90%)",
+                holds: true, note: "Different wording, same meaning, same class — consistent." },
+              { srcIn: "“The hotel room was small but clean.”", srcOut: "Neutral (58%)",
+                fIn: "“A tidy little hotel room, nothing more.”", fOut: "Positive (72%)",
+                holds: false, note: "Same underlying opinion, but the paraphrase pushed the model to a different class — an inconsistency between two inputs that should agree." },
+              { srcIn: "“Customer support never resolved my issue.”", srcOut: "Negative (88%)",
+                fIn: "“I never got my issue fixed by their support team.”", fOut: "Negative (85%)",
+                holds: true, note: "Reworded, same class — consistent." },
+            ],
+          },
+          monotonicity: {
+            name: "Monotonicity",
+            desc: "Adding an intensifier before the sentiment word should push the confidence score further in the same direction, not less.",
+            pairs: [
+              { srcIn: "“The food was good.”", srcOut: "Positive (70%)",
+                fIn: "“The food was extremely good.”", fOut: "Positive (88%)",
+                holds: true, note: "Intensifying the language increased positive confidence — the expected direction." },
+              { srcIn: "“The wait time was bad.”", srcOut: "Negative (66%)",
+                fIn: "“The wait time was incredibly bad.”", fOut: "Negative (59%)",
+                holds: false, note: "Intensifying should have pushed confidence further negative, not pulled it back toward neutral — a monotonicity violation." },
+              { srcIn: "“The app is slow.”", srcOut: "Negative (61%)",
+                fIn: "“The app is unbearably slow.”", fOut: "Negative (84%)",
+                holds: true, note: "Stronger language, stronger negative confidence — holds." },
+            ],
+          },
+        },
+      },
+      vision: {
+        label: "Image classifier",
+        sub: "Photos in, an object label + confidence out.",
+        mrs: {
+          invariance: {
+            name: "Invariance",
+            desc: "A small rotation of the photo shouldn't change the predicted class.",
+            pairs: [
+              { srcIn: "Photo of a coffee mug, upright.", srcOut: "“Mug” (96%)",
+                fIn: "Same photo, rotated 10°.", fOut: "“Mug” (94%)",
+                holds: true, note: "A 10° tilt is exactly the kind of change a real camera introduces — class held." },
+              { srcIn: "Photo of a bicycle, side-on.", srcOut: "“Bicycle” (91%)",
+                fIn: "Same photo, rotated 15°.", fOut: "“Unicycle” (54%)",
+                holds: false, note: "A modest rotation flipped the label — the model may be relying on wheel alignment cues that shouldn't matter this much." },
+              { srcIn: "Photo of a cat, sitting.", srcOut: "“Cat” (98%)",
+                fIn: "Same photo, rotated 8°.", fOut: "“Cat” (97%)",
+                holds: true, note: "Class held under a small rotation." },
+            ],
+          },
+          consistency: {
+            name: "Consistency",
+            desc: "The same real-world object, photographed from two different but equally valid angles, should get the same label.",
+            pairs: [
+              { srcIn: "Front-facing photo of a delivery van.", srcOut: "“Van” (93%)",
+                fIn: "Three-quarter angle photo of the same van.", fOut: "“Van” (89%)",
+                holds: true, note: "Different but equally valid viewpoints, same class — consistent." },
+              { srcIn: "Photo of a running shoe, side view.", srcOut: "“Shoe” (95%)",
+                fIn: "Photo of the same shoe, top-down view.", fOut: "“Sandal” (48%)",
+                holds: false, note: "Two valid views of the same object disagree — a consistency violation worth a closer look at the training data's viewpoint coverage." },
+              { srcIn: "Photo of a laptop, closed.", srcOut: "“Laptop” (90%)",
+                fIn: "Photo of the same laptop from a slightly different angle, closed.", fOut: "“Laptop” (88%)",
+                holds: true, note: "Consistent across viewpoints." },
+            ],
+          },
+          monotonicity: {
+            name: "Monotonicity",
+            desc: "As image blur/occlusion increases, the model's confidence in its top label should decrease, not increase.",
+            pairs: [
+              { srcIn: "Sharp photo of a stop sign.", srcOut: "“Stop sign” (97%)",
+                fIn: "Same photo with moderate blur applied.", fOut: "“Stop sign” (78%)",
+                holds: true, note: "More degradation, lower confidence — the expected direction." },
+              { srcIn: "Sharp photo of a traffic light.", srcOut: "“Traffic light” (90%)",
+                fIn: "Same photo with 40% of the object occluded.", fOut: "“Traffic light” (94%)",
+                holds: false, note: "Confidence went up as information was removed — that's backwards, and worth flagging as suspicious (possibly relying on background context, not the object itself)." },
+              { srcIn: "Sharp photo of a fire hydrant.", srcOut: "“Fire hydrant” (95%)",
+                fIn: "Same photo with heavy blur applied.", fOut: "“Fire hydrant” (61%)",
+                holds: true, note: "Confidence dropped as expected under heavier degradation." },
+            ],
+          },
+        },
+      },
+    };
+
+    const mtState = { scenario: null, mrType: null, pairIndex: 0, judged: 0, correct: 0 };
+
+    const scenarioEl = document.getElementById("mt-scenario");
+    Object.keys(MT_DATA).forEach(key => {
+      const s = MT_DATA[key];
+      const btn = document.createElement("button");
+      btn.className = "btn btn-ghost";
+      btn.style.cssText = "flex:1; min-width:200px; flex-direction:column; align-items:flex-start; gap:.2rem;";
+      btn.innerHTML = `<span style="font-weight:800;">${s.label}</span><span class="small">${s.sub}</span>`;
+      btn.addEventListener("click", () => {
+        mtState.scenario = key;
+        mtState.mrType = null;
+        scenarioEl.querySelectorAll("button").forEach(b => b.style.borderColor = "var(--border)");
+        btn.style.borderColor = "var(--accent)";
+        document.getElementById("mt-step2-label").style.display = "block";
+        renderMrTypeButtons();
+        document.getElementById("mt-mrtype").style.display = "flex";
+        document.getElementById("mt-mrdesc").style.display = "none";
+        document.getElementById("mt-caseviewer").style.display = "none";
+      });
+      scenarioEl.appendChild(btn);
+    });
+
+    function renderMrTypeButtons() {
+      const wrap = document.getElementById("mt-mrtype");
+      wrap.innerHTML = "";
+      const mrs = MT_DATA[mtState.scenario].mrs;
+      Object.keys(mrs).forEach(key => {
+        const mr = mrs[key];
+        const chip = document.createElement("button");
+        chip.className = "chip";
+        chip.style.cssText = "cursor:pointer; font-weight:700;";
+        chip.textContent = mr.name;
+        chip.addEventListener("click", () => {
+          mtState.mrType = key;
+          mtState.pairIndex = 0;
+          mtState.judged = 0;
+          mtState.correct = 0;
+          document.getElementById("mt-mrdesc").style.display = "block";
+          document.getElementById("mt-mrdesc").innerHTML = `<strong>${mr.name}:</strong> ${mr.desc}`;
+          document.getElementById("mt-caseviewer").style.display = "block";
+          loadPair();
+        });
+        wrap.appendChild(chip);
+      });
+    }
+
+    function currentPairs() { return MT_DATA[mtState.scenario].mrs[mtState.mrType].pairs; }
+
+    function loadPair() {
+      const pairs = currentPairs();
+      const p = pairs[mtState.pairIndex];
+      document.getElementById("mt-pair-counter").textContent = `Pair ${mtState.pairIndex + 1} of ${pairs.length}`;
+      document.getElementById("mt-source-in").textContent = p.srcIn;
+      document.getElementById("mt-source-out").textContent = "Model output: " + p.srcOut;
+      document.getElementById("mt-follow-in").textContent = p.fIn;
+      document.getElementById("mt-follow-out").textContent = "Model output: " + p.fOut;
+      document.getElementById("mt-verdict").textContent = "Make your prediction above, then it will be checked against what the model actually did.";
+      document.getElementById("mt-verdict").style.color = "";
+      document.getElementById("mt-judge-hold").disabled = false;
+      document.getElementById("mt-judge-violate").disabled = false;
+      document.getElementById("mt-next").style.display = "none";
+      document.getElementById("mt-score").textContent = `Judged: ${mtState.judged}/${pairs.length}`;
+    }
+
+    function judge(predictedHolds) {
+      const pairs = currentPairs();
+      const p = pairs[mtState.pairIndex];
+      const rightPrediction = predictedHolds === p.holds;
+      mtState.judged++;
+      if (rightPrediction) mtState.correct++;
+      const verdictEl = document.getElementById("mt-verdict");
+      const actual = p.holds ? "The relation HELD." : "The relation was VIOLATED — this is a metamorphic testing finding.";
+      verdictEl.innerHTML = `<strong>${rightPrediction ? "Your prediction matched. " : "Not quite — "}</strong>${actual} ${p.note}`;
+      verdictEl.style.color = p.holds ? "var(--success)" : "var(--danger)";
+      document.getElementById("mt-judge-hold").disabled = true;
+      document.getElementById("mt-judge-violate").disabled = true;
+      document.getElementById("mt-score").textContent = `Judged: ${mtState.judged}/${pairs.length} · correct predictions: ${mtState.correct}`;
+      if (mtState.pairIndex < pairs.length - 1) {
+        document.getElementById("mt-next").style.display = "inline-flex";
+      } else {
+        const violations = pairs.filter(x => !x.holds).length;
+        verdictEl.innerHTML += `<br><br><strong>Round complete.</strong> Across these ${pairs.length} pairs, the model violated the
+          ${MT_DATA[mtState.scenario].mrs[mtState.mrType].name.toLowerCase()} relation ${violations} time(s) —
+          exactly the kind of defect metamorphic testing surfaces without ever needing a labeled "correct" answer.`;
+      }
+    }
+
+    document.getElementById("mt-judge-hold").addEventListener("click", () => judge(true));
+    document.getElementById("mt-judge-violate").addEventListener("click", () => judge(false));
+    document.getElementById("mt-next").addEventListener("click", () => {
+      mtState.pairIndex++;
+      loadPair();
+    });
+
+    // ============================================================
+    // Learning curve explorer lab
+    // ============================================================
+    const fitSlider = document.getElementById("fit-slider");
+    const fitLabel = document.getElementById("fit-complexity-label");
+    const fitChart = document.getElementById("fit-chart");
+    const fitReadout = document.getElementById("fit-readout");
+
+    function trainError(c) { return 5 + 50 * Math.exp(-0.35 * c); }
+    function valError(c) { return 5 + 50 * Math.exp(-0.3 * c) + 1.3 * Math.pow(Math.max(0, c - 6), 2); }
+
+    function drawFitChart(complexity) {
+      const w = 640, h = 260, padL = 45, padB = 35, padT = 15, padR = 15;
+      const maxC = 10;
+      const points = [];
+      for (let c = 1; c <= maxC; c++) points.push({ c, tr: trainError(c), va: valError(c) });
+      const maxErr = 60;
+      const x = c => padL + ((c - 1) / (maxC - 1)) * (w - padL - padR);
+      const y = e => (h - padB) - (Math.min(e, maxErr) / maxErr) * (h - padB - padT);
+
+      const trPath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${x(p.c).toFixed(1)} ${y(p.tr).toFixed(1)}`).join(" ");
+      const vaPath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${x(p.c).toFixed(1)} ${y(p.va).toFixed(1)}`).join(" ");
+      const markerX = x(complexity);
+
+      fitChart.innerHTML = `
+        <svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="Learning curve: training vs validation error by model complexity">
+          <line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="var(--border)" stroke-width="1"/>
+          <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h - padB}" stroke="var(--border)" stroke-width="1"/>
+          <text x="${padL}" y="${padT - 2}" font-size="11" fill="var(--text-faint)">Error</text>
+          <text x="${w - padR}" y="${h - padB + 20}" font-size="11" fill="var(--text-faint)" text-anchor="end">Model complexity →</text>
+          <path d="${trPath}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+          <path d="${vaPath}" fill="none" stroke="var(--accent-2)" stroke-width="2.5"/>
+          <line x1="${markerX.toFixed(1)}" y1="${padT}" x2="${markerX.toFixed(1)}" y2="${h - padB}" stroke="var(--text-faint)" stroke-width="1" stroke-dasharray="4 3"/>
+          <circle cx="${markerX.toFixed(1)}" cy="${y(trainError(complexity)).toFixed(1)}" r="4.5" fill="var(--accent)"/>
+          <circle cx="${markerX.toFixed(1)}" cy="${y(valError(complexity)).toFixed(1)}" r="4.5" fill="var(--accent-2)"/>
+          <g transform="translate(${padL + 10}, ${padT + 6})">
+            <rect width="10" height="10" fill="var(--accent)" rx="2"/>
+            <text x="16" y="9" font-size="11" fill="var(--text)">Training error</text>
+            <rect x="120" width="10" height="10" fill="var(--accent-2)" rx="2"/>
+            <text x="136" y="9" font-size="11" fill="var(--text)">Validation error</text>
+          </g>
+        </svg>`;
+    }
+
+    function updateFit() {
+      const c = parseInt(fitSlider.value, 10);
+      const tr = trainError(c), va = valError(c);
+      const gap = va - tr;
+      let zone, msg;
+      if (tr > 20 && va > 20 && gap < 6) {
+        zone = "Underfitting";
+        msg = `Both training error (${tr.toFixed(1)}) and validation error (${va.toFixed(1)}) are high and close
+          together — the model hasn't learned the underlying pattern at all, on either dataset. A too-simple
+          model, or missing features, are the usual causes.`;
+      } else if (gap >= 10) {
+        zone = "Overfitting";
+        msg = `Training error is low (${tr.toFixed(1)}) but validation error is climbing back up (${va.toFixed(1)})
+          — a widening gap. The model is memorizing the training set instead of generalizing.`;
+      } else {
+        zone = "Right-fitting";
+        msg = `Training error (${tr.toFixed(1)}) and validation error (${va.toFixed(1)}) are both low and stay
+          close together — this is the target zone testing for over/underfitting is trying to find.`;
+      }
+      let labelText = `Complexity: ${c}`;
+      if (c <= 2) labelText += " (very simple model)";
+      else if (c >= 9) labelText += " (very complex model)";
+      fitLabel.textContent = labelText;
+      fitReadout.innerHTML = `<strong>${zone}.</strong> ${msg}`;
+      drawFitChart(c);
+    }
+
+    fitSlider.addEventListener("input", updateFit);
+    updateFit();
+
+    // ============================================================
+    // Quiz
+    // ============================================================
+    const questions = [
+      { lo: "AI-6.1.5", k: "K2", type: "single",
+        prompt: "What core problem does metamorphic testing address?",
+        choices: [
+          { text: "It provides a way to test when there's no affordable or reliable expected output to compare against.", correct: true },
+          { text: "It replaces the need for any test data.", correct: false },
+          { text: "It only works on conventional, rule-based software.", correct: false },
+          { text: "It automatically fixes model defects once found.", correct: false },
+        ],
+        explain: "MT checks relationships between a source and follow-up test case instead of requiring a known-correct expected output — this is exactly what makes it useful for the oracle problem." },
+      { lo: "AI-6.1.5", k: "K2", type: "single",
+        prompt: "In metamorphic testing terminology, what is a “metamorphic relation (MR)”?",
+        choices: [
+          { text: "A description of how a change to a test case's input should be reflected in its expected results.", correct: true },
+          { text: "The exact numeric output a model must produce.", correct: false },
+          { text: "A synonym for a follow-up test case.", correct: false },
+          { text: "A statistical significance threshold used in A/B testing.", correct: false },
+        ],
+        explain: "The MR is the rule connecting an input change to an expected output change — it's the thing you check, not a test case itself." },
+      { lo: "AI-6.1.5", k: "K3", type: "single",
+        prompt: "A risk-assessment model predicts age at death from lifestyle factors. Increasing the number of cigarettes smoked per day in a follow-up test case should never increase the predicted age at death. Which metamorphic testing objective is this?",
+        choices: [
+          { text: "Monotonicity", correct: true },
+          { text: "Invariance", correct: false },
+          { text: "Consistency", correct: false },
+          { text: "Concept drift", correct: false },
+        ],
+        explain: "This describes a directional relationship between a degree of change in input and a degree of change in output — the definition of monotonicity." },
+      { lo: "HO-6.1.6", k: "K3", type: "multi",
+        prompt: "In the metamorphic relation lab, which of these are genuine reasons a follow-up test case's output might legitimately violate the expected relation (select all that apply)?",
+        choices: [
+          { text: "The model is over-sensitive to a token or feature that shouldn't matter to the outcome.", correct: true },
+          { text: "The model relies on background/context cues rather than the object or content actually being tested.", correct: true },
+          { text: "The metamorphic relation itself was poorly chosen and doesn't reflect a true property of the domain.", correct: true },
+          { text: "Any disagreement between source and follow-up output always means the test dataset is corrupted.", correct: false },
+        ],
+        explain: "A violation can point to a genuine model defect, or it can mean the MR was flawed — both are real possibilities MT practitioners have to consider." },
+      { lo: "AI-6.1.7", k: "K2", type: "single",
+        prompt: "A spam filter starts seeing new phishing techniques that never appeared in its training data, even though the definition of “spam” hasn't changed. What is this an example of?",
+        choices: [
+          { text: "Data drift", correct: true },
+          { text: "Concept drift", correct: false },
+          { text: "Overfitting", correct: false },
+          { text: "Back-to-back testing", correct: false },
+        ],
+        explain: "The statistical properties of the input changed (new attack patterns), but the underlying relationship between input and the correct label didn't — that's data drift, not concept drift." },
+      { lo: "AI-6.1.7", k: "K2", type: "single",
+        prompt: "New financial regulations mean a transaction type previously labeled “low-risk” is now legally “high-risk,” even though the transactions themselves look statistically identical to before. What is this an example of?",
+        choices: [
+          { text: "Concept drift", correct: true },
+          { text: "Data drift", correct: false },
+          { text: "Static drift testing", correct: false },
+          { text: "Underfitting", correct: false },
+        ],
+        explain: "The relationship between the input and the correct output changed — the model's decision boundary is now outdated even though the incoming data distribution didn't shift." },
+      { lo: "AI-6.1.7", k: "K2", type: "single",
+        prompt: "What distinguishes dynamic drift testing from static drift testing?",
+        choices: [
+          { text: "Dynamic drift testing relies on current ground truth from user feedback; static drift testing compares statistical distributions without needing ground truth.", correct: true },
+          { text: "Dynamic drift testing only applies to image models.", correct: false },
+          { text: "Static drift testing requires retraining the model before every test.", correct: false },
+          { text: "There is no meaningful difference between the two.", correct: false },
+        ],
+        explain: "Dynamic drift testing needs a current, real ground truth signal (direct or indirect feedback); static drift testing works from distribution comparisons alone, e.g. a Kolmogorov–Smirnov test." },
+      { lo: "AI-6.1.8", k: "K2", type: "single",
+        prompt: "A model scores 96% accuracy on its training data but only 71% on a separate, independent test dataset. What does this symptom most strongly suggest?",
+        choices: [
+          { text: "Overfitting", correct: true },
+          { text: "Underfitting", correct: false },
+          { text: "Data drift", correct: false },
+          { text: "A/B testing failure", correct: false },
+        ],
+        explain: "A large gap between strong training performance and weak performance on unseen data is the classic overfitting symptom — the model memorized rather than generalized." },
+      { lo: "AI-6.1.8", k: "K2", type: "single",
+        prompt: "A model performs poorly on both its training set and its validation set. What does this suggest?",
+        choices: [
+          { text: "Underfitting", correct: true },
+          { text: "Overfitting", correct: false },
+          { text: "Right-fitting", correct: false },
+          { text: "Concept drift", correct: false },
+        ],
+        explain: "Poor performance everywhere, including on the data it trained on, means the model never learned the underlying pattern — that's underfitting, typically from too simple a model or missing features." },
+      { lo: "AI-6.1.8", k: "K3", type: "single",
+        prompt: "On a learning-curve plot, what pattern indicates a right-fitting model?",
+        choices: [
+          { text: "Training and validation error are both low and stay close together.", correct: true },
+          { text: "Training error is near zero while validation error keeps climbing.", correct: false },
+          { text: "Both training and validation error stay high with little improvement.", correct: false },
+          { text: "Validation error is always lower than training error.", correct: false },
+        ],
+        explain: "A small, stable gap between two low error curves is the visual signature of a well-fitted model — neither memorizing noise nor missing the underlying pattern." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s19", passPct: 65 });
+  });
+</script>
+</body>
+</html>

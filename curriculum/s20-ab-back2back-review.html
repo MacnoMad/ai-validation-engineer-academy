@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 20 · A/B, Back-to-Back Testing + Chapter 6 Review — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 20 · Chapter 6 — Model Testing for Machine Learning Systems (part 4 of 4)</div>
+  <h1>A/B Testing, Back-to-Back Testing &amp; the Chapter 6 Review</h1>
+  <p class="lede">Two more ways to answer "is this model good enough?" without needing a hand-written expected
+    result — then a full pass back over everything Chapter 6 covered, because this is, question-for-question,
+    the most heavily examined chapter in the whole syllabus.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~75 min</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">LOs: AI-6.1.9, AI-6.1.10</span>
+    <span class="chip">Exam weight: part of 9 questions for Chapter 6 (the heaviest chapter — plus a full review below)</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">A/B testing</span><span class="kw">back-to-back testing</span>
+    <span class="kw">pseudo-oracle</span><span class="kw">variant</span>
+    <span class="kw">t-test</span><span class="kw">z-test</span><span class="kw">chi-squared test</span>
+    <span class="kw">Mann-Whitney U test</span>
+  </div>
+
+  <h2>1. A/B testing for ML systems</h2>
+  <p>A/B testing compares two variants of a system — A and B — by exposing each to the same kind of input and
+    measuring which performs better. It's a <strong>statistical</strong> approach: a single comparison rarely
+    settles anything, so it typically means comparing results across many test runs (or many real users) to see
+    whether a difference is real or just noise.</p>
+  <p>The classic form: split an audience in two, send half a promotional offer "A" and half offer "B," then see
+    which one converts better. The same idea scales up to production ML systems — a smart-city routing system
+    might run two variants for a week each and compare average commute times, or a recommendation engine might
+    split live traffic and compare click-through rates.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>A/B testing is one answer to the oracle problem</strong>
+      <p class="small" style="margin-top:.4rem;">It uses the <em>existing</em> system as a partial test oracle.
+        Whenever a system is updated, A/B testing checks that the new variant performs as well as, or better
+        than, the one it's replacing — using agreed acceptance criteria such as the ML functional performance
+        metrics from Session 7 (accuracy, precision, recall, F1).</p>
+    </div>
+    <div class="card">
+      <strong>It doesn't design your tests for you</strong>
+      <p class="small" style="margin-top:.4rem;">A/B testing generates no test cases on its own and gives no
+        guidance on how to design them — it's a comparison framework, not a test-generation technique. Real
+        operational inputs are commonly fed through it, though.</p>
+    </div>
+  </div>
+
+  <p>A/B testing is also how you safely test <strong>self-learning systems</strong>: when the system changes
+    itself, automated tests run and the resulting characteristics are compared against the pre-change baseline.
+    If things improved, the change is kept; if not, the system reverts. The statistical machinery behind these
+    comparisons is usually one of: the <strong>t-test</strong>, <strong>z-test</strong>,
+    <strong>chi-squared test</strong>, or <strong>Mann-Whitney U test</strong>.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: A/B experiment simulator</span></div>
+    <div class="lab-sub">Variant A is the current recommendation ranking (baseline conversion ~10%). Variant B is
+      a new ranking algorithm. Pick a sample size per variant and run the experiment — small samples are noisy,
+      larger samples converge on the truth.</div>
+    <div class="controls">
+      <label>Sample size per variant
+        <input type="range" id="ab-n" min="20" max="3000" step="20" value="100">
+      </label>
+      <span class="small" id="ab-n-label">n = 100 per variant</span>
+      <button class="btn btn-primary" id="ab-run">▶ Run experiment</button>
+    </div>
+    <div class="stat-row">
+      <div class="stat-tile"><div class="label">Variant A conversion</div><div class="value" id="ab-a-val">—</div></div>
+      <div class="stat-tile"><div class="label">Variant B conversion</div><div class="value" id="ab-b-val">—</div></div>
+      <div class="stat-tile"><div class="label">z-score</div><div class="value" id="ab-z-val">—</div></div>
+      <div class="stat-tile"><div class="label">Verdict at 95% CL</div><div class="value" id="ab-verdict-val" style="font-size:1rem;">—</div></div>
+    </div>
+    <div class="readout" id="ab-readout" style="margin-top:.8rem;">Choose a sample size and press "Run experiment."</div>
+  </div>
+
+  <h2>2. Back-to-back testing</h2>
+  <p>Back-to-back testing offers a different, and more defect-focused, solution to the same oracle problem: run
+    the same inputs through the system under test <em>and</em> an alternative version acting as a
+    <strong>pseudo-oracle</strong>, then compare outputs. Where they disagree, you've found something worth
+    investigating.</p>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">Independence matters — a lot</strong>
+      If the pseudo-oracle shares components with the system under test (easy to happen given how much MLS
+      development reuses open-source AI components), both can carry the same defect and quietly agree while
+      both are wrong. The pseudo-oracle is ideally built by a different, independent team — sometimes even with
+      a different ML framework, algorithm, or model configuration. Ordinary conventional software that solves
+      the same problem can sometimes serve as the pseudo-oracle too.
+    </div>
+  </div>
+
+  <p>Some practical properties worth knowing precisely:</p>
+  <ul>
+    <li><strong>Only functional behavior needs to match.</strong> The pseudo-oracle doesn't need to meet the
+      same non-functional requirements (latency, scalability) as the real system — which can make it cheaper to
+      build.</li>
+    <li><strong>You only need test inputs, not expected results.</strong> The pseudo-oracle supplies the
+      comparison point, so inputs can come straight from existing regression suites or be generated automatically
+      from training data — enabling large volumes of automated tests.</li>
+    <li><strong>It shines during migration</strong> — moving an MLS from development to production, or comparing
+      behavior across environments — and at surfacing subtle behavioral defects on edge cases and unusual
+      inputs that other techniques might miss.</li>
+  </ul>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: back-to-back testing sandbox</span></div>
+    <div class="lab-sub">A credit-risk classifier is being migrated to a new deployment framework. An
+      independently-built pseudo-oracle (same task, different implementation) runs the same six inputs. Run the
+      comparison and see what disagrees.</div>
+    <div id="btb-table"></div>
+    <div class="controls">
+      <button class="btn btn-primary" id="btb-run">▶ Run comparison</button>
+    </div>
+    <div class="readout" id="btb-readout" style="margin-top:.8rem;">Press "Run comparison" to compare all six inputs at once.</div>
+  </div>
+
+  <h2>3. A/B vs. back-to-back — don't mix these up</h2>
+  <table class="data">
+    <thead><tr><th></th><th>A/B testing</th><th>Back-to-back testing</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Compares</strong></td><td>Two variants of the same MLS</td><td>System under test vs. an independent pseudo-oracle</td></tr>
+      <tr><td><strong>Primary purpose</strong></td><td>Decide which variant performs better</td><td>Detect defects by finding disagreements</td></tr>
+      <tr><td><strong>Judged by</strong></td><td>ML functional performance metrics + statistical tests</td><td>Output equality / disagreement on the same input</td></tr>
+      <tr><td><strong>Needs expected results?</strong></td><td>No — compares variants to each other</td><td>No — the pseudo-oracle supplies the comparison point</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4. Check your understanding — this session</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+
+  <div class="callout exam">
+    <div class="icon">🎯</div>
+    <div class="body">
+      <strong class="title">Chapter 6 is worth more than any other chapter — 9 of the exam's 40 questions</strong>
+      Nearly a quarter of the exam draws from what Sessions 17–20 covered: model risks &amp; mitigations, model
+      documentation review, statistical functional performance testing, adversarial testing, metamorphic testing,
+      drift testing, over/underfitting, A/B testing, and back-to-back testing. If you only deeply review one
+      chapter before an exam attempt, make it this one. The review below spans all ten sub-topics.
+    </div>
+  </div>
+
+  <h2>5. Chapter 6 comprehensive review</h2>
+  <p>This is a longer, mixed review pulling from everything in 6.1.1 through 6.1.10 — not just today's two
+    topics. Treat a weak score here as a direct signal of which of Sessions 17–20 to revisit.</p>
+  <div id="quiz-mount-review"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s20");
+    App.buildSessionNav("session-nav", "s20");
+    App.wireMarkComplete("mark-complete", "s20");
+
+    // ============================================================
+    // A/B testing simulator (seeded, reproducible-per-run PRNG)
+    // ============================================================
+    let abRunCount = 0;
+    function mulberry32(seed) {
+      return function () {
+        seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+    function gaussian(rand) {
+      const u1 = Math.max(rand(), 1e-9), u2 = rand();
+      return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    }
+    // Standard normal CDF via Abramowitz–Stegun erf approximation.
+    function normalCdf(z) {
+      const t = 1 / (1 + 0.2316419 * Math.abs(z));
+      const d = 0.3989423 * Math.exp(-z * z / 2);
+      let p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+      return z > 0 ? 1 - p : p;
+    }
+
+    const AB_TRUE = { a: 0.10, b: 0.115 };
+    const abN = document.getElementById("ab-n");
+    const abNLabel = document.getElementById("ab-n-label");
+    abN.addEventListener("input", () => { abNLabel.textContent = `n = ${abN.value} per variant`; });
+
+    document.getElementById("ab-run").addEventListener("click", () => {
+      abRunCount++;
+      const n = parseInt(abN.value, 10);
+      const rand = mulberry32(1000 + abRunCount * 97 + n);
+      const seA = Math.sqrt(AB_TRUE.a * (1 - AB_TRUE.a) / n);
+      const seB = Math.sqrt(AB_TRUE.b * (1 - AB_TRUE.b) / n);
+      let pAhat = AB_TRUE.a + gaussian(rand) * seA;
+      let pBhat = AB_TRUE.b + gaussian(rand) * seB;
+      pAhat = Math.min(0.95, Math.max(0.01, pAhat));
+      pBhat = Math.min(0.95, Math.max(0.01, pBhat));
+
+      const se = Math.sqrt(pAhat * (1 - pAhat) / n + pBhat * (1 - pBhat) / n);
+      const z = (pBhat - pAhat) / se;
+      const pValue = 2 * (1 - normalCdf(Math.abs(z)));
+      const significant = Math.abs(z) > 1.96;
+
+      document.getElementById("ab-a-val").textContent = (pAhat * 100).toFixed(1) + "%";
+      document.getElementById("ab-b-val").textContent = (pBhat * 100).toFixed(1) + "%";
+      document.getElementById("ab-z-val").textContent = z.toFixed(2);
+      const verdictEl = document.getElementById("ab-verdict-val");
+      verdictEl.textContent = significant ? (z > 0 ? "B wins" : "A wins") : "Not significant";
+      verdictEl.style.color = significant ? "var(--success)" : "var(--warning)";
+
+      document.getElementById("ab-readout").innerHTML = significant
+        ? `With n = ${n} per variant, the observed difference (z = ${z.toFixed(2)}, two-tailed p ≈ ${pValue.toFixed(3)})
+           clears the 95% confidence threshold (|z| > 1.96). ${z > 0 ? "Variant B" : "Variant A"} is the
+           statistically better performer — <strong>enough evidence to ship it and retire the loser.</strong>`
+        : `With n = ${n} per variant, the observed difference (z = ${z.toFixed(2)}, two-tailed p ≈ ${pValue.toFixed(3)})
+           does not clear the 95% confidence threshold. <strong>Not enough evidence yet</strong> — the true
+           conversion rates (A ≈ 10%, B ≈ 11.5%) are close enough that small samples get drowned out by noise.
+           Try a larger sample size.`;
+    });
+
+    // ============================================================
+    // Back-to-back testing sandbox
+    // ============================================================
+    const BTB_CASES = [
+      { input: "Applicant: stable income, no delinquencies, 5yr credit history.", sut: "Approve (low risk)", oracle: "Approve (low risk)", match: true },
+      { input: "Applicant: high income, one late payment 6 months ago.", sut: "Approve (low risk)", oracle: "Approve (medium risk)", match: false, note: "SUT under-weighted a recent late payment — flagged for investigation." },
+      { input: "Applicant: thin credit file, first-time borrower.", sut: "Refer (medium risk)", oracle: "Refer (medium risk)", match: true },
+      { input: "Applicant: high debt-to-income ratio, no missed payments.", sut: "Refer (medium risk)", oracle: "Decline (high risk)", match: false, note: "A disagreement on an edge-case debt ratio — exactly the kind of subtle defect back-to-back testing is good at surfacing." },
+      { input: "Applicant: multiple recent delinquencies.", sut: "Decline (high risk)", oracle: "Decline (high risk)", match: true },
+      { input: "Applicant: self-employed, irregular income pattern.", sut: "Approve (low risk)", oracle: "Refer (medium risk)", match: false, note: "SUT may be handling irregular income data differently than the pseudo-oracle — worth a closer look before this migrates to production." },
+    ];
+
+    function renderBtbTable() {
+      const wrap = document.getElementById("btb-table");
+      let rows = "";
+      BTB_CASES.forEach((c, i) => {
+        rows += `<tr id="btb-row-${i}">
+          <td>${c.input}</td>
+          <td>${c.sut}</td>
+          <td>${c.oracle}</td>
+          <td id="btb-status-${i}">—</td>
+        </tr>`;
+      });
+      wrap.innerHTML = `<table class="data">
+        <thead><tr><th>Test input</th><th>System under test</th><th>Pseudo-oracle</th><th>Result</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    }
+    renderBtbTable();
+
+    document.getElementById("btb-run").addEventListener("click", () => {
+      let mismatches = 0;
+      const notes = [];
+      BTB_CASES.forEach((c, i) => {
+        const row = document.getElementById(`btb-row-${i}`);
+        const status = document.getElementById(`btb-status-${i}`);
+        if (c.match) {
+          status.innerHTML = `<span style="color:var(--success); font-weight:700;">✔ Agree</span>`;
+        } else {
+          status.innerHTML = `<span style="color:var(--danger); font-weight:700;">✘ Disagree</span>`;
+          row.style.background = "var(--danger-soft)";
+          mismatches++;
+          notes.push(c.note);
+        }
+      });
+      const readout = document.getElementById("btb-readout");
+      readout.innerHTML = `<strong>${mismatches} of ${BTB_CASES.length} outputs disagree.</strong> Each disagreement
+        is a candidate defect, not a confirmed one — the pseudo-oracle isn't guaranteed correct either, but an
+        independent implementation disagreeing on real inputs is exactly the signal back-to-back testing is
+        designed to produce. Notes: ${notes.map(n => "“" + n + "”").join(" ")}`;
+    });
+
+    // ============================================================
+    // Session quiz
+    // ============================================================
+    const questions = [
+      { lo: "AI-6.1.9", k: "K2", type: "single",
+        prompt: "What is the primary purpose of A/B testing in the context of ML systems?",
+        choices: [
+          { text: "To compare two variants of a system on the same kind of input and determine which performs better.", correct: true },
+          { text: "To automatically generate new test cases for a model.", correct: false },
+          { text: "To find an independent pseudo-oracle for the system under test.", correct: false },
+          { text: "To measure a single model's accuracy against a fixed target.", correct: false },
+        ],
+        explain: "A/B testing is fundamentally a comparison technique between two variants — it neither generates test cases nor needs an independent implementation." },
+      { lo: "AI-6.1.9", k: "K2", type: "single",
+        prompt: "How does A/B testing act as a partial solution to the test oracle problem?",
+        choices: [
+          { text: "It uses the existing (pre-update) system as a comparison point for the new variant.", correct: true },
+          { text: "It removes the need for any acceptance criteria.", correct: false },
+          { text: "It always requires a hand-labeled expected output.", correct: false },
+          { text: "It only works for non-functional testing.", correct: false },
+        ],
+        explain: "Rather than needing a known-correct answer, A/B testing checks the new variant against the previous variant's behavior — a practical, if partial, oracle." },
+      { lo: "AI-6.1.9", k: "K2", type: "multi",
+        prompt: "Which statistical techniques are commonly used for A/B testing (select all that apply)?",
+        choices: [
+          { text: "t-test", correct: true },
+          { text: "z-test", correct: true },
+          { text: "Chi-squared test", correct: true },
+          { text: "Mann-Whitney U test", correct: true },
+        ],
+        explain: "All four are named in the syllabus as the most popular statistical techniques used for A/B testing." },
+      { lo: "AI-6.1.9", k: "K3", type: "single",
+        prompt: "In the A/B experiment simulator, running the test at a very small sample size (n = 20) most often produces which outcome?",
+        choices: [
+          { text: "A “not significant” verdict, even though variant B's true conversion rate is genuinely higher.", correct: true },
+          { text: "A guaranteed statistically significant result every time.", correct: false },
+          { text: "No z-score can be computed at all.", correct: false },
+          { text: "Variant A always wins regardless of sample size.", correct: false },
+        ],
+        explain: "Small samples have high standard error, so real (but modest) differences get drowned out by noise — this is why A/B tests need adequately large sample sizes." },
+      { lo: "AI-6.1.10", k: "K2", type: "single",
+        prompt: "What is a “pseudo-oracle” in the context of back-to-back testing?",
+        choices: [
+          { text: "An alternative version of the system used as a reference point for comparing outputs.", correct: true },
+          { text: "A synonym for a metamorphic relation.", correct: false },
+          { text: "A statistical significance threshold.", correct: false },
+          { text: "A dataset used only for training, never for testing.", correct: false },
+        ],
+        explain: "The pseudo-oracle is a stand-in for a true oracle — an independent implementation whose outputs are compared against the system under test." },
+      { lo: "AI-6.1.10", k: "K2", type: "single",
+        prompt: "Why is independence between the pseudo-oracle and the system under test so important in back-to-back testing?",
+        choices: [
+          { text: "Shared components could carry the same defect, causing both systems to agree while both are wrong.", correct: true },
+          { text: "Independent systems always run faster.", correct: false },
+          { text: "It's a legal requirement under the EU AI Act.", correct: false },
+          { text: "It removes the need for any test inputs.", correct: false },
+        ],
+        explain: "If the pseudo-oracle isn't independent, a shared defect can produce false agreement — the whole technique depends on the two implementations being genuinely different." },
+      { lo: "AI-6.1.10", k: "K2", type: "single",
+        prompt: "What does back-to-back testing require in order to run, that traditional oracle-based testing does not?",
+        choices: [
+          { text: "Only test inputs — no expected results need to be written, since the pseudo-oracle supplies the comparison.", correct: true },
+          { text: "A fully labeled dataset with hand-verified expected outputs.", correct: false },
+          { text: "A live production environment.", correct: false },
+          { text: "Access to the model's internal architecture.", correct: false },
+        ],
+        explain: "This is exactly why back-to-back testing scales well — inputs can come from regression suites or be generated automatically, without anyone writing expected results by hand." },
+      { lo: "AI-6.1.10", k: "K2", type: "single",
+        prompt: "Which scenario is back-to-back testing particularly well suited to?",
+        choices: [
+          { text: "Migrating an MLS from a development environment to production and confirming behavior didn't change.", correct: true },
+          { text: "Deciding which of two marketing emails converts better.", correct: false },
+          { text: "Measuring training-set vs. validation-set accuracy.", correct: false },
+          { text: "Detecting a rotation-invariance violation in an image classifier.", correct: false },
+        ],
+        explain: "Back-to-back testing shines when comparing behavior across environments or versions — migration is a textbook use case." },
+      { lo: "AI-6.1.9", k: "K3", type: "single",
+        prompt: "What is the key difference between A/B testing and back-to-back testing?",
+        choices: [
+          { text: "A/B testing compares two variants using functional performance metrics and statistics to decide which is better; back-to-back testing compares a system to an independent pseudo-oracle to detect defects.", correct: true },
+          { text: "A/B testing requires an independent pseudo-oracle; back-to-back testing does not.", correct: false },
+          { text: "Back-to-back testing can only be used before deployment, while A/B testing can only be used after.", correct: false },
+          { text: "They are two names for the exact same technique.", correct: false },
+        ],
+        explain: "The syllabus draws this distinction directly: A/B testing is about which variant is better; back-to-back testing is about finding defects via disagreement with a pseudo-oracle." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s20", passPct: 65 });
+
+    // ============================================================
+    // Chapter 6 comprehensive review quiz
+    // ============================================================
+    const reviewQuestions = [
+      { lo: "AI-6.1.1", k: "K2", type: "single",
+        prompt: "Which of these is listed as a possible risk mitigation for an overfitted ML model?",
+        choices: [
+          { text: "Testing for overfitting", correct: true },
+          { text: "A/B testing only", correct: false },
+          { text: "API testing", correct: false },
+          { text: "Installability testing", correct: false },
+        ],
+        explain: "The ML model risk table maps “overfitted model” directly to testing for overfitting as its mitigation." },
+      { lo: "AI-6.1.1", k: "K2", type: "multi",
+        prompt: "Which of these are named as possible mitigations for “poor system requirements” leading to a test oracle problem (select all that apply)?",
+        choices: [
+          { text: "Back-to-back testing", correct: true },
+          { text: "A/B testing", correct: true },
+          { text: "Requirements review", correct: true },
+          { text: "Installability testing", correct: false },
+        ],
+        explain: "Back-to-back testing, A/B testing, requirements review, and red teaming are all listed mitigations for the test oracle problem / poor requirements." },
+      { lo: "AI-6.1.2", k: "K2", type: "single",
+        prompt: "What is the primary purpose of reviewing ML model documentation, such as a Model Card?",
+        choices: [
+          { text: "To verify completeness, clarity, and that regulatory requirements are met, since documentation is often the main way to understand a black-box model.", correct: true },
+          { text: "To replace the need for any functional testing.", correct: false },
+          { text: "To generate new training data automatically.", correct: false },
+          { text: "To calculate a model's F1 score.", correct: false },
+        ],
+        explain: "Because ML models are black boxes and change frequently, documentation review is a core way testers, developers, and regulators build trust and verify quality." },
+      { lo: "AI-6.1.2", k: "K1", type: "single",
+        prompt: "Which documentation framework provides a standardized format specifically for describing datasets (motivation, composition, collection process)?",
+        choices: [
+          { text: "Datasheets for Datasets", correct: true },
+          { text: "Model Cards", correct: false },
+          { text: "A learning curve", correct: false },
+          { text: "A confusion matrix", correct: false },
+        ],
+        explain: "Model Cards describe the model itself; Datasheets for Datasets describe the data the model was built and evaluated on." },
+      { lo: "AI-6.1.3", k: "K2", type: "single",
+        prompt: "Why does ML functional performance testing for probabilistic systems use a margin of error (MoE) and confidence level (CL) instead of a simple pass/fail result?",
+        choices: [
+          { text: "Because it needs to statistically account for non-determinism across a large, representative test dataset.", correct: true },
+          { text: "Because probabilistic systems cannot be tested at all.", correct: false },
+          { text: "Because MoE and CL replace the need for a test dataset.", correct: false },
+          { text: "Because it only applies to deep learning models.", correct: false },
+        ],
+        explain: "A statement like “94% accuracy ±4% at 95% CL” expresses a range of expected real-world performance — the right way to report results for a non-deterministic system." },
+      { lo: "AI-6.1.3", k: "K2", type: "single",
+        prompt: "If a fixed sample size is used for ML functional performance testing, what happens as the number of test cases increases, holding the confidence level (CL) fixed?",
+        choices: [
+          { text: "The margin of error (MoE) decreases — the result becomes more precise.", correct: true },
+          { text: "The margin of error increases.", correct: false },
+          { text: "The confidence level automatically drops to compensate.", correct: false },
+          { text: "Nothing changes regardless of sample size.", correct: false },
+        ],
+        explain: "With CL fixed, more test cases narrow the margin of error, giving a more precise (tighter) estimate of true performance." },
+      { lo: "AI-6.1.4", k: "K2", type: "single",
+        prompt: "What is an “adversarial example” in the context of adversarial testing?",
+        choices: [
+          { text: "A slightly perturbed input, often imperceptible to humans, that causes the model to make an incorrect prediction.", correct: true },
+          { text: "Any input drawn from the training dataset.", correct: false },
+          { text: "A test case used in back-to-back testing.", correct: false },
+          { text: "A synonym for a metamorphic relation.", correct: false },
+        ],
+        explain: "Adversarial examples are deliberately crafted (or discovered) inputs designed to fool the model while looking unchanged to a human." },
+      { lo: "AI-6.1.4", k: "K2", type: "single",
+        prompt: "What does “transferability” mean in the context of black-box adversarial testing?",
+        choices: [
+          { text: "Adversarial examples crafted against an equivalent model (with known internals) can often also fool the original black-box model, since equivalent models tend to share classification boundaries.", correct: true },
+          { text: "A model can be transferred between cloud providers without retraining.", correct: false },
+          { text: "Test cases from A/B testing can be reused for back-to-back testing.", correct: false },
+          { text: "Adversarial testing only works on white-box models.", correct: false },
+        ],
+        explain: "Transferability is the key assumption that lets testers build an equivalent, fully-visible model, craft adversarial examples against it, and apply them to the real black-box target." },
+      { lo: "AI-6.1.5", k: "K2", type: "single",
+        prompt: "Metamorphic testing is typically chosen over traditional oracle-based testing when which of these is true?",
+        choices: [
+          { text: "The system is a black box, or no reliable expected output exists, or relational properties are enough to build confidence.", correct: true },
+          { text: "A full, labeled dataset with expected outputs is already available.", correct: false },
+          { text: "The system under test is a simple, deterministic calculator.", correct: false },
+          { text: "The team wants to avoid writing any test cases at all.", correct: false },
+        ],
+        explain: "These are the three conditions the syllabus gives for reaching for metamorphic testing instead of an oracle-based approach." },
+      { lo: "AI-6.1.6", k: "K3", type: "single",
+        prompt: "When deriving metamorphic relations for a hands-on exercise, why should some MRs predict the same expected result between source and follow-up, while others predict a different result?",
+        choices: [
+          { text: "Because real relationships between inputs and outputs vary — invariance-style MRs expect no change, while consistency- or monotonicity-style MRs can expect a directional or different change.", correct: true },
+          { text: "Because only MRs predicting identical results are valid.", correct: false },
+          { text: "Because follow-up test cases must always fail.", correct: false },
+          { text: "Because source test cases are never allowed to pass.", correct: false },
+        ],
+        explain: "A well-rounded set of MRs covers both “should stay the same” and “should change in a specific way” relationships — matching invariance vs. monotonicity/consistency objectives." },
+      { lo: "AI-6.1.7", k: "K2", type: "single",
+        prompt: "Which type of drift is detected by comparing the model's output against current ground truth from user feedback?",
+        choices: [
+          { text: "This describes dynamic drift testing, and it can detect either data drift or concept drift.", correct: true },
+          { text: "This only ever detects data drift, never concept drift.", correct: false },
+          { text: "This describes static drift testing.", correct: false },
+          { text: "This describes back-to-back testing.", correct: false },
+        ],
+        explain: "Dynamic drift testing relies on real, current ground truth (direct or indirect feedback) and can reveal either data drift or concept drift, depending on what's actually changed." },
+      { lo: "AI-6.1.8", k: "K2", type: "single",
+        prompt: "Which of the following is one of the three possible outcomes when fitting an ML model, alongside overfitting and underfitting?",
+        choices: [
+          { text: "Right-fitting", correct: true },
+          { text: "Concept drift", correct: false },
+          { text: "Back-to-back testing", correct: false },
+          { text: "Model conversion", correct: false },
+        ],
+        explain: "Overfitting, underfitting, and right-fitting are the three possible fitting outcomes named in the syllabus." },
+      { lo: "AI-6.1.9", k: "K2", type: "single",
+        prompt: "For self-learning systems, how is A/B testing typically applied?",
+        choices: [
+          { text: "After a change, automated tests compare the resulting system to its pre-change state — the change is kept if it's an improvement, or the system reverts if not.", correct: true },
+          { text: "It's not applicable to self-learning systems at all.", correct: false },
+          { text: "It replaces the need for any acceptance criteria.", correct: false },
+          { text: "It only runs once, before the system is ever deployed.", correct: false },
+        ],
+        explain: "This accept-or-revert loop is exactly how A/B testing supports safe continuous change in a self-learning system." },
+      { lo: "AI-6.1.10", k: "K2", type: "single",
+        prompt: "What can functional back-to-back testing skip that the system under test must still satisfy?",
+        choices: [
+          { text: "The pseudo-oracle does not need to meet the same non-functional requirements (e.g. latency) as the system under test.", correct: true },
+          { text: "The pseudo-oracle can skip functional correctness entirely.", correct: false },
+          { text: "The system under test can skip generating any outputs.", correct: false },
+          { text: "Both systems can be skipped from testing entirely.", correct: false },
+        ],
+        explain: "Functional back-to-back testing only needs the pseudo-oracle to match functional behavior, which can make it cheaper to build than a fully production-grade twin." },
+      { k: "K1", type: "single",
+        prompt: "Self-check: how confident do you now feel applying metamorphic testing, drift testing, and A/B/back-to-back testing to a real ML system without looking anything up?",
+        choices: [
+          { text: "Very confident.", correct: true },
+          { text: "Fairly confident, would want to double-check one or two details.", correct: true },
+          { text: "Shaky on at least one of these four techniques.", correct: true },
+          { text: "I'd want to re-read Sessions 17–20 before relying on this.", correct: true },
+        ],
+        explain: "No wrong answer — this is a self-assessment. Given Chapter 6 is 9 of 40 exam questions, an honest “shaky” here is worth acting on before moving to Chapter 7." },
+    ];
+    Quiz.render("quiz-mount-review", reviewQuestions, { sessionId: "s20-review", passPct: 65 });
+  });
+</script>
+</body>
+</html>

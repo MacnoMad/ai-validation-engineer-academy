@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 7 · ML Performance Metrics (Classification) — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 7 · Chapter 3 — Machine Learning (part 3 of 3)</div>
+  <h1>ML Performance Metrics (Classification)</h1>
+  <p class="lede">A classification model almost never gets everything right. Today you'll learn to read a
+    confusion matrix and calculate the four numbers everyone quotes — accuracy, precision, recall, and F1-score —
+    and, more importantly, learn <em>why</em> a single accuracy number can quietly hide a model that's dangerously
+    wrong in exactly the way that matters for your system.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k3">K3 · Apply</span>
+    <span class="chip">LOs: AI-3.3.1</span>
+    <span class="chip">Exam weight: part of 7 questions for Chapter 3</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">confusion matrix</span><span class="kw">true positive (TP)</span>
+    <span class="kw">true negative (TN)</span><span class="kw">false positive (FP)</span>
+    <span class="kw">false negative (FN)</span><span class="kw">accuracy</span><span class="kw">precision</span>
+    <span class="kw">recall</span><span class="kw">F1-score</span>
+    <span class="kw">ML functional performance metric</span>
+  </div>
+
+  <h2>1. Why classification needs statistical scoring, not right/wrong</h2>
+  <p>Because ML models are probabilistic and real data is noisy, a classification model will almost never
+    predict every case correctly. Instead of asking "is it correct?", testing asks "how often, and in which
+    direction, is it wrong?" — and the answer to that question is what actually determines whether a model is fit
+    for its purpose. The tool that makes this measurable is the <strong>confusion matrix</strong>.</p>
+
+  <h2>2. The confusion matrix: four outcomes, not two</h2>
+  <p>For any binary classification decision, comparing what the model <strong>predicted</strong> against what was
+    <strong>actually</strong> true produces exactly four possible outcomes:</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>True Positive (TP)</strong>
+      <p class="small" style="margin-top:.4rem;">Model predicted positive, and it actually was positive. A
+        correct "yes."</p>
+    </div>
+    <div class="card">
+      <strong>False Positive (FP)</strong>
+      <p class="small" style="margin-top:.4rem;">Model predicted positive, but it was actually negative. A false
+        alarm — sometimes called a "Type I error."</p>
+    </div>
+    <div class="card">
+      <strong>False Negative (FN)</strong>
+      <p class="small" style="margin-top:.4rem;">Model predicted negative, but it was actually positive. A missed
+        case — sometimes called a "Type II error."</p>
+    </div>
+    <div class="card">
+      <strong>True Negative (TN)</strong>
+      <p class="small" style="margin-top:.4rem;">Model predicted negative, and it actually was negative. A
+        correct "no."</p>
+    </div>
+  </div>
+
+  <p>Every one of the metrics below is built entirely out of these four counts — nothing else.</p>
+
+  <h2>3. The four core metrics, and what each one actually tells you</h2>
+  <table class="data">
+    <thead><tr><th>Metric</th><th>Formula</th><th>What it answers</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Accuracy</strong></td><td><code>(TP + TN) / (TP + TN + FP + FN) × 100%</code></td><td>Of every prediction made, what percentage was correct overall?</td></tr>
+      <tr><td><strong>Precision</strong></td><td><code>TP / (TP + FP) × 100%</code></td><td>Of everything the model flagged as positive, how much was actually positive? "How much can I trust a positive alert?"</td></tr>
+      <tr><td><strong>Recall</strong> (sensitivity)</td><td><code>TP / (TP + FN) × 100%</code></td><td>Of everything that was actually positive, how much did the model catch? "How confident am I that nothing positive slipped through?"</td></tr>
+      <tr><td><strong>F1-score</strong></td><td><code>2 × (Precision × Recall) / (Precision + Recall)</code></td><td>The harmonic mean of precision and recall — a single number that stays low if <em>either</em> one is weak, unlike a simple average.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout danger">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">Accuracy alone is the most dangerous metric to trust blindly</strong>
+      Accuracy treats every correct prediction the same, whether it's a TP or a TN — which means it can look
+      excellent on a heavily imbalanced dataset (e.g. a rare disease, or rare fraud) while the model is
+      essentially useless at the thing you actually care about. The lab below makes this concrete: you'll see two
+      models with <em>the same accuracy</em> whose real-world behavior couldn't be more different.
+    </div>
+  </div>
+
+  <h2>4. When precision matters more than recall — and vice versa</h2>
+  <div class="grid-2">
+    <div class="card">
+      <strong>Recall matters most when missing a positive is costly</strong>
+      <p class="small" style="margin-top:.4rem;">Medical screening for a serious disease: a false negative means
+        a sick patient is told they're fine. Teams deliberately accept more false positives (more people get
+        sent for a follow-up test that turns out negative) to avoid missing real cases.</p>
+    </div>
+    <div class="card">
+      <strong>Precision matters most when a false alarm is costly</strong>
+      <p class="small" style="margin-top:.4rem;">Spam filtering: a false positive means a real, important email
+        gets buried in the spam folder. Teams deliberately tolerate a few spam messages slipping through (more
+        false negatives) to avoid ever hiding a legitimate email.</p>
+    </div>
+  </div>
+  <p>There is no universally "correct" balance — the acceptable trade-off between precision and recall is a
+    product/business decision informed by the real-world cost of each error type, and it should be captured as
+    part of the acceptance criteria defined back at "understand the objectives" (Session 5).</p>
+
+  <h2>5. Hands-on lab: confusion-matrix calculator</h2>
+  <p>Enter any four values yourself, or load one of the worked scenarios below — pay close attention to the
+    first and second scenarios, which share almost the same accuracy but tell a completely different story.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: confusion-matrix calculator</span></div>
+    <div class="lab-sub">TP, FP, FN, TN — edit any field and every metric recalculates instantly, formulas included.</div>
+
+    <div class="controls">
+      <button class="btn btn-ghost" id="scn-a">Load: rare-disease screening</button>
+      <button class="btn btn-ghost" id="scn-b">Load: balanced classifier (same accuracy)</button>
+      <button class="btn btn-ghost" id="scn-c">Load: spam filter</button>
+      <button class="btn btn-ghost" id="scn-clear">Clear</button>
+    </div>
+
+    <div id="cm-grid" style="margin:1rem 0;"></div>
+
+    <div class="controls" style="gap:1.2rem;">
+      <label>True Positive (TP)<input type="number" id="cm-tp" min="0" value="0" style="padding:.5rem .6rem; border-radius:6px; border:1px solid var(--border); background:var(--bg-sunken); color:var(--text); width:110px;"></label>
+      <label>False Positive (FP)<input type="number" id="cm-fp" min="0" value="0" style="padding:.5rem .6rem; border-radius:6px; border:1px solid var(--border); background:var(--bg-sunken); color:var(--text); width:110px;"></label>
+      <label>False Negative (FN)<input type="number" id="cm-fn" min="0" value="0" style="padding:.5rem .6rem; border-radius:6px; border:1px solid var(--border); background:var(--bg-sunken); color:var(--text); width:110px;"></label>
+      <label>True Negative (TN)<input type="number" id="cm-tn" min="0" value="0" style="padding:.5rem .6rem; border-radius:6px; border:1px solid var(--border); background:var(--bg-sunken); color:var(--text); width:110px;"></label>
+    </div>
+
+    <div class="stat-row" style="margin-top:1.1rem;">
+      <div class="stat-tile"><div class="label">Accuracy</div><div class="value" id="cm-acc">—</div></div>
+      <div class="stat-tile"><div class="label">Precision</div><div class="value" id="cm-prec">—</div></div>
+      <div class="stat-tile"><div class="label">Recall</div><div class="value" id="cm-rec">—</div></div>
+      <div class="stat-tile"><div class="label">F1-score</div><div class="value" id="cm-f1">—</div></div>
+    </div>
+
+    <div class="readout" id="cm-readout" style="margin-top:1rem;">Enter values or load a scenario to see the worked formulas.</div>
+  </div>
+
+  <div class="callout tip">
+    <div class="icon">🎯</div>
+    <div class="body">
+      <strong class="title">The point of scenario B</strong>
+      "Rare-disease screening" and "balanced classifier" are built to land on almost identical accuracy — yet one
+      has precision around 36% and the other around 83%. If you only reported accuracy in a test summary, both
+      models would look equally good. They are not. This is exactly why acceptance criteria should specify which
+      metric(s) matter for the system's actual risk profile, not just "accuracy above X%."
+    </div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s07");
+    App.buildSessionNav("session-nav", "s07");
+    App.wireMarkComplete("mark-complete", "s07");
+
+    // ---- Confusion matrix calculator ----
+    const tpEl = document.getElementById("cm-tp");
+    const fpEl = document.getElementById("cm-fp");
+    const fnEl = document.getElementById("cm-fn");
+    const tnEl = document.getElementById("cm-tn");
+    const gridEl = document.getElementById("cm-grid");
+    const readout = document.getElementById("cm-readout");
+
+    function pct(n) { return (n * 100).toFixed(1) + "%"; }
+
+    function renderGrid(tp, fp, fn, tn) {
+      gridEl.innerHTML = `
+        <table class="data" style="max-width:520px;">
+          <thead><tr><th></th><th colspan="2" style="text-align:center;">Actual</th></tr></thead>
+          <tbody>
+            <tr><th></th><th>Positive</th><th>Negative</th></tr>
+            <tr>
+              <th style="text-align:left; white-space:nowrap;">Predicted Positive</th>
+              <td style="background:var(--success-soft); font-weight:800;">TP = ${tp}</td>
+              <td style="background:var(--danger-soft); font-weight:800;">FP = ${fp}</td>
+            </tr>
+            <tr>
+              <th style="text-align:left; white-space:nowrap;">Predicted Negative</th>
+              <td style="background:var(--danger-soft); font-weight:800;">FN = ${fn}</td>
+              <td style="background:var(--success-soft); font-weight:800;">TN = ${tn}</td>
+            </tr>
+          </tbody>
+        </table>`;
+    }
+
+    function recalc() {
+      const tp = Math.max(0, parseFloat(tpEl.value) || 0);
+      const fp = Math.max(0, parseFloat(fpEl.value) || 0);
+      const fn = Math.max(0, parseFloat(fnEl.value) || 0);
+      const tn = Math.max(0, parseFloat(tnEl.value) || 0);
+      const total = tp + fp + fn + tn;
+
+      renderGrid(tp, fp, fn, tn);
+
+      if (total === 0) {
+        document.getElementById("cm-acc").textContent = "—";
+        document.getElementById("cm-prec").textContent = "—";
+        document.getElementById("cm-rec").textContent = "—";
+        document.getElementById("cm-f1").textContent = "—";
+        readout.textContent = "Enter values or load a scenario to see the worked formulas.";
+        return;
+      }
+
+      const acc = (tp + tn) / total;
+      const prec = (tp + fp) > 0 ? tp / (tp + fp) : 0;
+      const rec = (tp + fn) > 0 ? tp / (tp + fn) : 0;
+      const f1 = (prec + rec) > 0 ? 2 * (prec * rec) / (prec + rec) : 0;
+
+      document.getElementById("cm-acc").textContent = pct(acc);
+      document.getElementById("cm-prec").textContent = pct(prec);
+      document.getElementById("cm-rec").textContent = pct(rec);
+      document.getElementById("cm-f1").textContent = pct(f1);
+
+      readout.innerHTML =
+        `Accuracy = (TP+TN)/(TP+TN+FP+FN) = (${tp}+${tn})/(${tp}+${tn}+${fp}+${fn}) = <strong>${pct(acc)}</strong><br>` +
+        `Precision = TP/(TP+FP) = ${tp}/(${tp}+${fp}) = <strong>${pct(prec)}</strong><br>` +
+        `Recall = TP/(TP+FN) = ${tp}/(${tp}+${fn}) = <strong>${pct(rec)}</strong><br>` +
+        `F1 = 2·(Precision×Recall)/(Precision+Recall) = <strong>${pct(f1)}</strong>`;
+    }
+
+    [tpEl, fpEl, fnEl, tnEl].forEach(el => el.addEventListener("input", recalc));
+
+    function load(tp, fp, fn, tn) {
+      tpEl.value = tp; fpEl.value = fp; fnEl.value = fn; tnEl.value = tn;
+      recalc();
+    }
+    document.getElementById("scn-a").addEventListener("click", () => load(85, 150, 15, 750));
+    document.getElementById("scn-b").addEventListener("click", () => load(417, 82, 83, 418));
+    document.getElementById("scn-c").addEventListener("click", () => load(760, 100, 40, 9100));
+    document.getElementById("scn-clear").addEventListener("click", () => load(0, 0, 0, 0));
+
+    recalc();
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AI-3.3.1", k: "K1", type: "single",
+        prompt: "A spam filter predicts an email is spam, and it genuinely is spam. Which confusion matrix outcome is this?",
+        choices: [
+          { text: "True Positive (TP)", correct: true },
+          { text: "False Positive (FP)", correct: false },
+          { text: "False Negative (FN)", correct: false },
+          { text: "True Negative (TN)", correct: false },
+        ],
+        explain: "The model predicted positive (spam) and it was actually positive (spam) — a correct \"yes,\" which is a true positive." },
+      { lo: "AI-3.3.1", k: "K1", type: "single",
+        prompt: "A medical test predicts a patient does NOT have a disease, but the patient actually does have it. Which outcome is this?",
+        choices: [
+          { text: "False Negative (FN)", correct: true },
+          { text: "False Positive (FP)", correct: false },
+          { text: "True Positive (TP)", correct: false },
+          { text: "True Negative (TN)", correct: false },
+        ],
+        explain: "Predicted negative, actually positive — a missed case, i.e. a false negative. This is the error type that matters most in disease screening." },
+      { lo: "AI-3.3.1", k: "K3", type: "single",
+        prompt: "A model has TP = 40, FP = 10, FN = 5, TN = 45. What is its accuracy?",
+        choices: [
+          { text: "85%", correct: true },
+          { text: "80%", correct: false },
+          { text: "89%", correct: false },
+          { text: "50%", correct: false },
+        ],
+        explain: "Accuracy = (TP+TN)/(TP+TN+FP+FN) = (40+45)/(40+45+10+5) = 85/100 = 85%." },
+      { lo: "AI-3.3.1", k: "K3", type: "single",
+        prompt: "Using the same model (TP = 40, FP = 10, FN = 5, TN = 45), what is its precision?",
+        choices: [
+          { text: "80%", correct: true },
+          { text: "89%", correct: false },
+          { text: "85%", correct: false },
+          { text: "50/55 = 91%", correct: false },
+        ],
+        explain: "Precision = TP/(TP+FP) = 40/(40+10) = 40/50 = 80%." },
+      { lo: "AI-3.3.1", k: "K3", type: "single",
+        prompt: "Using the same model (TP = 40, FP = 10, FN = 5, TN = 45), what is its recall?",
+        choices: [
+          { text: "89%", correct: true },
+          { text: "80%", correct: false },
+          { text: "85%", correct: false },
+          { text: "95%", correct: false },
+        ],
+        explain: "Recall = TP/(TP+FN) = 40/(40+5) = 40/45 ≈ 88.9%, which rounds to 89%." },
+      { lo: "AI-3.3.1", k: "K2", type: "single",
+        prompt: "Two models score the exact same overall accuracy on a dataset with far more negatives than positives (e.g. a rare disease). What does this alone tell you about their precision and recall?",
+        choices: [
+          { text: "Nothing reliable — identical accuracy can hide very different precision/recall trade-offs, especially on imbalanced data.", correct: true },
+          { text: "Their precision and recall must also be identical.", correct: false },
+          { text: "The model with more true positives always has the higher recall.", correct: false },
+          { text: "Accuracy alone always fully determines precision and recall.", correct: false },
+        ],
+        explain: "Accuracy weighs TP and TN equally and ignores how errors are distributed between false positives and false negatives — two models can match on accuracy while having wildly different precision/recall profiles." },
+      { lo: "AI-3.3.1", k: "K2", type: "single",
+        prompt: "For a system where missing a true positive is far more costly than raising a false alarm (e.g. detecting a serious safety fault), which metric should be prioritized?",
+        choices: [
+          { text: "Recall", correct: true },
+          { text: "Precision", correct: false },
+          { text: "Accuracy alone, regardless of error type", correct: false },
+          { text: "None of these are relevant to this scenario", correct: false },
+        ],
+        explain: "Recall measures how many actual positives were caught. When missing a real positive is the expensive mistake, you optimize for recall even if it costs some precision (more false alarms)." },
+      { lo: "AI-3.3.1", k: "K2", type: "single",
+        prompt: "Why is F1-score calculated as the harmonic mean of precision and recall, rather than their simple average?",
+        choices: [
+          { text: "The harmonic mean stays low if either precision or recall is weak, so a model can't hide a bad score in one by being strong in the other.", correct: true },
+          { text: "The harmonic mean is always higher than either individual metric.", correct: false },
+          { text: "It's simpler to calculate than a normal average.", correct: false },
+          { text: "It removes the need to calculate precision or recall separately.", correct: false },
+        ],
+        explain: "A simple average can look reasonable even when one of the two metrics is very poor. The harmonic mean punishes that imbalance, making F1 a fairer single summary of both." },
+      { lo: "AI-3.3.1", k: "K3", type: "single",
+        prompt: "A fraud-detection model flags 200 transactions as fraudulent. Of those, 150 really are fraud, and 50 are false alarms. The dataset also contained 30 real fraud cases the model missed entirely. What is the model's precision?",
+        choices: [
+          { text: "75% (150 / 200)", correct: true },
+          { text: "83% (150 / 180)", correct: false },
+          { text: "90%", correct: false },
+          { text: "60%", correct: false },
+        ],
+        explain: "Precision = TP/(TP+FP). TP = 150 (correctly flagged fraud), FP = 50 (false alarms) → 150/(150+50) = 150/200 = 75%. The 30 missed cases are false negatives and belong in the recall calculation, not precision." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s07", passPct: 65 });
+  });
+</script>
+</body>
+</html>

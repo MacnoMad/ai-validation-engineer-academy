@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 15 · Data Pipeline &amp; Representativeness Testing — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 15 · Chapter 5 — Input Data Testing for Machine Learning Systems (part 2 of 3)</div>
+  <h1>Data Pipeline &amp; Representativeness Testing</h1>
+  <p class="lede">Session 14 looked at the data itself. Today you zoom out to the machinery that moves and shapes
+    that data — the pipeline — and ask a second, equally important question: even if every value is clean and
+    every label correct, does this dataset actually look like the real world the model will operate in?</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">LOs: AI-5.1.3 – AI-5.1.4</span>
+    <span class="chip">Exam weight: part of 6 questions for Chapter 5</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">data pipeline testing</span><span class="kw">data representativeness testing</span>
+    <span class="kw">review</span><span class="kw">stratified sampling</span>
+    <span class="kw">EDA</span><span class="kw">statistical assessment</span>
+  </div>
+
+  <h2>1. The ML data pipeline, stage by stage</h2>
+  <p>Before training or inference ever happens, raw data usually flows through a chain of stages: it's
+    <strong>ingested</strong> from a source, <strong>cleaned and validated</strong>, <strong>transformed</strong>
+    into model-ready features, <strong>split</strong> into training/validation/test sets, and finally <strong>fed
+    to the model</strong>. A defect introduced at any single stage propagates silently to every stage after it —
+    which is exactly why pipeline testing has to cover the whole chain, not just the two ends.</p>
+
+  <h2>2. Interactive: walk the pipeline and find the risks</h2>
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Lab: click a stage to see what breaks there</span></div>
+    <div class="lab-sub">Each stage has its own characteristic failure modes and its own matching test technique.
+      Click through all five before moving on.</div>
+    <div id="pipeline-diagram"></div>
+    <div class="readout" id="pipeline-readout">Click a stage above to begin.</div>
+  </div>
+
+  <h2>3. Data pipeline testing: a layered approach</h2>
+  <p>Rather than one monolithic test pass, effective pipeline testing works in layers — starting before a line of
+    pipeline code even exists, and continuing after the pipeline is live in production.</p>
+
+  <table class="data">
+    <thead><tr><th>Layer</th><th>What it covers</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Design review</strong></td><td>Reviewing the pipeline's design before it's built, to catch
+        structural problems early.</td></tr>
+      <tr><td><strong>Component testing</strong></td><td>Testing individual pieces in isolation — ingestion
+        components, transformation scripts, sensor interfaces — via code review, static analysis, and
+        hardware-specific checks. Validates transformation logic, exercises validation rules, checks error
+        handling, and probes for vulnerabilities that could let malware or poisoned data in.</td></tr>
+      <tr><td><strong>Component integration testing</strong></td><td>Verifies data flows correctly across the
+        internal interfaces between components, catching defects from mismatched interfaces or wrong assumptions
+        between them.</td></tr>
+      <tr><td><strong>System testing</strong></td><td>Tests the fully assembled pipeline: smoke testing for basic
+        functionality, functional testing against requirements (transformations, routing), non-functional testing
+        (performance under load, scalability, security), fault injection (feeding deliberately corrupted data to
+        check robustness), and back-to-back testing comparing the operational pipeline against the training
+        pipeline.</td></tr>
+      <tr><td><strong>System integration testing</strong></td><td>Verifies the pipeline plays correctly with
+        everything around it — data sources, storage, monitoring tools, and downstream consumers like the ML
+        model itself.</td></tr>
+      <tr><td><strong>Testing in production</strong></td><td>Back-to-back testing against prior versions, A/B
+        testing new pipeline iterations against a baseline, and continuous monitoring/observability for behavior,
+        performance, and defects in real time.</td></tr>
+      <tr><td><strong>Configuration management review</strong></td><td>Confirms the correct pipeline code
+        version, configuration, and dataset are actually being used across training, testing, and
+        production.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div class="body">
+      <strong class="title">Training pipelines vs. operational pipelines</strong>
+      A training pipeline is often an exploratory prototype — testing there leans toward data integrity. An
+      operational (production) pipeline needs to prioritize reliability, performance, and maintainability
+      instead. Match your test strategy to which kind of pipeline you're looking at.
+    </div>
+  </div>
+
+  <h2>4. Testing for data representativeness</h2>
+  <p><strong>Data representativeness testing</strong> asks a different question from "is this data clean?" — it
+    asks: <em>how closely do the training, validation, and test datasets match the real-world data the model will
+    actually see in operation?</em> It targets skewed datasets, missing data, disproportionate feature
+    distributions, inadequate coverage of real-world scenarios, and class imbalance — several of the same failure
+    modes flagged back in Session 14's risk table, approached here from the "does this reflect reality" angle.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Step 1 — Define the target population</strong>
+      <p class="small" style="margin-top:.4rem;">Understand the system's intended use cases and operational
+        context; profile expected end users and environments; identify expected data distributions and critical
+        edge cases — by consulting domain experts, studying existing/similar systems, and using trusted benchmark
+        datasets (e.g., NIST). Then apply <strong>stratified sampling</strong> to build a reference baseline that
+        covers every relevant subgroup.</p>
+    </div>
+    <div class="card">
+      <strong>Step 2 — Analyze data characteristics</strong>
+      <p class="small" style="margin-top:.4rem;">Run EDA on both the dataset under test and the reference
+        dataset, visualizing distributions (histograms, scatter plots). Examine feature relationships and
+        correlations that should be preserved, and hunt for anomalies, gaps, or unusual concentrations.</p>
+    </div>
+    <div class="card">
+      <strong>Step 3 — Apply statistical assessment</strong>
+      <p class="small" style="margin-top:.4rem;">Use formal statistical tests — Chi-squared and
+        Kolmogorov-Smirnov are the named examples — to compare the two distributions rigorously, rather than
+        eyeballing a chart. Check specifically for class imbalance, and verify both typical scenarios and
+        edge/boundary cases are adequately covered.</p>
+    </div>
+    <div class="card">
+      <strong>Timing matters</strong>
+      <p class="small" style="margin-top:.4rem;">Representativeness testing belongs <em>before</em> training — you
+        don't want to discover an unrepresentative dataset after a model is already built on it. After
+        deployment, you shift from a one-time check to continuous monitoring for <strong>data drift</strong>
+        (Session 19), which detects when live operational data starts diverging from the distribution the model
+        was trained on.</p>
+    </div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s15");
+    App.buildSessionNav("session-nav", "s15");
+    App.wireMarkComplete("mark-complete", "s15");
+
+    // ---- Pipeline stage diagram (inline SVG, clickable) ----
+    const stages = [
+      { name: "Ingest", breaks: "A source feed changes format without warning, sends a truncated file, or a sensor drops out entirely — the pipeline receives corrupt, incomplete, or plain wrong data before anything else even runs.",
+        test: "Component testing of ingestion components (code review, static analysis, hardware-specific checks) plus data provenance testing — confirm the data actually came from where you think it did." },
+      { name: "Clean / Validate", breaks: "Overly aggressive cleaning rules silently drop valid-but-unusual records, or validation rules miss a whole class of bad values because nobody updated them after the schema changed.",
+        test: "Component testing of the validation rules themselves, plus dataset constraint testing (Session 16) to confirm what actually passes validation matches what should." },
+      { name: "Transform", breaks: "A feature-scaling or encoding bug silently shifts every value by a constant, or a transformation script disagrees with the version used at training time.",
+        test: "Component testing of transformation logic, and back-to-back testing comparing this pipeline's output against a known-good reference pipeline." },
+      { name: "Split", breaks: "Train/validation/test splits leak information across each other (the same record ends up in two sets), or a non-stratified split leaves one class badly under-represented in training.",
+        test: "Component integration testing across the split boundary, plus data representativeness testing (§4) on each resulting split." },
+      { name: "Feed to model", breaks: "The serving pipeline sends features in a different order, type, or scale than the training pipeline used — a classic case of training/serving skew — or a config points at the wrong dataset version entirely.",
+        test: "System integration testing between pipeline and model, plus a configuration management review to confirm code, config, and dataset versions actually match across environments." },
+    ];
+
+    const diagEl = document.getElementById("pipeline-diagram");
+    const n = stages.length;
+    const boxW = 130, boxH = 64, gap = 36, top = 20;
+    const totalW = n * boxW + (n - 1) * gap;
+    const svgW = totalW + 20, svgH = boxH + top + 20;
+    let svg = `<svg viewBox="0 0 ${svgW} ${svgH}" width="100%" role="img" aria-label="ML data pipeline stages">`;
+    stages.forEach((s, i) => {
+      const x = 10 + i * (boxW + gap);
+      svg += `<g class="pstage" data-i="${i}" style="cursor:pointer;">
+        <rect x="${x}" y="${top}" width="${boxW}" height="${boxH}" rx="8" fill="var(--bg-sunken)" stroke="var(--border)" stroke-width="1.5" class="pbox"/>
+        <text x="${x + boxW/2}" y="${top + boxH/2 + 5}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text)">${s.name}</text>
+      </g>`;
+      if (i < n - 1) {
+        const ax = x + boxW, ay = top + boxH/2, ax2 = ax + gap;
+        svg += `<line x1="${ax}" y1="${ay}" x2="${ax2-6}" y2="${ay}" stroke="var(--text-faint)" stroke-width="2" marker-end="url(#arrow)"/>`;
+      }
+    });
+    svg += `<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="var(--text-faint)"/></marker></defs>`;
+    svg += "</svg>";
+    diagEl.innerHTML = svg;
+
+    diagEl.querySelectorAll(".pstage").forEach(g => {
+      g.addEventListener("click", () => {
+        const s = stages[+g.dataset.i];
+        diagEl.querySelectorAll(".pbox").forEach(b => { b.setAttribute("stroke", "var(--border)"); b.setAttribute("fill", "var(--bg-sunken)"); });
+        g.querySelector(".pbox").setAttribute("stroke", "var(--accent)");
+        g.querySelector(".pbox").setAttribute("fill", "var(--accent-soft)");
+        document.getElementById("pipeline-readout").innerHTML =
+          `<strong>${s.name} — what can break:</strong> ${s.breaks}<br><br><strong>How you'd test for it:</strong> ${s.test}`;
+      });
+    });
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AI-5.1.3", k: "K2", type: "single",
+        prompt: "What is the purpose of component integration testing within data pipeline testing?",
+        choices: [
+          { text: "Verifying data flows correctly across the internal interfaces between pipeline components.", correct: true },
+          { text: "Testing the pipeline's compliance with business requirements end to end.", correct: false },
+          { text: "Comparing operational pipeline output against a prior version in production.", correct: false },
+          { text: "Reviewing which dataset version is configured for a given environment.", correct: false },
+        ],
+        explain: "Component integration testing sits between isolated component tests and full system testing — it targets defects from mismatched interfaces or incorrect assumptions between components." },
+      { lo: "AI-5.1.3", k: "K2", type: "multi",
+        prompt: "Which of these are part of system testing for a data pipeline (select all that apply)?",
+        choices: [
+          { text: "Smoke testing to confirm basic pipeline functionality", correct: true },
+          { text: "Fault injection testing with deliberately corrupted inputs", correct: true },
+          { text: "Non-functional testing of performance and scalability", correct: true },
+          { text: "Reviewing the pipeline's design before any code is written", correct: false },
+        ],
+        explain: "Design review happens before system testing — it's its own, earlier layer. Smoke, fault injection, and non-functional testing are all part of system testing on the assembled pipeline." },
+      { lo: "AI-5.1.3", k: "K2", type: "single",
+        prompt: "A team wants to confirm the exact dataset version and pipeline configuration actually running in production match what was validated in testing. Which practice addresses this?",
+        choices: [
+          { text: "Configuration management review", correct: true },
+          { text: "Fault injection testing", correct: false },
+          { text: "Disparate impact analysis", correct: false },
+          { text: "Dataset constraint testing", correct: false },
+        ],
+        explain: "Configuration management review specifically confirms the correct code version, configuration, and dataset are in use — a common source of silent, hard-to-diagnose bugs." },
+      { lo: "AI-5.1.3", k: "K2", type: "single",
+        prompt: "How should test priorities differ between a training pipeline and an operational (production) pipeline?",
+        choices: [
+          { text: "Training pipeline testing tends to focus on data integrity; operational pipeline testing prioritizes reliability, performance, and maintainability.", correct: true },
+          { text: "They should always use identical test strategies with no difference in focus.", correct: false },
+          { text: "Operational pipelines don't need testing once they're live.", correct: false },
+          { text: "Training pipelines require security testing, but operational pipelines don't.", correct: false },
+        ],
+        explain: "A training pipeline is often an exploratory prototype, so data integrity dominates; a live operational pipeline has to be reliable, fast, and maintainable under real-world load." },
+      { lo: "AI-5.1.4", k: "K2", type: "single",
+        prompt: "What does data representativeness testing determine?",
+        choices: [
+          { text: "How closely the training/validation/test data matches the real-world data the model will encounter in operation.", correct: true },
+          { text: "Whether every value in a dataset obeys a defined schema.", correct: false },
+          { text: "Whether two annotators agree on the same labels.", correct: false },
+          { text: "Whether a pipeline can handle its expected data volume.", correct: false },
+        ],
+        explain: "Representativeness is about matching reality's distribution, not about schema validity (that's dataset constraint testing) or label agreement (that's label correctness testing)." },
+      { lo: "AI-5.1.4", k: "K2", type: "single",
+        prompt: "In the first step of representativeness testing — defining the target population — what technique is used to build a baseline that covers all relevant subgroups?",
+        choices: [
+          { text: "Stratified sampling", correct: true },
+          { text: "Fault injection testing", correct: false },
+          { text: "Cohen's Kappa", correct: false },
+          { text: "Back-to-back testing", correct: false },
+        ],
+        explain: "Stratified sampling deliberately samples proportionally from every relevant subgroup, rather than sampling the population as one undifferentiated pool." },
+      { lo: "AI-5.1.4", k: "K2", type: "multi",
+        prompt: "Which named statistical tests are used to formally compare two data distributions for representativeness (select all that apply)?",
+        choices: [
+          { text: "Chi-squared test", correct: true },
+          { text: "Kolmogorov-Smirnov test", correct: true },
+          { text: "Cohen's Kappa", correct: false },
+          { text: "A/B testing", correct: false },
+        ],
+        explain: "Chi-squared and Kolmogorov-Smirnov are the syllabus's named statistical assessment techniques for comparing distributions. Cohen's Kappa measures annotator agreement (Session 16), and A/B testing compares system variants in production." },
+      { lo: "AI-5.1.4", k: "K2", type: "single",
+        prompt: "When should representativeness testing ideally happen, relative to model training?",
+        choices: [
+          { text: "Before training, to avoid building a model on unrepresentative data in the first place.", correct: true },
+          { text: "Only after the model has been deployed for at least a year.", correct: false },
+          { text: "It's irrelevant once drift monitoring is in place.", correct: false },
+          { text: "Only if the model's accuracy drops below a threshold.", correct: false },
+        ],
+        explain: "Catching unrepresentative data before training is far cheaper than discovering it after a model has already been built and deployed on it. After deployment, continuous drift monitoring (Session 19) picks up where this leaves off." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s15", passPct: 65 });
+  });
+</script>
+</body>
+</html>

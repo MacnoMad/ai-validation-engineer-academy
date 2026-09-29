@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 6 · Pretrained Models, Fine-Tuning, RAG &amp; Data Prep — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 6 · Chapter 3 — Machine Learning (part 2 of 3)</div>
+  <h1>Pretrained Models, Fine-Tuning, RAG &amp; Data Prep</h1>
+  <p class="lede">Almost nobody trains a model from a blank slate anymore — today's default move is to start from
+    something already trained and adapt it. Today you'll learn the two dominant ways to do that adaptation, when
+    to reach for which, and then drop into the activity that eats more effort than anything else in the ML
+    workflow: getting the data itself into shape.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">LOs: AI-3.1.4, AI-3.2.1</span>
+    <span class="chip">Exam weight: part of 7 questions for Chapter 3</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">pretrained model</span><span class="kw">fine-tuning</span>
+    <span class="kw">retrieval-augmented generation (RAG)</span><span class="kw">data preparation</span>
+    <span class="kw">data acquisition</span><span class="kw">data preprocessing</span>
+    <span class="kw">feature engineering</span><span class="kw">exploratory data analysis (EDA)</span>
+    <span class="kw">data augmentation</span><span class="kw">data pipeline</span>
+  </div>
+
+  <h2>1. Why almost nobody trains from scratch</h2>
+  <p>Training a large model from a completely blank slate is expensive in every sense — huge amounts of labeled
+    data, huge amounts of compute, and huge amounts of time. The practical answer the industry settled on is:
+    reuse a <strong>pretrained model</strong> that someone else already invested that cost into, and adapt it to
+    your specific task. There are two distinct ways to do that adaptation, and they are not interchangeable.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Fine-tuning — change the model itself</strong>
+      <p class="small" style="margin-top:.4rem;">Take a pretrained neural network and continue training it, using
+        additional data specific to your new task. This needs far less data and effort than training from
+        scratch, because the model already "knows" a great deal of general structure — fine-tuning is really
+        just steering that knowledge toward a narrower job.</p>
+      <p class="small" style="margin-top:.4rem;">You can fine-tune the entire network, only the layers near the
+        output (the most common approach), or add new layers on top. After each round, ML functional performance
+        is re-evaluated, and further fine-tuning is applied until acceptance criteria are met.</p>
+    </div>
+    <div class="card">
+      <strong>Retrieval-Augmented Generation (RAG) — change what the model sees, not the model</strong>
+      <p class="small" style="margin-top:.4rem;">Instead of touching the model's parameters at all, you supply it
+        with task-specific data sources at request time. Those sources are transformed into a searchable format,
+        the most relevant documents for the current prompt are retrieved, and they're stitched into an
+        <em>enhanced prompt</em> that's handed to the LLM. More relevant context in the prompt tends to produce a
+        more precise response — and the pretrained model itself is never modified.</p>
+    </div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: fine-tuning, or RAG?</span></div>
+    <div class="lab-sub">Click a scenario and pick your answer before revealing the reasoning.</div>
+    <div id="ft-rag-scenarios"></div>
+    <div class="readout" id="ft-rag-readout">Choose a scenario above.</div>
+  </div>
+
+  <table class="data">
+    <thead><tr><th></th><th>Fine-tuning</th><th>RAG</th></tr></thead>
+    <tbody>
+      <tr><td>Changes the model's parameters?</td><td>Yes</td><td>No — model is untouched</td></tr>
+      <tr><td>Data needs</td><td>A curated, task-specific training set (smaller than training from scratch, still real effort)</td><td>A searchable knowledge source, no retraining required</td></tr>
+      <tr><td>Best suited for</td><td>Teaching a new skill, style, or narrow task similar to what the base model already does</td><td>Giving up-to-date or proprietary facts the base model was never trained on</td></tr>
+      <tr><td>Can they combine?</td><td colspan="2">Yes — a pretrained model can use fine-tuning, RAG, or both together.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">Fine-tuning success depends on task similarity</strong>
+      Adapting a cat-breed image classifier into a dog-breed classifier works well — the tasks are close. Adapting
+      that same model to recognize spoken accents works poorly — the tasks are too different. As a validator,
+      this is a direct testing implication: don't assume a pretrained model's known biases or vulnerabilities
+      disappeared after fine-tuning or RAG — they typically carry over into the adapted system and need to be
+      re-tested, not just assumed away.
+    </div>
+  </div>
+
+  <h2>2. Data preparation: where most of the real effort goes</h2>
+  <p>Data preparation is widely recognized as the single most resource-intensive activity in the ML workflow —
+    usually consuming more effort than model selection and building combined. It's tightly linked to the
+    <strong>data pipeline</strong>: the machinery that turns raw data into a usable format for both training and
+    later production predictions. If the data the model sees operationally drifts from the data it was trained
+    on, ML functional performance — and any safety assumptions built on top of it — can quietly stop holding.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Data acquisition</strong>
+      <p class="small" style="margin-top:.4rem;">Identifying the relevant data types you need (numerical,
+        categorical, image, tabular, text, time series, sensor, geospatial, video, audio), then gathering it from
+        databases, APIs, or real-time sensors. For supervised learning specifically, this includes
+        <strong>labeling</strong> the data and verifying that the labels are accurate and consistent.</p>
+    </div>
+    <div class="card">
+      <strong>Data preprocessing</strong>
+      <p class="small" style="margin-top:.4rem;"><strong>Cleaning</strong> — removing defects, duplicates, and
+        outliers; imputing missing values (mean/median/mode); anonymizing or removing personal information.
+        <strong>Transforming</strong> — normalizing and scaling for consistency. <strong>Augmenting</strong> —
+        growing the sample size, adding adversarial examples for robustness, generating synthetic data.
+        <strong>Sampling</strong> — reducing a subset to cut training time and cost.</p>
+    </div>
+    <div class="card">
+      <strong>Feature engineering</strong>
+      <p class="small" style="margin-top:.4rem;">Selecting the features that actually contribute to model
+        performance, and extracting a smaller, non-redundant, informative subset from the raw features — both in
+        service of reducing training time and computational cost without losing signal.</p>
+    </div>
+    <div class="card">
+      <strong>Exploratory data analysis (EDA)</strong>
+      <p class="small" style="margin-top:.4rem;">Run alongside the activities above, not after them: discovering
+        trends, patterns, and anomalies in the data, and visualizing it with plots and charts to build real
+        understanding of what you're about to train on.</p>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div class="body">
+      <strong class="title">It's iterative, not a checklist</strong>
+      Data preparation is typically manual and repeated — steps get reordered or skipped depending on the
+      project. The one invariant: your operational data must match the training data's characteristics
+      (distributions, feature ranges) for the model to behave as expected in the real world, even though the
+      preparation <em>steps</em> themselves are often streamlined for production efficiency.
+    </div>
+  </div>
+
+  <h2>3. Hands-on lab: triage a messy dataset</h2>
+  <p>Below are eight raw records pulled straight from a data-acquisition pass, before any preprocessing has
+    touched them. For each one, decide: <strong>Keep</strong> it as-is, <strong>Fix</strong> it, or
+    <strong>Discard</strong> it — then check your reasoning against what actually happened.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: data cleaning triage</span></div>
+    <div class="lab-sub">Click Keep / Fix / Discard for each record, then read the explanation.</div>
+    <div id="triage-records"></div>
+    <div class="readout" id="triage-readout">Score: 0 of 8 reviewed.</div>
+  </div>
+
+  <p>Once a dataset has been cleaned, it still has to be divided up before training can start — see how the
+    split changes as you adjust it:</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: train / validation / test split</span></div>
+    <div class="lab-sub">Imagine a cleaned dataset of 10,000 labeled records. Drag to see how much data each stage
+      of the workflow actually gets to work with.</div>
+    <div class="controls">
+      <label>Training set size
+        <input type="range" id="split-train" min="50" max="90" step="1" value="70">
+      </label>
+    </div>
+    <div id="split-bar" style="margin:.8rem 0;"></div>
+    <div class="readout" id="split-readout"></div>
+  </div>
+
+  <div class="callout exam">
+    <div class="icon">🎯</div>
+    <div class="body">
+      <strong class="title">A preview, not the full picture</strong>
+      Splitting data into training, validation, and test sets is one of the data-preparation activities you'll
+      use in every model you build — but the deeper question of exactly what each of the three sets is <em>for</em>,
+      and techniques like k-fold cross-validation for when data is scarce, is covered in full later in the course.
+      For now, just get comfortable with the idea that a model never trains on 100% of its available data.
+    </div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s06");
+    App.buildSessionNav("session-nav", "s06");
+    App.wireMarkComplete("mark-complete", "s06");
+
+    // ---- Fine-tuning vs RAG scenario picker ----
+    const scenarios = [
+      { name: "Support bot needs this week's product prices", answer: "RAG",
+        reason: "Prices change constantly. Retraining the model every time a price changes is impractical — RAG lets you point it at a live, current data source instead." },
+      { name: "Teach a general LLM to write in a specific legal contract style", answer: "Fine-tuning",
+        reason: "This is a stylistic/behavioral skill close to what the base model already does — a good fit for fine-tuning on examples of that contract style." },
+      { name: "A chatbot must answer questions about an internal, confidential knowledge base", answer: "RAG",
+        reason: "The knowledge is proprietary and likely to keep growing — RAG retrieves from it directly without baking (and re-baking) it into the model's weights." },
+      { name: "Adapt a general image classifier to recognize 12 specific manufacturing defect types", answer: "Fine-tuning",
+        reason: "This is a narrow, related visual task — classic fine-tuning territory, especially with a modest labeled defect dataset." },
+    ];
+    const scenEl = document.getElementById("ft-rag-scenarios");
+    scenEl.style.cssText = "display:flex; flex-direction:column; gap:.6rem; margin:1rem 0;";
+    scenarios.forEach(s => {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; border:1px solid var(--border); border-radius:var(--radius-sm); padding:.7rem .9rem;";
+      row.innerHTML = `<span class="small" style="flex:1; min-width:220px; font-weight:600; color:var(--text);">${s.name}</span>`;
+      const btnFT = document.createElement("button");
+      btnFT.className = "btn btn-ghost"; btnFT.textContent = "Fine-tuning";
+      const btnRAG = document.createElement("button");
+      btnRAG.className = "btn btn-ghost"; btnRAG.textContent = "RAG";
+      [btnFT, btnRAG].forEach(btn => {
+        btn.addEventListener("click", () => {
+          const picked = btn.textContent;
+          const correct = picked === s.answer;
+          document.getElementById("ft-rag-readout").innerHTML =
+            `${correct ? "✅ Correct" : "❌ Not quite — the better fit is " + s.answer}. <strong>${s.name}:</strong> ${s.reason}`;
+        });
+      });
+      row.appendChild(btnFT); row.appendChild(btnRAG);
+      scenEl.appendChild(row);
+    });
+
+    // ---- Data triage ----
+    const records = [
+      { desc: "Row #1042 is byte-for-byte identical to row #118 — same customer, same timestamp, same everything.", correct: "Discard", why: "An exact duplicate adds no new information and can bias the model toward over-weighting that record — remove it." },
+      { desc: "Customer record is complete except the \"age\" field is blank.", correct: "Fix", why: "A single missing value in an otherwise good record is a textbook case for imputation (mean/median/mode) rather than throwing the whole record away." },
+      { desc: "Age field reads \"191\" for an otherwise plausible customer record.", correct: "Fix", why: "This is very likely a data-entry error (e.g. a stray digit). Where the true value can reasonably be corrected or capped, fix it rather than losing an otherwise-good record — if it truly can't be corrected, discard is the fallback." },
+      { desc: "A free-text \"notes\" field contains a customer's full unmasked social security number.", correct: "Fix", why: "This is a privacy issue, not a data-quality issue — anonymize or remove the personal information to comply with regulations, then keep the (now-cleaned) record." },
+      { desc: "The \"gender\" column has the values \"Male\", \"male\", and \"MALE\" scattered across different rows.", correct: "Fix", why: "Inconsistent formatting, not bad data — standardize/transform the values to a single consistent representation." },
+      { desc: "A well-formed, complete, representative customer record with nothing unusual about it.", correct: "Keep", why: "No issue to fix — an ordinary, representative record is exactly what you want more of in the training set." },
+      { desc: "A row where the \"comments\" field contains a nonsensical string of random characters, clearly injected test data.", correct: "Discard", why: "Garbage/junk data that isn't representative of real operational input should be removed rather than cleaned — there's nothing genuine to recover." },
+      { desc: "A record with a slightly unusual but entirely plausible value (e.g. a customer who is 78 years old in a mostly-younger dataset).", correct: "Keep", why: "Unusual isn't the same as wrong. A real, plausible outlier is valuable — removing every atypical value would make the training set less representative of reality." },
+    ];
+    const triageEl = document.getElementById("triage-records");
+    triageEl.style.cssText = "display:flex; flex-direction:column; gap:.7rem; margin:1rem 0;";
+    let reviewed = 0, right = 0;
+    records.forEach((r, i) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.margin = "0";
+      const desc = document.createElement("div");
+      desc.className = "small";
+      desc.style.marginBottom = ".6rem";
+      desc.innerHTML = `<strong>Record ${i + 1}:</strong> ${r.desc}`;
+      card.appendChild(desc);
+      const btnRow = document.createElement("div");
+      btnRow.style.cssText = "display:flex; gap:.5rem; flex-wrap:wrap;";
+      const explain = document.createElement("div");
+      explain.className = "small";
+      explain.style.cssText = "margin-top:.6rem; display:none;";
+      ["Keep", "Fix", "Discard"].forEach(action => {
+        const btn = document.createElement("button");
+        btn.className = "btn btn-ghost";
+        btn.textContent = action;
+        btn.addEventListener("click", () => {
+          if (btnRow.dataset.answered) return;
+          btnRow.dataset.answered = "1";
+          reviewed++;
+          const correct = action === r.correct;
+          if (correct) right++;
+          btnRow.querySelectorAll("button").forEach(b => {
+            b.disabled = true;
+            if (b.textContent === r.correct) b.style.borderColor = "var(--success)";
+            else if (b === btn) b.style.borderColor = "var(--danger)";
+          });
+          explain.style.display = "block";
+          explain.innerHTML = `${correct ? "✅ Right call" : "❌ The better call was " + r.correct + "."} ${r.why}`;
+          document.getElementById("triage-readout").textContent = `Score: ${right} of ${reviewed} reviewed so far (${records.length} total).`;
+        });
+        btnRow.appendChild(btn);
+      });
+      card.appendChild(btnRow);
+      card.appendChild(explain);
+      triageEl.appendChild(card);
+    });
+
+    // ---- Train/val/test split visualizer ----
+    const splitInput = document.getElementById("split-train");
+    const splitBar = document.getElementById("split-bar");
+    const splitReadout = document.getElementById("split-readout");
+    function renderSplit() {
+      const total = 10000;
+      const trainPct = parseInt(splitInput.value, 10);
+      const remaining = 100 - trainPct;
+      const valPct = Math.round(remaining / 2);
+      const testPct = remaining - valPct;
+      const trainN = Math.round(total * trainPct / 100);
+      const valN = Math.round(total * valPct / 100);
+      const testN = total - trainN - valN;
+      splitBar.innerHTML = `
+        <div style="display:flex; height:34px; border-radius:8px; overflow:hidden; border:1px solid var(--border);">
+          <div style="width:${trainPct}%; background:var(--accent); display:flex; align-items:center; justify-content:center; color:#fff; font-size:.78rem; font-weight:800;">${trainPct}%</div>
+          <div style="width:${valPct}%; background:var(--accent-2); display:flex; align-items:center; justify-content:center; color:#fff; font-size:.78rem; font-weight:800;">${valPct}%</div>
+          <div style="width:${testPct}%; background:var(--text-faint); display:flex; align-items:center; justify-content:center; color:#fff; font-size:.78rem; font-weight:800;">${testPct}%</div>
+        </div>`;
+      splitReadout.innerHTML = `Training: <strong>${trainN.toLocaleString()}</strong> records &nbsp;·&nbsp; Validation: <strong>${valN.toLocaleString()}</strong> &nbsp;·&nbsp; Test: <strong>${testN.toLocaleString()}</strong>. Push training too high and you starve validation/test of enough data to trust the numbers they report; push it too low and the model itself may underfit from too little to learn from.`;
+    }
+    splitInput.addEventListener("input", renderSplit);
+    renderSplit();
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AI-3.1.4", k: "K2", type: "single",
+        prompt: "What is the main practical benefit of fine-tuning a pretrained model instead of training a new model from scratch?",
+        choices: [
+          { text: "It requires much less training data and effort, since the model already has general knowledge to build on.", correct: true },
+          { text: "It guarantees zero bias in the resulting model.", correct: false },
+          { text: "It removes the need for any acceptance criteria.", correct: false },
+          { text: "It is only possible for image models.", correct: false },
+        ],
+        explain: "Fine-tuning reuses the general knowledge already captured during pretraining, so far less new data and effort is needed compared to training from zero." },
+      { lo: "AI-3.1.4", k: "K2", type: "single",
+        prompt: "How does Retrieval-Augmented Generation (RAG) improve an LLM's responses?",
+        choices: [
+          { text: "By retrieving relevant task-specific documents and adding them into an enhanced prompt, without changing the model itself.", correct: true },
+          { text: "By retraining the entire neural network on new labeled data.", correct: false },
+          { text: "By replacing the model's output layer with a new one.", correct: false },
+          { text: "By reducing the number of parameters in the model.", correct: false },
+        ],
+        explain: "RAG works entirely at the prompt level — it supplies relevant retrieved context alongside the user's prompt. The pretrained model's parameters are never modified." },
+      { lo: "AI-3.1.4", k: "K2", type: "single",
+        prompt: "A team wants to adapt a cat-breed image classifier into a dog-breed classifier versus adapting it to recognize spoken accents. What does the syllabus's guidance on fine-tuning predict?",
+        choices: [
+          { text: "The dog-breed adaptation will likely work well (similar task); the accent adaptation will likely work poorly (very different task).", correct: true },
+          { text: "Both will fail, since fine-tuning only works on identical tasks.", correct: false },
+          { text: "Both will work equally well regardless of task similarity.", correct: false },
+          { text: "The accent adaptation will work better because audio data is easier to fine-tune.", correct: false },
+        ],
+        explain: "Fine-tuning effectiveness depends heavily on how similar the new task is to the original one — image classification of related visual categories transfers well; jumping to an entirely different modality/task does not." },
+      { lo: "AI-3.1.4", k: "K2", type: "single",
+        prompt: "Why does a fine-tuned or RAG-enhanced model still need to be tested for the biases or vulnerabilities present in its original pretrained model?",
+        choices: [
+          { text: "Because those biases and vulnerabilities typically carry over into the adapted model rather than disappearing.", correct: true },
+          { text: "Because fine-tuning always introduces new bugs unrelated to the base model.", correct: false },
+          { text: "It doesn't need retesting — adaptation always removes prior issues.", correct: false },
+          { text: "Because RAG models can't be tested at all.", correct: false },
+        ],
+        explain: "Neither fine-tuning nor RAG guarantees that pre-existing biases or vulnerabilities are fixed — they typically persist into the new task and must be re-verified." },
+      { lo: "AI-3.2.1", k: "K2", type: "multi",
+        prompt: "Which of the following are examples of data preprocessing activities (select all that apply)?",
+        choices: [
+          { text: "Imputing a missing value using the column's median", correct: true },
+          { text: "Removing duplicate records", correct: true },
+          { text: "Normalizing numeric features to a consistent scale", correct: true },
+          { text: "Gathering raw data from an external API for the first time", correct: false },
+        ],
+        explain: "Imputing, deduplicating, and normalizing are all preprocessing. Gathering raw data from a source is data acquisition, a separate activity that happens before preprocessing." },
+      { lo: "AI-3.2.1", k: "K2", type: "single",
+        prompt: "What is exploratory data analysis (EDA) primarily used for?",
+        choices: [
+          { text: "Discovering trends, patterns, and anomalies in the data, often through visualization, to build understanding before/during preparation.", correct: true },
+          { text: "Training the final production model.", correct: false },
+          { text: "Deploying the model to a cloud API.", correct: false },
+          { text: "Replacing the need for a validation dataset.", correct: false },
+        ],
+        explain: "EDA is an understanding activity — plots, summary statistics, and anomaly spotting — carried out alongside data preparation, not a training or deployment step." },
+      { lo: "AI-3.2.1", k: "K2", type: "single",
+        prompt: "A team adds slightly modified adversarial examples and synthetically generated samples to their training set to make the model more robust. Which data preparation activity is this?",
+        choices: [
+          { text: "Data augmentation, part of preprocessing", correct: true },
+          { text: "Feature engineering", correct: false },
+          { text: "Data acquisition", correct: false },
+          { text: "Exploratory data analysis", correct: false },
+        ],
+        explain: "Augmenting data — including adding adversarial examples and synthetic data to grow and diversify the sample — is a preprocessing activity aimed at improving robustness." },
+      { lo: "AI-3.2.1", k: "K2", type: "single",
+        prompt: "Why is it critical that operational (production) data matches the characteristics of the training data, even if the data preparation steps themselves are streamlined for production?",
+        choices: [
+          { text: "Because a mismatch in distributions or feature ranges between training and operational data can invalidate the model's expected ML functional performance and safety assumptions.", correct: true },
+          { text: "It isn't critical — models perform identically on any data distribution.", correct: false },
+          { text: "Because production data must always be smaller than training data.", correct: false },
+          { text: "Because operational data never needs any preprocessing at all.", correct: false },
+        ],
+        explain: "A model learns the statistical patterns of the data it was trained on. If operational data drifts from those characteristics, the guarantees established during evaluation and testing no longer reliably hold." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s06", passPct: 65 });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 22 · Evaluation Economics & Product Framing — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 22 · Applied Practice — core skill</div>
+  <h1>Evaluation Economics & Product Framing</h1>
+  <p class="lede">Every AI feature you'll ever validate is a bet placed on three scarce resources at once: money,
+    time, and quality. Today you build the mental model a working AI validation engineer uses to reason about
+    that bet — the cost-latency-quality frontier, why a single accuracy number lies to you by omission, and how to
+    tell a metric that must gate a release from one you simply keep pushing on.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k3">K2–K3 · Understand & Apply</span>
+    <span class="chip">Applied Practice — core skill</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">cost-latency-quality frontier</span><span class="kw">distributional thinking</span>
+    <span class="kw">tail risk</span><span class="kw">p95 / p99 latency</span>
+    <span class="kw">blocking metric</span><span class="kw">optimization metric</span>
+  </div>
+
+  <h2>1. The cost-latency-quality frontier</h2>
+  <p>Ask any team building an AI feature to make it "more accurate, faster, and cheaper" and you've asked for
+    something that, past a point, doesn't exist. Cost, latency, and quality behave like three corners of a
+    triangle you're stretching a fixed amount of fabric across — pull one corner further out and the other two
+    get pulled in. This isn't pessimism, it's the same resource-tradeoff logic behind "good, fast, cheap — pick
+    two" in project management, applied to inference-time engineering decisions.</p>
+
+  <p>Concretely, most of the levers available to a team building an AI feature move quality, cost, and latency
+    together, not independently:</p>
+
+  <table class="data">
+    <thead><tr><th>Lever</th><th>Effect on quality</th><th>Effect on cost</th><th>Effect on latency</th></tr></thead>
+    <tbody>
+      <tr><td>Use a larger / more capable model</td><td>↑ usually higher</td><td>↑ higher</td><td>↑ usually slower</td></tr>
+      <tr><td>Self-consistency / majority voting across N samples</td><td>↑ higher, more stable</td><td>↑ ~N× higher</td><td>↑ ~N× slower (or needs parallelism)</td></tr>
+      <tr><td>Longer prompts / more retrieved context</td><td>↑ usually higher, up to a point</td><td>↑ higher (more tokens)</td><td>↑ usually slower</td></tr>
+      <tr><td>Smaller / distilled / quantized model</td><td>↓ usually lower</td><td>↓ lower</td><td>↓ faster</td></tr>
+      <tr><td>Response caching for repeat queries</td><td>— unchanged for cache hits</td><td>↓ lower on hits</td><td>↓ much faster on hits</td></tr>
+      <tr><td>Fallback cascade (cheap model first, escalate on low confidence)</td><td>↑ close to the expensive model's quality</td><td>↓ far lower than always using the expensive model</td><td>↓ lower on average, ↑ on escalated cases</td></tr>
+    </tbody>
+  </table>
+
+  <p>Notice the last row: cascades and caching are the closest thing to a "free lunch" on this frontier, which is
+    exactly why production AI systems lean on them heavily. But they don't repeal the tradeoff — they just move
+    where you sit on it more efficiently. Your job as a validation engineer is almost never "make this system the
+    best it can possibly be." It's: <strong>help the team decide where on the frontier the product actually needs
+    to sit, then build evaluations that verify it stays there.</strong></p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Example: support triage bot</strong>
+      <p class="small" style="margin-top:.4rem;">High volume, low stakes per message, users expect near-instant
+        replies. The right operating point favors low latency and low cost, accepting a lower quality ceiling —
+        with a human escalation path for anything the bot is unsure about.</p>
+    </div>
+    <div class="card">
+      <strong>Example: clinical literature summarizer</strong>
+      <p class="small" style="margin-top:.4rem;">Low volume, used by a specialist who can wait 30 seconds, but a
+        wrong summary carries real risk. The right operating point favors quality heavily, and both cost and
+        latency have much more room to give.</p>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div class="body">
+      <strong class="title">Reframe the question</strong>
+      Don't test "is this model good?" in a vacuum. Test "is this system good enough, fast enough, and cheap
+      enough for the operating point this product chose?" Those are different evaluations with different
+      thresholds, and conflating them is one of the most common mistakes new AI validators make.
+    </div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: the tradeoff frontier simulator</span></div>
+    <div class="lab-sub">You have a fixed budget of engineering and inference effort to spend across three
+      dials. Push one up and watch the other two get pulled down to stay within budget — that's the frontier,
+      made tangible.</div>
+    <div class="controls" style="flex-direction:column; align-items:stretch; gap:1rem;">
+      <label>Quality target <input type="range" id="dial-quality" min="0" max="100" value="55"></label>
+      <label>Speed target (lower latency) <input type="range" id="dial-speed" min="0" max="100" value="55"></label>
+      <label>Cost-efficiency target <input type="range" id="dial-cost" min="0" max="100" value="55"></label>
+    </div>
+    <div class="controls">
+      <button class="btn btn-ghost" id="preset-balanced">Balanced</button>
+      <button class="btn btn-ghost" id="preset-chat">Real-time chat profile</button>
+      <button class="btn btn-ghost" id="preset-highstakes">High-stakes accuracy profile</button>
+      <button class="btn btn-ghost" id="preset-reset">Reset</button>
+    </div>
+    <div class="stat-row">
+      <div class="stat-tile"><div class="label">Quality</div><div class="value" id="val-quality">55</div></div>
+      <div class="stat-tile"><div class="label">Speed</div><div class="value" id="val-speed">55</div></div>
+      <div class="stat-tile"><div class="label">Cost-efficiency</div><div class="value" id="val-cost">55</div></div>
+      <div class="stat-tile"><div class="label">Budget used</div><div class="value" id="val-total">165 / 165</div></div>
+    </div>
+    <div class="readout" id="frontier-readout">Drag a dial — the other two will adjust to stay within the fixed
+      165-point budget.</div>
+  </div>
+
+  <h2>2. Distributional thinking: what the mean hides</h2>
+  <p>"Our model is 92% accurate" is a single number that averages away everything interesting. Underneath it can
+    hide wildly different realities: near-perfect on common cases and terrible on a rare-but-important category;
+    consistent on repeated identical inputs, or noisy and different every time you ask; fine for 95% of users and
+    actively harmful for the other 5%. A mean, by construction, treats a catastrophic failure and a minor
+    imperfection as interchangeable as long as they average out.</p>
+
+  <p>Distributional thinking means testing — and reporting — the <em>shape</em> of quality, not just its center:</p>
+  <ul>
+    <li><strong>Percentiles, not just the mean.</strong> What does quality look like at the 10th percentile (your
+      worst common cases), not only the average? A system with 92% mean accuracy but 60% accuracy on its worst
+      quintile is a very different product than one that's evenly 90–94% everywhere.</li>
+    <li><strong>Segment breakdowns.</strong> Accuracy by language, by input length, by user type, by topic
+      category. Aggregate numbers erase exactly the sub-populations most likely to be underserved.</li>
+    <li><strong>Run-to-run variance.</strong> Ask the same question twice and an LLM-based system can give two
+      different answers. Testing "does this hold up under repeated sampling" (self-consistency testing) reveals
+      instability a single pass never would.</li>
+    <li><strong>Tail risk.</strong> The worst 1–5% of outcomes, examined directly rather than averaged in. In a
+      high-stakes domain, the tail is often the entire story — a chatbot that's excellent 95% of the time but
+      occasionally fabricates dangerous medical advice is not "mostly fine," it's unsafe.</li>
+  </ul>
+
+  <p>The same lens applies just as much to latency as to quality. Nobody experiences "average latency" — every
+    real user experiences one specific response time, and the users who leave bad reviews are disproportionately
+    the ones who hit your worst cases. That's why production systems report <strong>p95</strong> and
+    <strong>p99</strong> latency (the response time that 95% or 99% of requests beat) instead of, or alongside,
+    the mean — the tail of the latency distribution is where user pain concentrates.</p>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">A mean can pass while the product is failing</strong>
+      A 4.6-out-of-5 average satisfaction score sounds like a strong result. If 3% of responses in that same
+      dataset contain outright dangerous misinformation, the average is telling you almost nothing useful about
+      whether the system is safe to ship. In regulated or safety-relevant domains, always ask for the tail before
+      you trust the headline number.
+    </div>
+  </div>
+
+  <h2>3. Blocking vs. optimization metrics</h2>
+  <p>Not every metric deserves the same kind of gate. Splitting your metrics into two categories up front shapes
+    almost everything about how you test and how you respond to a bad result:</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Blocking (gating) metrics</strong>
+      <p class="small" style="margin-top:.4rem;">Hard pass/fail thresholds that must be met before something ships
+        or stays live — no exceptions based on how good other numbers look. Example: PII leak rate must be 0%;
+        critical-toxicity rate must stay under 0.1%. If a blocking metric fails, the release stops, full stop.</p>
+    </div>
+    <div class="card">
+      <strong>Optimization metrics</strong>
+      <p class="small" style="margin-top:.4rem;">Numbers you continuously try to improve over time but don't gate
+        a single release on. Example: average helpfulness rating, cost per query, response conciseness. A small
+        regression gets tracked and investigated; it doesn't automatically block a merge.</p>
+    </div>
+  </div>
+
+  <p>A simple test to classify any metric: <strong>"If this metric alone got meaningfully worse, would we still
+    ship?"</strong> If the honest answer is no, it's blocking — build a hard, automated gate for it (this is
+    exactly what Session 23 wires into CI/CD). If the honest answer is "yes, but we'd want to know and act on it,"
+    it's an optimization metric — build a trend dashboard and a review cadence for it instead (Session 25 covers
+    who reviews that and how often).</p>
+
+  <table class="data">
+    <thead><tr><th>Metric</th><th>Typical classification</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>PII leakage rate</td><td>Blocking</td><td>Any occurrence is a real harm and often a legal/compliance issue.</td></tr>
+      <tr><td>Critical safety violation rate</td><td>Blocking</td><td>Direct risk to users; not acceptable at any rate above a strict ceiling.</td></tr>
+      <tr><td>p99 latency under peak load</td><td>Usually blocking</td><td>A hard SLA/UX commitment the product made.</td></tr>
+      <tr><td>Average helpfulness rating</td><td>Optimization</td><td>Important, but a small dip rarely justifies blocking a release by itself.</td></tr>
+      <tr><td>Cost per query</td><td>Optimization (unless a hard budget ceiling exists)</td><td>Worth tracking and improving; a small increase is a business decision, not a safety one.</td></tr>
+      <tr><td>Response length appropriateness</td><td>Depends on the product</td><td>Optimization for a general assistant; can become blocking in a rigid-format compliance report generator.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <div class="icon">🎯</div>
+    <div class="body">
+      <strong class="title">Same metric, different classification</strong>
+      Classification isn't a property of the metric name — it's a property of the product's risk profile. Always
+      re-derive the classification for the system in front of you rather than assuming last project's answer
+      still applies.
+    </div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s22");
+    App.buildSessionNav("session-nav", "s22");
+    App.wireMarkComplete("mark-complete", "s22");
+
+    // ---- Tradeoff frontier simulator ----
+    const BUDGET = 165;
+    const q = document.getElementById("dial-quality");
+    const s = document.getElementById("dial-speed");
+    const c = document.getElementById("dial-cost");
+    const valQ = document.getElementById("val-quality");
+    const valS = document.getElementById("val-speed");
+    const valC = document.getElementById("val-cost");
+    const valTotal = document.getElementById("val-total");
+    const readout = document.getElementById("frontier-readout");
+
+    function describe(qv, sv, cv) {
+      const top = [["Quality", qv], ["Speed", sv], ["Cost-efficiency", cv]].sort((a, b) => b[1] - a[1]);
+      const strongest = top[0][0], weakest = top[2][0];
+      let profile;
+      if (Math.max(qv, sv, cv) - Math.min(qv, sv, cv) < 12) {
+        profile = "a balanced, general-purpose operating point — no single dimension dominates.";
+      } else if (strongest === "Quality") {
+        profile = `a quality-first profile — fits offline or low-volume, high-stakes work (like a clinical summarizer). It's giving up on ${weakest.toLowerCase()} to get there.`;
+      } else if (strongest === "Speed") {
+        profile = `a real-time profile — fits high-volume, low-latency use cases (like chat triage), at the cost of ${weakest.toLowerCase()}.`;
+      } else {
+        profile = `a cost-optimized profile — fits high-volume, low-margin use cases where every call must stay cheap, at the cost of ${weakest.toLowerCase()}.`;
+      }
+      return `Quality ${qv} · Speed ${sv} · Cost-efficiency ${cv} — this reads as ${profile}`;
+    }
+
+    function rebalance(changed) {
+      const dials = { quality: +q.value, speed: +s.value, cost: +c.value };
+      const total = dials.quality + dials.speed + dials.cost;
+      const overflow = total - BUDGET;
+      if (overflow > 0) {
+        const others = Object.keys(dials).filter(k => k !== changed);
+        const otherSum = others.reduce((a, k) => a + dials[k], 0) || 1;
+        others.forEach(k => {
+          const share = dials[k] / otherSum;
+          dials[k] = Math.max(0, Math.round(dials[k] - overflow * share));
+        });
+        q.value = dials.quality; s.value = dials.speed; c.value = dials.cost;
+      }
+      valQ.textContent = q.value; valS.textContent = s.value; valC.textContent = c.value;
+      const newTotal = (+q.value) + (+s.value) + (+c.value);
+      valTotal.textContent = `${newTotal} / ${BUDGET}`;
+      readout.innerHTML = describe(+q.value, +s.value, +c.value);
+    }
+
+    q.addEventListener("input", () => rebalance("quality"));
+    s.addEventListener("input", () => rebalance("speed"));
+    c.addEventListener("input", () => rebalance("cost"));
+
+    function setDials(qv, sv, cv) {
+      q.value = qv; s.value = sv; c.value = cv;
+      valQ.textContent = qv; valS.textContent = sv; valC.textContent = cv;
+      valTotal.textContent = `${qv + sv + cv} / ${BUDGET}`;
+      readout.innerHTML = describe(qv, sv, cv);
+    }
+    document.getElementById("preset-balanced").addEventListener("click", () => setDials(55, 55, 55));
+    document.getElementById("preset-chat").addEventListener("click", () => setDials(35, 80, 50));
+    document.getElementById("preset-highstakes").addEventListener("click", () => setDials(90, 35, 40));
+    document.getElementById("preset-reset").addEventListener("click", () => setDials(55, 55, 55));
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AP-22.1", k: "K2", type: "single",
+        prompt: "What does the “cost-latency-quality frontier” describe?",
+        choices: [
+          { text: "That you generally cannot maximize cost-efficiency, speed, and quality at the same time — pushing one up typically costs you on another.", correct: true },
+          { text: "That cost, latency, and quality are always independent of each other.", correct: false },
+          { text: "That AI systems should always be optimized for quality above everything else.", correct: false },
+          { text: "A rule that latency and cost are the same metric.", correct: false },
+        ],
+        explain: "Most engineering levers (model size, sampling strategy, context length) move quality, cost, and latency together — improving one usually costs you on the other two." },
+      { lo: "AP-22.2", k: "K3", type: "single",
+        prompt: "A support-triage bot needs sub-2-second replies at high volume and low cost per message. Which technique best fits that operating point?",
+        choices: [
+          { text: "A fallback cascade: try a small, fast, cheap model first, and only escalate low-confidence cases to a larger model.", correct: true },
+          { text: "Self-consistency voting across five calls to the largest available model for every request.", correct: false },
+          { text: "Always using the single most capable and expensive model available.", correct: false },
+          { text: "Removing all latency monitoring since speed doesn't matter here.", correct: false },
+        ],
+        explain: "A cascade gets most requests answered cheaply and quickly, reserving expensive, slower processing only for the cases that actually need it — a strong fit for high-volume, cost/latency-sensitive products." },
+      { lo: "AP-22.3", k: "K2", type: "multi",
+        prompt: "Which of these techniques generally push quality up at some cost to latency and/or spend (select all that apply)?",
+        choices: [
+          { text: "Self-consistency / majority-vote sampling across multiple model calls", correct: true },
+          { text: "Using a larger, more capable model", correct: true },
+          { text: "Retrieving and including more context in the prompt", correct: true },
+          { text: "Serving a cached response for a repeated identical query", correct: false },
+        ],
+        explain: "Caching returns a previously computed answer faster and cheaper without changing quality for that hit — it doesn't trade quality for speed/cost the way the other three techniques do." },
+      { lo: "AP-22.4", k: "K3", type: "single",
+        prompt: "A team reports “92% average accuracy” for a new AI feature. Which follow-up question best reflects distributional thinking?",
+        choices: [
+          { text: "What does accuracy look like at the worst-performing segment or percentile, not just the average?", correct: true },
+          { text: "Can we round that up to 95% for the launch announcement?", correct: false },
+          { text: "Is 92% higher than last quarter's number?", correct: false },
+          { text: "How many total requests were served last month?", correct: false },
+        ],
+        explain: "A single mean hides variance across segments and the tail of outcomes — the question that surfaces real risk is about the distribution, not the headline average." },
+      { lo: "AP-22.5", k: "K4", type: "single",
+        prompt: "A medical-information assistant has a strong average satisfaction score of 4.6/5, but 3% of its responses contain factually dangerous misinformation. What does this reveal about relying on mean-based scores alone in a high-stakes domain?",
+        choices: [
+          { text: "A strong mean can coexist with a small but critical tail of harmful outputs, so in high-stakes domains tail/percentile analysis matters more than the average.", correct: true },
+          { text: "The mean score proves the system is safe to ship as-is.", correct: false },
+          { text: "3% is too small a number to ever matter in any domain.", correct: false },
+          { text: "Satisfaction scores and safety are always perfectly correlated, so this scenario can't actually occur.", correct: false },
+        ],
+        explain: "In safety-relevant domains the tail of the distribution is often the entire risk story — a good mean tells you almost nothing about whether the worst 1–5% of outputs are acceptable." },
+      { lo: "AP-22.6", k: "K2", type: "single",
+        prompt: "Which best describes a “blocking metric”?",
+        choices: [
+          { text: "A pass/fail threshold that must be met before a release ships or stays live, regardless of how strong other metrics look.", correct: true },
+          { text: "Any metric that appears on a dashboard.", correct: false },
+          { text: "A metric that is only reviewed once a year.", correct: false },
+          { text: "A metric that can never be automated.", correct: false },
+        ],
+        explain: "Blocking metrics are hard gates — if they fail, the release stops, independent of other results." },
+      { lo: "AP-22.7", k: "K2", type: "single",
+        prompt: "Which best describes an “optimization metric”?",
+        choices: [
+          { text: "A metric tracked and improved over time that doesn't, by itself, gate a single release.", correct: true },
+          { text: "A metric that is legally required to be zero at all times.", correct: false },
+          { text: "A metric that only applies before a system is deployed.", correct: false },
+          { text: "A synonym for a blocking metric.", correct: false },
+        ],
+        explain: "Optimization metrics get trend dashboards and a review cadence; a small regression is investigated but doesn't automatically block a merge or release the way a blocking metric failure does." },
+      { lo: "AP-22.8", k: "K3", type: "multi",
+        prompt: "Which of these would typically be classified as blocking metrics for a general customer-facing AI assistant (select all that apply)?",
+        choices: [
+          { text: "PII leak rate (target: 0%)", correct: true },
+          { text: "Critical toxicity / harassment rate above a strict ceiling", correct: true },
+          { text: "Average helpfulness rating", correct: false },
+          { text: "Average response length", correct: false },
+        ],
+        explain: "PII leakage and critical safety violations are direct harms with essentially zero tolerance, making them classic blocking metrics. Helpfulness and response length are usually optimization metrics you improve over time." },
+      { lo: "AP-22.9", k: "K3", type: "single",
+        prompt: "A product team decides small regressions in “response length appropriateness” are acceptable but should be visible, not release-blocking. What test-strategy consequence follows from classifying this as an optimization metric?",
+        choices: [
+          { text: "It gets a trend dashboard and periodic sampling-based evaluation rather than a hard automated CI/CD gate.", correct: true },
+          { text: "It should be removed from testing entirely since it doesn't block releases.", correct: false },
+          { text: "It must still block every release exactly like a blocking metric would.", correct: false },
+          { text: "It should only ever be measured once, at launch.", correct: false },
+        ],
+        explain: "Optimization metrics still get tested and tracked — just through dashboards and review cadence rather than a hard pass/fail gate on every change." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s22", passPct: 65 });
+  });
+</script>
+</body>
+</html>

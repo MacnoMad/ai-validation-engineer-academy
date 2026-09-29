@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 27 · Practice Exam #1 (Timed, 40Q) — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+<style>
+  .exam-timer-chip {
+    display: flex; flex-direction: column; align-items: center; gap: .2rem;
+    font-variant-numeric: tabular-nums; font-weight: 900; font-size: 2.2rem;
+  }
+  .exam-timer-chip .lbl { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); }
+  .time-up-flash { color: var(--danger); animation: examFlash 1s ease-in-out infinite; }
+  @keyframes examFlash { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+  .breakdown-row { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:.6rem 0; border-bottom:1px solid var(--border); }
+  .breakdown-row:last-child { border-bottom:none; }
+  .breakdown-bar { flex:1; height:8px; border-radius:999px; background:var(--bg-sunken); overflow:hidden; border:1px solid var(--border); margin:0 .8rem; }
+  .breakdown-bar > span { display:block; height:100%; border-radius:999px; }
+</style>
+</head>
+<body data-root="../">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 27 · ISTQB Prep (Optional)</div>
+  <h1>Practice Exam #1</h1>
+  <p class="lede">A full, timed mock exam matched to the real chapter weighting of the ISTQB Certified Tester
+    AI Testing (CT-AI) v2.0 exam. Every question below is original — written fresh for this course and grounded
+    in the syllabus's learning objectives, not copied from any official material. Treat it like the real thing:
+    read carefully, budget your time, and don't peek at the explanations until you've submitted.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ 60 min</span>
+    <span class="chip">40 questions</span>
+    <span class="chip">65% to pass</span>
+  </div>
+
+  <div class="callout exam" id="exam-intro">
+    <div class="icon">🎯</div>
+    <div class="body">
+      <strong class="title">Ready when you are</strong>
+      <p>Questions are distributed exactly the way the real exam weights each chapter: 6 from Chapter 1, 3 from
+        Chapter 2, 7 from Chapter 3, 7 from Chapter 4, 6 from Chapter 5, 9 from Chapter 6 (the heaviest), and 2
+        from Chapter 7. Once you start, a 60-minute countdown begins — it won't force-submit you when it hits
+        zero, but treat it as a hard boundary for realistic practice. Your score, plus a per-chapter breakdown,
+        is saved locally so Session 28's remediation review can point you back to exactly the right sessions.</p>
+      <button class="btn btn-primary" id="start-exam">▶ Start Exam</button>
+    </div>
+  </div>
+
+  <div class="lab" id="timer-box" style="display:none;">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Time remaining</span></div>
+    <div class="exam-timer-chip"><span id="exam-timer">60:00</span><span class="lbl">minutes : seconds</span></div>
+    <div class="callout danger" id="time-up-warning" style="display:none; margin-top:1rem;">
+      <div class="icon">⏰</div>
+      <div class="body"><strong class="title">Time's up</strong>The 60-minute mark has passed. This is practice,
+        not the real exam, so feel free to keep going — but note that in the real exam this is a hard stop.
+        Try to finish so your per-chapter breakdown is complete and accurate.</div>
+    </div>
+  </div>
+
+  <div id="quiz-mount"></div>
+  <div id="results-breakdown"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s27");
+    App.buildSessionNav("session-nav", "s27");
+    App.wireMarkComplete("mark-complete", "s27");
+
+    // ---- 40 original questions, chapter-weighted 6-3-7-7-6-9-2 ----
+    const questions = [
+      // ===== Chapter 1 — Introduction to AI (6) =====
+      { chapter: 1, lo: "AI-1.1.1", k: "K2", type: "single",
+        prompt: "A team is deciding whether to build a new invoice-approval feature as a conventional rules engine or as a machine learning classifier. Which statement correctly distinguishes the two approaches?",
+        choices: [
+          { text: "The rules engine's behavior is explicitly programmed by developers, while the ML classifier learns its behavior by finding patterns in historical invoice data.", correct: true },
+          { text: "Both approaches always produce deterministic, identical output for identical input.", correct: false },
+          { text: "The ML classifier requires a developer to hand-write every decision branch, just like the rules engine.", correct: false },
+          { text: "Rules engines cannot be tested with input/output pairs.", correct: false },
+        ],
+        explain: "The core distinction: conventional systems follow explicit, developer-written rules; AI-based systems learn behavior by finding patterns in data instead." },
+      { chapter: 1, lo: "AI-1.1.2", k: "K2", type: "single",
+        prompt: "Which of these systems, if it existed, would be classified as general AI rather than narrow AI?",
+        choices: [
+          { text: "A system that can learn and reason competently across many unrelated domains — medicine, law, engineering — without being retrained for each one.", correct: true },
+          { text: "A large language model fine-tuned specifically for customer-support chat.", correct: false },
+          { text: "An image classifier that recognizes 1,000 categories of objects.", correct: false },
+          { text: "A frontier GenAI model that generates highly realistic video from text prompts.", correct: false },
+        ],
+        explain: "General AI would perform most intellectual tasks a human can, across domains, without retraining. Every AI-based system deployed today — even advanced frontier GenAI — is narrow AI." },
+      { chapter: 1, lo: "AI-1.1.3", k: "K2", type: "single",
+        prompt: "A vision team needs an architecture well-suited to detecting objects in photographs, and a separate NLP team needs one well-suited to modeling long text sequences. Which pairing is correct?",
+        choices: [
+          { text: "CNN for the vision task; RNN or Transformer for the sequential text task.", correct: true },
+          { text: "RNN for the vision task; CNN for the sequential text task.", correct: false },
+          { text: "Both teams should use the same fuzzy-logic system.", correct: false },
+          { text: "Both tasks are best solved with rule-based expert systems.", correct: false },
+        ],
+        explain: "CNNs are highly effective for image recognition and object detection; RNNs and Transformers specialize in sequential data such as text." },
+      { chapter: 1, lo: "AI-1.1.4", k: "K2", type: "single",
+        prompt: "A generative model produces images by starting from pure random noise and iteratively removing it, guided by patterns learned from real training images. Which GenAI technology does this describe?",
+        choices: [
+          { text: "A diffusion model.", correct: true },
+          { text: "A generative adversarial network (GAN).", correct: false },
+          { text: "A rule-based expert system.", correct: false },
+          { text: "A support vector machine.", correct: false },
+        ],
+        explain: "Diffusion models generate content by gradually adding and then removing noise from data. GANs instead pit two competing networks (generator vs. discriminator) against each other." },
+      { chapter: 1, lo: "AI-1.1.5", k: "K2", type: "single",
+        prompt: "Why do GPUs typically outperform general-purpose CPUs for training machine learning models, even though CPUs often run at higher clock speeds?",
+        choices: [
+          { text: "GPUs have thousands of cores designed for massively parallel processing, such as matrix multiplication, which suits most ML workloads better than a CPU's few high-precision cores.", correct: true },
+          { text: "GPUs use quantized 64-bit arithmetic exclusively, which CPUs cannot perform.", correct: false },
+          { text: "CPUs cannot process numerical data at all.", correct: false },
+          { text: "GPUs are always cheaper to purchase than CPUs.", correct: false },
+        ],
+        explain: "GPUs' thousands of cores support the massively parallel computation ML training benefits from, whereas CPUs favor fewer, high-precision cores at higher clock speed." },
+      { chapter: 1, lo: "AI-1.1.8", k: "K2", type: "single",
+        prompt: "What approach does the EU AI Act take to regulating AI-based systems?",
+        choices: [
+          { text: "A risk-based approach that categorizes systems from minimal to unacceptable risk, imposing stricter requirements — rigorous testing, human oversight — on higher-risk systems.", correct: true },
+          { text: "It bans all AI-based systems from being deployed within the EU.", correct: false },
+          { text: "It applies identical, minimal requirements to every AI-based system regardless of domain.", correct: false },
+          { text: "It only applies to AI systems developed outside the EU.", correct: false },
+        ],
+        explain: "The EU AI Act is a landmark example of risk-based AI regulation — the higher the risk category, the more stringent the requirements." },
+
+      // ===== Chapter 2 — Quality Characteristics (3) =====
+      { chapter: 2, lo: "AI-2.1.1", k: "K2", type: "single",
+        prompt: "An AI-based industrial robot must let a human operator take over its movement within half a second whenever a safety zone is breached. Which ISO/IEC 25059 quality characteristic does this capability primarily represent?",
+        choices: [
+          { text: "Intervenability.", correct: true },
+          { text: "Functional adaptability.", correct: false },
+          { text: "AI functional correctness.", correct: false },
+          { text: "Societal and ethical risk mitigation.", correct: false },
+        ],
+        explain: "Intervenability is the degree to which an operator can intervene in an AI-based system's functioning in a timely manner to prevent harm — exactly this scenario." },
+      { chapter: 2, lo: "AI-2.1.2", k: "K2", type: "single",
+        prompt: "Why is demonstrating safety integrity especially difficult for a self-learning AI-based system compared to a conventional safety-related system?",
+        choices: [
+          { text: "The system's behavior can progressively diverge from the behavior that was originally tested and certified as safe.", correct: true },
+          { text: "Self-learning systems cannot be connected to any monitoring tools.", correct: false },
+          { text: "Self-learning systems never contain software defects.", correct: false },
+          { text: "Conventional safety-related systems require no testing at all.", correct: false },
+        ],
+        explain: "For self-learning systems, rigorous pre-deployment testing is undermined because the system's behavior keeps moving away from what was originally tested." },
+      { chapter: 2, lo: "AI-2.2.1", k: "K2", type: "single",
+        prompt: "Which of these is the best example of an acceptance criterion for an AI-based system's transparency characteristic?",
+        choices: [
+          { text: "The system's API must expose an endpoint returning the currently deployed model's version identifier and a link to its documentation.", correct: true },
+          { text: "The model must be at least 95% accurate on all inputs.", correct: false },
+          { text: "The production line must shut down within 0.5 seconds of a safety breach.", correct: false },
+          { text: "The chatbot must refuse to produce hateful content in 95% of red-team attempts.", correct: false },
+        ],
+        explain: "Transparency criteria concern communicating appropriate information to stakeholders, distinct from correctness, intervenability, or ethical risk-mitigation criteria." },
+
+      // ===== Chapter 3 — Machine Learning (7) =====
+      { chapter: 3, lo: "AI-3.1.1", k: "K2", type: "single",
+        prompt: "A retailer wants a model that predicts a customer's exact spend (a continuous dollar amount) next month, using labeled historical purchase data. Which form of ML task is this?",
+        choices: [
+          { text: "Supervised learning — ML regression.", correct: true },
+          { text: "Supervised learning — classification.", correct: false },
+          { text: "Unsupervised learning — clustering.", correct: false },
+          { text: "Reinforcement learning.", correct: false },
+        ],
+        explain: "Predicting a continuous numerical value from labeled data is ML regression, a supervised-learning task — distinct from classification, which assigns discrete classes." },
+      { chapter: 3, lo: "AI-3.1.2", k: "K2", type: "single",
+        prompt: "In the ML workflow, what is the difference between a model hyperparameter and an algorithm hyperparameter?",
+        choices: [
+          { text: "A model hyperparameter defines the model's structure (e.g., number of neural-network layers); an algorithm hyperparameter controls the training process itself (e.g., number of training iterations).", correct: true },
+          { text: "There is no meaningful difference — the two terms are interchangeable.", correct: false },
+          { text: "Model hyperparameters are only used during deployment, never during training.", correct: false },
+          { text: "Algorithm hyperparameters are learned automatically and never set manually.", correct: false },
+        ],
+        explain: "Model hyperparameters define structure (e.g., layer count); algorithm hyperparameters control training (e.g., iteration count) — both are passed to the algorithm before training." },
+      { chapter: 3, lo: "AI-3.1.4", k: "K2", type: "single",
+        prompt: "A team wants to give an existing LLM up-to-date access to their internal knowledge base without retraining or modifying any of the model's weights. Which technique fits this requirement?",
+        choices: [
+          { text: "Retrieval-augmented generation (RAG).", correct: true },
+          { text: "Fine-tuning the entire network.", correct: false },
+          { text: "Training a new model from scratch.", correct: false },
+          { text: "k-fold cross-validation.", correct: false },
+        ],
+        explain: "RAG retrieves relevant external documents and incorporates them into the prompt at inference time — no change is made to the pretrained model's weights, unlike fine-tuning." },
+      { chapter: 3, lo: "AI-3.2.1", k: "K2", type: "single",
+        prompt: "A dataset contains missing values in several numeric columns. Replacing those gaps with the column's mean or median value is an example of which data preparation activity?",
+        choices: [
+          { text: "Data cleaning (imputing missing values).", correct: true },
+          { text: "Feature engineering.", correct: false },
+          { text: "Exploratory data analysis.", correct: false },
+          { text: "Dataset constraint testing.", correct: false },
+        ],
+        explain: "Imputing missing values using techniques like mean, median, or mode is part of data cleaning, one of the data-preprocessing activities within data preparation." },
+      { chapter: 3, lo: "AI-3.2.3", k: "K2", type: "single",
+        prompt: "A project has a very small labeled dataset. To get a robust estimate of model performance while still preserving a fully independent final check, which approach is most appropriate?",
+        choices: [
+          { text: "Set aside a small final hold-out test set, then apply k-fold cross-validation to the remaining data for hyperparameter tuning.", correct: true },
+          { text: "Use 100% of the data for training and skip evaluation entirely.", correct: false },
+          { text: "Always use exactly three folds regardless of dataset size or characteristics.", correct: false },
+          { text: "Discard the smallest classes so the dataset appears larger.", correct: false },
+        ],
+        explain: "With limited data, a common strategy is a small hold-out test set plus k-fold cross-validation on the remaining pool — avoiding underfitting from an overly small training split while preserving an unbiased final test." },
+      { chapter: 3, lo: "AI-3.3.1", k: "K3", type: "single",
+        prompt: "A binary classifier is evaluated on 200 cases and produces this confusion matrix: TP = 70, FP = 10, FN = 20, TN = 100. What is the model's precision?",
+        choices: [
+          { text: "87.5% — 70 / (70 + 10)", correct: true },
+          { text: "77.8% — 70 / (70 + 20)", correct: false },
+          { text: "85% — (70 + 100) / 200", correct: false },
+          { text: "70% — 70 / 100", correct: false },
+        ],
+        explain: "Precision = TP / (TP + FP) = 70 / 80 = 87.5%. The distractors are recall (TP/(TP+FN)) and accuracy ((TP+TN)/total)." },
+      { chapter: 3, lo: "AI-3.4.1", k: "K2", type: "single",
+        prompt: "During training, a neuron's output is computed by taking a weighted sum of the previous layer's activations, adding the neuron's bias, and then passing the result through what?",
+        choices: [
+          { text: "A non-linear activation function.", correct: true },
+          { text: "The confusion matrix.", correct: false },
+          { text: "The k-fold cross-validation splitter.", correct: false },
+          { text: "A dataset constraint checker.", correct: false },
+        ],
+        explain: "The weighted sum plus bias is passed through a non-linear activation function to produce the neuron's activation value, repeated across the network each epoch as weights and biases are adjusted." },
+
+      // ===== Chapter 4 — Testing AI-Based Systems (7) =====
+      { chapter: 4, lo: "AI-4.1.1", k: "K2", type: "single",
+        prompt: "Why are locked AI-based systems generally easier to test than adaptive AI-based systems?",
+        choices: [
+          { text: "Locked systems are largely deterministic and don't change their behavior once deployed, so expected results remain stable.", correct: true },
+          { text: "Locked systems have no test oracle problem whatsoever.", correct: false },
+          { text: "Adaptive systems cannot be tested before deployment.", correct: false },
+          { text: "Locked systems always run faster than adaptive systems.", correct: false },
+        ],
+        explain: "Locked systems' weights and behavior are fixed post-deployment, making them largely deterministic; adaptive systems can change behavior during or after testing, adding complexity." },
+      { chapter: 4, lo: "AI-4.1.2", k: "K2", type: "single",
+        prompt: "Why is a single failed test case, such as one misclassified image, usually insufficient to conclude that an ML model's overall functional correctness is unacceptable?",
+        choices: [
+          { text: "AI-based systems are fundamentally probabilistic, so a single result doesn't reliably represent overall behavior — a statistically significant sample is needed.", correct: true },
+          { text: "Single test cases are never allowed in any form of testing.", correct: false },
+          { text: "ML models never make classification errors.", correct: false },
+          { text: "Statistical testing is only relevant to non-AI systems.", correct: false },
+        ],
+        explain: "Because AI-based systems exhibit non-deterministic, probabilistic behavior, a sufficiently large test suite is needed for statistically meaningful conclusions about overall performance." },
+      { chapter: 4, lo: "AI-4.1.3", k: "K2", type: "single",
+        prompt: "A team cannot define a single correct answer for an open-ended creative-writing AI, so instead they train a second AI model on human-labeled examples to judge whether new outputs are acceptable. Which test-oracle solution does this best describe?",
+        choices: [
+          { text: "A proxy oracle.", correct: true },
+          { text: "Defining environmental boundaries.", correct: false },
+          { text: "A dataset constraint check.", correct: false },
+          { text: "Neuron boundary coverage measurement.", correct: false },
+        ],
+        explain: "Proxy oracles use a secondary system or model — including another AI system — to assess or validate outputs when direct expected results are unavailable." },
+      { chapter: 4, lo: "AI-4.2.1", k: "K2", type: "single",
+        prompt: "What is the “input explosion problem” in testing generative AI systems?",
+        choices: [
+          { text: "The combination of highly diverse prompts, tunable parameters like temperature, and conversation context makes the input space extremely difficult to control or exhaustively cover.", correct: true },
+          { text: "GenAI systems physically overheat when given too many test inputs.", correct: false },
+          { text: "GenAI systems can only accept a single fixed input format.", correct: false },
+          { text: "Test inputs for GenAI must always be images, never text.", correct: false },
+        ],
+        explain: "The input explosion problem refers to the combinatorial complexity of prompts, parameters (temperature, max tokens), and context windows that make GenAI's input space hard to control." },
+      { chapter: 4, lo: "AI-4.2.2", k: "K2", type: "single",
+        prompt: "What is the primary goal of red teaming an AI-based system?",
+        choices: [
+          { text: "To deliberately probe the system to elicit harmful, unsafe, or policy-violating outputs so they can be fixed before wider exposure.", correct: true },
+          { text: "To measure the system's average response latency under normal load.", correct: false },
+          { text: "To confirm the system's source code compiles without errors.", correct: false },
+          { text: "To replace all conventional functional testing.", correct: false },
+        ],
+        explain: "Red teaming deliberately attacks a system to surface harmful capabilities — privacy violations, hateful content, dangerous guidance — so they can be mitigated before deployment." },
+      { chapter: 4, lo: "AI-4.3.1", k: "K2", type: "single",
+        prompt: "Which two test levels are specifically introduced to address risks unique to machine learning systems, beyond the conventional test levels?",
+        choices: [
+          { text: "Input data testing and ML model testing.", correct: true },
+          { text: "Component testing and system testing.", correct: false },
+          { text: "Smoke testing and regression testing.", correct: false },
+          { text: "A/B testing and canary testing.", correct: false },
+        ],
+        explain: "Input data testing (Chapter 5) and ML model testing (Chapter 6) are the two specialized test levels added for MLS-specific risks, alongside conventional levels that still apply." },
+      { chapter: 4, lo: "AI-4.3.2", k: "K2", type: "single",
+        prompt: "A tester categorizes ML-specific risks into three areas based on where in the ML workflow they arise. Which three areas are these?",
+        choices: [
+          { text: "Development, input data, and model.", correct: true },
+          { text: "Frontend, backend, and database.", correct: false },
+          { text: "Hardware, software, and network.", correct: false },
+          { text: "Training, marketing, and sales.", correct: false },
+        ],
+        explain: "One standard way of categorizing ML risk splits it into development risks (Ch.7), input data risks (Ch.5), and model risks (Ch.6)." },
+
+      // ===== Chapter 5 — Input Data Testing (6) =====
+      { chapter: 5, lo: "AI-5.1.2", k: "K2", type: "single",
+        prompt: "A loan-approval model consistently rejects applicants from one demographic group at a higher rate, even though the training data appears balanced. Investigation shows the decision-threshold logic itself treats a proxy attribute unfairly. What type of bias is this?",
+        choices: [
+          { text: "Algorithmic bias — a defect in the algorithm or model itself introducing systemic unfairness.", correct: true },
+          { text: "Data bias — caused only by unrepresentative training data.", correct: false },
+          { text: "A label correctness defect.", correct: false },
+          { text: "Data drift.", correct: false },
+        ],
+        explain: "Algorithmic bias arises from defects in the algorithm, model, or development framework itself, distinct from data bias caused by defects in the training data." },
+      { chapter: 5, lo: "AI-5.1.2", k: "K3", type: "single",
+        prompt: "A tester wants to check a loan model for hidden bias using disparate impact analysis. After identifying the sensitive attributes, what is the next step?",
+        choices: [
+          { text: "Generate counterfactual examples where a sensitive attribute, such as gender, is changed, then compare the model's outputs on those counterfactuals.", correct: true },
+          { text: "Immediately retrain the model from scratch.", correct: false },
+          { text: "Delete all data containing the sensitive attribute.", correct: false },
+          { text: "Skip straight to statistical significance testing without generating any counterfactuals.", correct: false },
+        ],
+        explain: "Disparate impact analysis: identify sensitive attributes, generate counterfactuals for them, generate model output on the counterfactuals, then analyze results for statistically significant differences." },
+      { chapter: 5, lo: "AI-5.1.3", k: "K2", type: "single",
+        prompt: "A tester deliberately feeds corrupted, malformed records into a data pipeline to see whether it maintains data integrity instead of crashing or silently propagating bad data. What is this technique called?",
+        choices: [
+          { text: "Fault injection testing.", correct: true },
+          { text: "Smoke testing.", correct: false },
+          { text: "A/B testing.", correct: false },
+          { text: "Disparate impact analysis.", correct: false },
+        ],
+        explain: "Fault injection testing simulates defective data inputs during system testing of the pipeline to assess its robustness and ability to maintain data integrity." },
+      { chapter: 5, lo: "AI-5.1.4", k: "K2", type: "single",
+        prompt: "Which pair of statistical tests is used for formally comparing whether a training dataset's distribution matches the expected operational data distribution?",
+        choices: [
+          { text: "Chi-squared and Kolmogorov-Smirnov.", correct: true },
+          { text: "T-test and ANOVA only.", correct: false },
+          { text: "Cohen's Kappa and Mann-Whitney U only.", correct: false },
+          { text: "Neuron coverage and k-Multisection Neuron Coverage.", correct: false },
+        ],
+        explain: "Data representativeness testing's statistical assessment step uses Chi-squared and Kolmogorov-Smirnov tests to compare distributions." },
+      { chapter: 5, lo: "AI-5.1.5", k: "K3", type: "single",
+        prompt: "A tester defines a rule that the total points awarded across a sports season must never exceed a fixed maximum. What category of dataset constraint is this?",
+        choices: [
+          { text: "A multi-value (sum) constraint.", correct: true },
+          { text: "A single-value type constraint.", correct: false },
+          { text: "A comparison (correlate) constraint.", correct: false },
+          { text: "A missing-value constraint.", correct: false },
+        ],
+        explain: "A sum constraint tests that the total of all values for an attribute meets, exceeds, or does not exceed a specified value across multiple instances — a multi-value constraint." },
+      { chapter: 5, lo: "AI-5.1.6", k: "K2", type: "single",
+        prompt: "Two independent annotators label the same 500 images, and their agreement is measured using Cohen's Kappa. Which label-correctness technique does this describe?",
+        choices: [
+          { text: "Multiple annotation, using inter-annotator agreement (IAA).", correct: true },
+          { text: "Expert review.", correct: false },
+          { text: "Model loss analysis.", correct: false },
+          { text: "Automated rule-based testing.", correct: false },
+        ],
+        explain: "Multiple annotation involves independently labelling data points and comparing them; inter-annotator agreement, measured via Cohen's Kappa or percentage agreement, reveals labelling-guideline or ambiguity problems." },
+
+      // ===== Chapter 6 — Model Testing (9) =====
+      { chapter: 6, lo: "AI-6.1.1", k: "K2", type: "single",
+        prompt: "A model performs very well on its training data but far worse on new production data. Which specific test approach is used to detect and mitigate this risk?",
+        choices: [
+          { text: "Testing for overfitting.", correct: true },
+          { text: "Adversarial testing.", correct: false },
+          { text: "Red teaming.", correct: false },
+          { text: "API testing.", correct: false },
+        ],
+        explain: "This describes an overfitted model — the standard mitigation is testing for overfitting, comparing performance on a held-out test dataset against training/validation performance." },
+      { chapter: 6, lo: "AI-6.1.2", k: "K2", type: "single",
+        prompt: "Which documentation framework provides a concise overview of a model's intended uses, evaluation results, and ethical considerations?",
+        choices: [
+          { text: "Model Cards.", correct: true },
+          { text: "Datasheets for Datasets.", correct: false },
+          { text: "The confusion matrix.", correct: false },
+          { text: "The ML workflow diagram.", correct: false },
+        ],
+        explain: "Model Cards summarize a model's intended uses, evaluation results, and ethical considerations; Datasheets for Datasets instead document dataset motivation, composition, and collection." },
+      { chapter: 6, lo: "AI-6.1.3", k: "K2", type: "single",
+        prompt: "A team keeps the confidence level fixed at 95% and increases the number of test cases run against a probabilistic model. What happens to the margin of error (MoE)?",
+        choices: [
+          { text: "It decreases — more test cases produce a more precise result at the same confidence level.", correct: true },
+          { text: "It increases.", correct: false },
+          { text: "It stays exactly the same regardless of sample size.", correct: false },
+          { text: "MoE and confidence level are unrelated to sample size.", correct: false },
+        ],
+        explain: "As the number of tests increases, fixing the confidence level lets the margin of error shrink — the result becomes more precise." },
+      { chapter: 6, lo: "AI-6.1.4", k: "K2", type: "single",
+        prompt: "A tester crafts adversarial examples by attacking a substitute model with known internals, then applies those same examples to the real target model, relying on the assumption that both models share similar classification boundaries. What is this assumption called?",
+        choices: [
+          { text: "Transferability.", correct: true },
+          { text: "Data drift.", correct: false },
+          { text: "Functional adaptability.", correct: false },
+          { text: "Inter-annotator agreement.", correct: false },
+        ],
+        explain: "Black-box adversarial testing can use a substitute model with known internals; transferability is the assumption that adversarial examples crafted against it will also fool the original model." },
+      { chapter: 6, lo: "AI-6.1.5", k: "K3", type: "single",
+        prompt: "For a risk-assessment model predicting age at death, a tester defines a rule: if the number of cigarettes smoked per day increases in the input while everything else stays the same, the predicted age at death must not increase. What metamorphic property is being tested?",
+        choices: [
+          { text: "Monotonicity.", correct: true },
+          { text: "Invariance.", correct: false },
+          { text: "Consistency across unrelated inputs.", correct: false },
+          { text: "Neuron boundary coverage.", correct: false },
+        ],
+        explain: "Monotonicity checks that outputs change in a consistent direction as a specific input changes — the smoking / age-at-death example is a textbook case." },
+      { chapter: 6, lo: "AI-6.1.7", k: "K2", type: "single",
+        prompt: "New financial regulations mean that a transaction type the model previously learned to treat as low-risk should now be classified as high-risk, even though the transaction's raw data looks the same. What type of drift is this?",
+        choices: [
+          { text: "Concept drift — the relationship between input data and the correct output has changed.", correct: true },
+          { text: "Data drift — only the statistical properties of the input data have changed.", correct: false },
+          { text: "Overfitting.", correct: false },
+          { text: "An adversarial attack.", correct: false },
+        ],
+        explain: "Concept drift occurs when the relationship between inputs and the correct output changes over time, even if the input distribution itself hasn't — exactly this regulation-driven scenario." },
+      { chapter: 6, lo: "AI-6.1.8", k: "K2", type: "single",
+        prompt: "A model performs poorly on both the training dataset and the validation dataset, and its learning curves show high, closely matched errors on both that don't improve much with more training. What does this most likely indicate?",
+        choices: [
+          { text: "Underfitting — the model is too simple to capture the underlying pattern in the data.", correct: true },
+          { text: "Overfitting — the model has memorized noise in the training data.", correct: false },
+          { text: "Data drift in production.", correct: false },
+          { text: "A successful, right-fitting model.", correct: false },
+        ],
+        explain: "Consistently poor performance on both training and validation data, with flat learning curves, is the signature of underfitting rather than overfitting." },
+      { chapter: 6, lo: "AI-6.1.9", k: "K2", type: "multi",
+        prompt: "Which of these statistical techniques are commonly used to analyze the results of an A/B test comparing two system variants? (Select all that apply.)",
+        choices: [
+          { text: "T-test", correct: true },
+          { text: "Z-test", correct: true },
+          { text: "Chi-squared test", correct: true },
+          { text: "Neuron boundary coverage", correct: false },
+        ],
+        explain: "The t-test, z-test, chi-squared test, and Mann-Whitney U test are named as popular statistical techniques for A/B testing; neuron boundary coverage is a neural-network structural coverage metric, unrelated to A/B testing." },
+      { chapter: 6, lo: "AI-6.1.10", k: "K2", type: "single",
+        prompt: "Why should a pseudo-oracle used in back-to-back testing ideally avoid sharing software components with the system under test?",
+        choices: [
+          { text: "So that a shared defect in both systems doesn't cause their outputs to match even when both are actually wrong.", correct: true },
+          { text: "Because shared components always run slower.", correct: false },
+          { text: "Because the pseudo-oracle must always be written in a different programming language.", correct: false },
+          { text: "Because back-to-back testing legally requires two separate vendors.", correct: false },
+        ],
+        explain: "If the pseudo-oracle shares components with the system under test, both could contain the same defect, causing outputs to match even though both are wrong — undermining the comparison." },
+
+      // ===== Chapter 7 — ML Development Testing (2) =====
+      { chapter: 7, lo: "AI-7.1.1", k: "K2", type: "single",
+        prompt: "A tester wants to confirm that a team is not misusing a third-party ML framework's library calls, such as TensorFlow or PyTorch APIs, in unintended ways. Which test approach directly mitigates this risk?",
+        choices: [
+          { text: "API testing.", correct: true },
+          { text: "Disparate impact analysis.", correct: false },
+          { text: "Metamorphic testing.", correct: false },
+          { text: "Data representativeness testing.", correct: false },
+        ],
+        explain: "API testing is the listed mitigation for incorrect or unintended use of library or framework APIs — an ML development risk." },
+      { chapter: 7, lo: "AI-7.1.2", k: "K2", type: "single",
+        prompt: "A team releases an updated model to only 5% of live production traffic, closely monitoring latency, accuracy, and error rates before deciding whether to roll it out further. What deployment test technique is this?",
+        choices: [
+          { text: "Canary testing.", correct: true },
+          { text: "Shadow testing.", correct: false },
+          { text: "Rollback testing.", correct: false },
+          { text: "Installability testing.", correct: false },
+        ],
+        explain: "Canary testing releases an updated model to a small subset of production traffic and monitors real-time metrics before a full rollout — distinct from shadow testing, which runs the new model in parallel without affecting live responses." },
+    ];
+
+    // ---- Per-chapter grading helper (mirrors Quiz.render's own grading logic) ----
+    function gradeByChapter(qs) {
+      const byChapter = {};
+      for (let ch = 1; ch <= 7; ch++) byChapter[ch] = { correct: 0, total: 0 };
+      const cards = document.querySelectorAll("#quiz-mount .qcard");
+      cards.forEach((card, qi) => {
+        const q = qs[qi];
+        const inputs = card.querySelectorAll("input");
+        const chosen = Array.from(inputs).filter(i => i.checked).map(i => parseInt(i.value, 10));
+        const correctIdx = q.choices.map((c, i) => c.correct ? i : -1).filter(i => i >= 0);
+        const selfAssess = correctIdx.length === q.choices.length;
+        const isCorrect = selfAssess ? chosen.length > 0
+          : (chosen.length === correctIdx.length && chosen.every(i => correctIdx.includes(i)));
+        byChapter[q.chapter].total++;
+        if (isCorrect) byChapter[q.chapter].correct++;
+      });
+      return byChapter;
+    }
+
+    const CHAPTER_NAMES = {
+      1: "Ch.1 · Introduction to AI", 2: "Ch.2 · Quality Characteristics", 3: "Ch.3 · Machine Learning",
+      4: "Ch.4 · Testing AI-Based Systems", 5: "Ch.5 · Input Data Testing", 6: "Ch.6 · Model Testing",
+      7: "Ch.7 · ML Development Testing",
+    };
+
+    function renderResultsBreakdown(byChapter, correct, total) {
+      const mount = document.getElementById("results-breakdown");
+      let rows = "";
+      for (let ch = 1; ch <= 7; ch++) {
+        const d = byChapter[ch];
+        const pct = d.total ? Math.round((d.correct / d.total) * 100) : 0;
+        const tone = pct >= 80 ? "success" : pct >= 60 ? "warning" : "danger";
+        rows += `<div class="breakdown-row">
+            <span style="min-width:220px;">${CHAPTER_NAMES[ch]}</span>
+            <div class="breakdown-bar"><span style="width:${pct}%; background:var(--${tone});"></span></div>
+            <span class="small" style="min-width:80px; text-align:right;">${d.correct}/${d.total} · ${pct}%</span>
+          </div>`;
+      }
+      mount.innerHTML = `
+        <div class="lab">
+          <div class="lab-head"><span class="dot"></span><span class="lab-title">Score breakdown by chapter</span></div>
+          <div class="lab-sub">This is exactly what Session 28's remediation review will read back from your browser's local storage.</div>
+          ${rows}
+        </div>`;
+      mount.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function refreshMarkCompleteUI() {
+      const btn = document.getElementById("mark-complete");
+      if (!btn) return;
+      const done = Progress.isComplete("s27");
+      btn.textContent = done ? "✓ Session complete" : "Mark session complete";
+      btn.classList.toggle("btn-primary", !done);
+      btn.classList.toggle("btn-ghost", done);
+      const mini = document.getElementById("progress-mini-fill");
+      if (mini) mini.style.width = Progress.overallPct() + "%";
+    }
+
+    // ---- Timer ----
+    let timerInterval = null;
+    let secondsLeft = 60 * 60;
+    function formatTime(s) {
+      const m = Math.floor(s / 60), sec = s % 60;
+      return String(m).padStart(2, "0") + ":" + String(sec).padStart(2, "0");
+    }
+    function startTimer() {
+      const timerEl = document.getElementById("exam-timer");
+      timerInterval = setInterval(() => {
+        secondsLeft--;
+        if (secondsLeft <= 0) {
+          secondsLeft = 0;
+          timerEl.textContent = "00:00";
+          timerEl.classList.add("time-up-flash");
+          document.getElementById("time-up-warning").style.display = "flex";
+          clearInterval(timerInterval);
+          return;
+        }
+        timerEl.textContent = formatTime(secondsLeft);
+      }, 1000);
+    }
+
+    // ---- Start Exam ----
+    document.getElementById("start-exam").addEventListener("click", () => {
+      document.getElementById("exam-intro").style.display = "none";
+      document.getElementById("timer-box").style.display = "block";
+      startTimer();
+      Quiz.render("quiz-mount", questions, {
+        sessionId: "s27",
+        passPct: 65,
+        onFinish: (correct, total) => {
+          if (timerInterval) clearInterval(timerInterval);
+          const byChapter = gradeByChapter(questions);
+          renderResultsBreakdown(byChapter, correct, total);
+          Progress.set("s27", { complete: true, examScore: { correct, total, byChapter } });
+          refreshMarkCompleteUI();
+        },
+      });
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 9 · Neural Networks &amp; the Perceptron — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 9 · Chapter 3 — Machine Learning (part 5 of 6)</div>
+  <h1>Inside a Neural Network — and Training Your First Perceptron</h1>
+  <p class="lede">Today you open the black box one layer at a time: what a neuron actually computes, how
+    signals flow forward through a network, and — in your own hands — how the very first neural network
+    architecture, the perceptron, learns from mistakes until it gets everything right.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">Hands-on (H1)</span>
+    <span class="chip">LOs: AI-3.4.1, HO-3.4.2</span>
+    <span class="chip">Exam weight: part of 7 questions for Chapter 3</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">perceptron</span><span class="kw">neuron</span><span class="kw">weight</span>
+    <span class="kw">bias</span><span class="kw">activation function</span><span class="kw">forward pass</span>
+    <span class="kw">epoch</span><span class="kw">backpropagation</span>
+    <span class="kw">deep neural network</span><span class="kw">linearly separable</span>
+  </div>
+
+  <h2>1. From one neuron to a network</h2>
+  <p>Artificial neural networks were originally designed to loosely mimic the human brain: a network of
+    simple interconnected units, each doing a small amount of work, whose combined behavior can be
+    surprisingly capable. The <strong>single-layer perceptron</strong> is the earliest example — just one layer,
+    used for supervised binary classification of problems that are <strong>linearly separable</strong> (imagine
+    being able to draw one straight line that puts every example of Class A on one side and every example of
+    Class B on the other).</p>
+  <p>Most networks in real use today are <strong>deep neural networks</strong>: they stack many layers on top
+    of each other. A fully-connected deep network — where every neuron in one layer connects to every neuron
+    in the next — is essentially a stack of perceptron-like units, which is why it's sometimes called a
+    <strong>multi-layer perceptron (MLP)</strong>.</p>
+
+  <h2>2. Anatomy of a deep neural network</h2>
+  <p>Every deep neural network is built from three kinds of layers:</p>
+  <div class="grid-2">
+    <div class="card">
+      <strong>Input layer</strong>
+      <p class="small" style="margin-top:.4rem;">Receives the raw inputs — for example, the pixel values of an
+        image, or a set of numeric features describing an event.</p>
+    </div>
+    <div class="card">
+      <strong>Hidden layer(s)</strong>
+      <p class="small" style="margin-top:.4rem;">Sit between input and output, made of artificial neurons
+        (also called nodes). In a fully-connected network, every neuron in one layer connects to every neuron
+        in the next, each connection carrying its own independent weight.</p>
+    </div>
+    <div class="card">
+      <strong>Output layer</strong>
+      <p class="small" style="margin-top:.4rem;">Produces the final result — for example, a value indicating
+        how likely it is that the input image shows a cat.</p>
+    </div>
+    <div class="card">
+      <strong>Weights &amp; bias</strong>
+      <p class="small" style="margin-top:.4rem;">Every connection between two neurons has a weight; every
+        neuron also has its own bias value. These are the numbers the network actually "learns" — everything
+        else about the architecture stays fixed during training.</p>
+    </div>
+  </div>
+
+  <div class="card" style="text-align:center;">
+    <svg viewBox="0 0 460 260" width="100%" style="max-width:480px;" role="img" aria-label="Diagram of a deep neural network with input, hidden, and output layers">
+      <g stroke="var(--border)" stroke-width="1.5" opacity="0.9">
+        <!-- input(3) -> hidden(4) -->
+        <line x1="70" y1="50"  x2="230" y2="35"/><line x1="70" y1="50"  x2="230" y2="95"/><line x1="70" y1="50"  x2="230" y2="155"/><line x1="70" y1="50"  x2="230" y2="215"/>
+        <line x1="70" y1="130" x2="230" y2="35"/><line x1="70" y1="130" x2="230" y2="95"/><line x1="70" y1="130" x2="230" y2="155"/><line x1="70" y1="130" x2="230" y2="215"/>
+        <line x1="70" y1="210" x2="230" y2="35"/><line x1="70" y1="210" x2="230" y2="95"/><line x1="70" y1="210" x2="230" y2="155"/><line x1="70" y1="210" x2="230" y2="215"/>
+        <!-- hidden(4) -> output(1) -->
+        <line x1="230" y1="35" x2="390" y2="125"/><line x1="230" y1="95" x2="390" y2="125"/><line x1="230" y1="155" x2="390" y2="125"/><line x1="230" y1="215" x2="390" y2="125"/>
+      </g>
+      <g>
+        <circle cx="70" cy="50"  r="14" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+        <circle cx="70" cy="130" r="14" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+        <circle cx="70" cy="210" r="14" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+        <circle cx="230" cy="35"  r="14" fill="var(--accent-2-soft)" stroke="var(--accent-2)" stroke-width="2"/>
+        <circle cx="230" cy="95"  r="14" fill="var(--accent-2-soft)" stroke="var(--accent-2)" stroke-width="2"/>
+        <circle cx="230" cy="155" r="14" fill="var(--accent-2-soft)" stroke="var(--accent-2)" stroke-width="2"/>
+        <circle cx="230" cy="215" r="14" fill="var(--accent-2-soft)" stroke="var(--accent-2)" stroke-width="2"/>
+        <circle cx="390" cy="125" r="16" fill="var(--success-soft)" stroke="var(--success)" stroke-width="2"/>
+      </g>
+      <text x="70" y="242" text-anchor="middle" font-size="12" fill="var(--text-faint)">Input layer</text>
+      <text x="230" y="242" text-anchor="middle" font-size="12" fill="var(--text-faint)">Hidden layer</text>
+      <text x="390" y="242" text-anchor="middle" font-size="12" fill="var(--text-faint)">Output layer</text>
+    </svg>
+    <p class="small">Every line is a weighted connection; every circle is a neuron with its own bias.</p>
+  </div>
+
+  <h2>3. What a single neuron computes (the forward pass)</h2>
+  <p>Each neuron (outside the input layer) does the same two-step computation:</p>
+  <ol>
+    <li><strong>Weighted sum:</strong> multiply every incoming activation value by its connection's weight, add
+      them all up, then add the neuron's own bias — <code>z = (w₁·x₁ + w₂·x₂ + … ) + bias</code>.</li>
+    <li><strong>Activation function:</strong> pass <code>z</code> through a non-linear function to produce the
+      neuron's <strong>activation value</strong> — the number it passes on to the next layer. The classic
+      perceptron uses a simple step function (output 1 if <code>z ≥ 0</code>, else 0); modern deep networks
+      commonly use functions like sigmoid or ReLU instead, chosen for how well they behave during training.</li>
+  </ol>
+
+  <div class="card">
+    <strong>Worked micro-example</strong>
+    <p class="small" style="margin-top:.4rem;">Inputs x₁ = 1, x₂ = 0.5. Weights w₁ = 0.6, w₂ = −0.2. Bias = 0.1.</p>
+    <p class="small"><code>z = (0.6 × 1) + (−0.2 × 0.5) + 0.1 = 0.6 − 0.1 + 0.1 = 0.6</code></p>
+    <p class="small">With a step activation (threshold 0), 0.6 ≥ 0, so this neuron's activation value/output is
+      <strong>1</strong>.</p>
+  </div>
+
+  <p>This same weighted-sum-then-activate computation happens at <em>every</em> neuron in <em>every</em>
+    hidden and output layer, using the previous layer's activation values as this layer's inputs. Data flows
+    left to right — input → hidden → output — gradually transforming raw input into increasingly abstract
+    representations. One complete left-to-right pass like this is called the <strong>forward pass</strong>.</p>
+
+  <h2>4. How the network learns</h2>
+  <p>At the start of training, weights are initialized to small random values (biases are sometimes started
+    at zero). Training data is fed forward through the network, producing an output, which is compared against
+    the known correct answer. The size of that difference is the <strong>error</strong> (or loss). That error
+    is then fed <em>backward</em> through the network — a process known as <strong>backpropagation</strong> —
+    to nudge every weight and bias in the direction that would have reduced the error. One full pass through
+    the entire training dataset is called an <strong>epoch</strong>; training repeats for many epochs until the
+    output is judged good enough to stop.</p>
+
+  <div class="callout tip">
+    <div class="icon">🎯</div>
+    <div class="body">
+      <strong class="title">Why this matters for testing</strong>
+      "Good enough to stop" is exactly the ML functional performance metrics from Sessions 7–8 in action —
+      accuracy/precision/recall/F1 for classification, or MAE/MSE/RMSE for regression. Later, in Sessions 18–19,
+      you'll test whether that learned behavior actually holds up under adversarial and metamorphic conditions,
+      not just on the training data.
+    </div>
+  </div>
+
+  <h2>5. The perceptron: the simplest case, learned by hand</h2>
+  <p>A single-layer perceptron is one neuron doing exactly the computation above, restricted to problems that
+    are linearly separable — its decision boundary is always a straight line (in 2D) or a flat hyperplane (in
+    higher dimensions). Because it's a single layer, there's no need to propagate error backward through
+    hidden layers — it uses a simpler, direct rule instead. For each training example <code>(x, target)</code>:</p>
+  <ol>
+    <li>Compute the prediction: <code>output = step(w·x + bias)</code></li>
+    <li>Compute the error: <code>error = target − output</code> (this comes out to −1, 0, or +1 for binary
+      0/1 labels)</li>
+    <li>Update every weight: <code>wᵢ += learning_rate × error × xᵢ</code>, and the bias: <code>bias +=
+      learning_rate × error</code></li>
+  </ol>
+  <p>If the prediction was already correct, <code>error</code> is 0 and nothing changes. If it was wrong, the
+    weights and bias shift slightly in the direction that would have made this example correct. Repeated over
+    enough epochs, this is guaranteed to converge to zero errors — <em>provided</em> the data really is
+    linearly separable.</p>
+
+  <h2>6. Hands-on: train a perceptron, step by step</h2>
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: perceptron trainer</span></div>
+    <div class="lab-sub">A tiny, made-up network-security dataset: eight requests, each described by two
+      simplified features — request rate and payload size (normalized units) — labeled <strong>normal</strong>
+      (0) or <strong>suspicious</strong> (1). Step through training and watch the decision boundary move as
+      the weights update. This is real perceptron math, computed live in your browser — not a canned animation.</div>
+
+    <div class="controls">
+      <label>Learning rate: <span id="lr-value">0.20</span>
+        <input type="range" id="lr-slider" min="0.05" max="1" step="0.05" value="0.2">
+      </label>
+      <button class="btn btn-primary" id="p-step">Step (1 example)</button>
+      <button class="btn btn-ghost" id="p-epoch">Train 1 epoch</button>
+      <button class="btn btn-ghost" id="p-reset">Reset</button>
+    </div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:1.4rem; align-items:flex-start;">
+      <svg id="p-svg" viewBox="0 0 320 320" width="320" height="320" style="flex-shrink:0; background:var(--bg-sunken); border:1px solid var(--border); border-radius: var(--radius-sm);"></svg>
+      <div style="flex:1; min-width:220px;">
+        <div class="stat-row" id="p-stats"></div>
+        <div class="readout" id="p-readout" style="margin-top:.9rem;">Press "Step" or "Train 1 epoch" to begin.
+          Class colors: <span style="color:var(--accent);">●</span> normal (0),
+          <span style="color:var(--accent-2);">●</span> suspicious (1). A dashed red ring marks a point the
+          current weights still misclassify.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>7. One neuron isn't enough — why "deep"</h2>
+  <p>A single perceptron can only separate classes that a straight line can split apart. A well-known
+    historical example of its limit is the XOR pattern — two classes arranged so that no single straight line
+    can ever separate them correctly. Stacking layers, combined with non-linear activation functions, is what
+    lets a network bend and combine multiple straight-line boundaries into much more complex, non-linear
+    decision surfaces. That's the practical reason deep networks exist: depth buys the ability to learn
+    relationships a single-layer perceptron structurally cannot.</p>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s09");
+    App.buildSessionNav("session-nav", "s09");
+    App.wireMarkComplete("mark-complete", "s09");
+
+    // ---- Perceptron trainer lab ----
+    const points = [
+      { x: 1,   y: 1,   label: 0 }, { x: 1.5, y: 2,   label: 0 },
+      { x: 2,   y: 1,   label: 0 }, { x: 1,   y: 2.8, label: 0 },
+      { x: 4,   y: 4,   label: 1 }, { x: 4.5, y: 5,   label: 1 },
+      { x: 5,   y: 4,   label: 1 }, { x: 5,   y: 5.5, label: 1 },
+    ];
+    const DOMAIN = 6.5, PAD = 30, SIZE = 320;
+
+    let w1 = 0, w2 = 0, bias = 0, epoch = 0, stepIndex = 0, lastPointIdx = null, lastUpdated = false;
+
+    function toPx(x, y) {
+      const scale = (SIZE - PAD * 2) / DOMAIN;
+      return { px: PAD + x * scale, py: SIZE - PAD - y * scale };
+    }
+
+    function predict(px1, px2) { return (w1 * px1 + w2 * px2 + bias) >= 0 ? 1 : 0; }
+
+    function misclassifiedCount() {
+      return points.filter(p => predict(p.x, p.y) !== p.label).length;
+    }
+
+    function boundaryLine() {
+      // w1*x + w2*y + bias = 0
+      if (Math.abs(w2) > 1e-6) {
+        const yAt = (x) => -(w1 * x + bias) / w2;
+        const a = toPx(0, yAt(0)), b = toPx(DOMAIN, yAt(DOMAIN));
+        return { x1: a.px, y1: a.py, x2: b.px, y2: b.py, visible: true };
+      } else if (Math.abs(w1) > 1e-6) {
+        const xAt = -bias / w1;
+        const a = toPx(xAt, 0), b = toPx(xAt, DOMAIN);
+        return { x1: a.px, y1: a.py, x2: b.px, y2: b.py, visible: true };
+      }
+      return { visible: false };
+    }
+
+    function render() {
+      const svg = document.getElementById("p-svg");
+      const line = boundaryLine();
+      let dots = "";
+      points.forEach((p, i) => {
+        const { px, py } = toPx(p.x, p.y);
+        const wrong = predict(p.x, p.y) !== p.label;
+        const isCurrent = i === lastPointIdx;
+        const fill = p.label === 1 ? "var(--accent-2)" : "var(--accent)";
+        dots += `<circle cx="${px}" cy="${py}" r="9" fill="${fill}" stroke="${isCurrent ? 'var(--warning)' : 'var(--bg-elevated)'}" stroke-width="${isCurrent ? 3 : 2}"/>`;
+        if (wrong) dots += `<circle cx="${px}" cy="${py}" r="14" fill="none" stroke="var(--danger)" stroke-width="2" stroke-dasharray="3,3"/>`;
+      });
+      const boundarySvg = line.visible
+        ? `<line x1="${line.x1}" y1="${line.y1}" x2="${line.x2}" y2="${line.y2}" stroke="var(--text)" stroke-width="2" stroke-dasharray="6,4"/>`
+        : "";
+      svg.innerHTML = `
+        <rect x="${PAD}" y="${PAD}" width="${SIZE - PAD * 2}" height="${SIZE - PAD * 2}" fill="none" stroke="var(--border)"/>
+        <text x="${SIZE/2}" y="${SIZE - 6}" text-anchor="middle" font-size="11" fill="var(--text-faint)">feature 1 — request rate</text>
+        <text x="10" y="${SIZE/2}" text-anchor="middle" font-size="11" fill="var(--text-faint)" transform="rotate(-90 10 ${SIZE/2})">feature 2 — payload size</text>
+        ${boundarySvg}
+        ${dots}`;
+
+      const miscl = misclassifiedCount();
+      document.getElementById("p-stats").innerHTML = `
+        <div class="stat-tile"><div class="label">Epoch</div><div class="value">${epoch}</div></div>
+        <div class="stat-tile"><div class="label">w1, w2</div><div class="value" style="font-size:1rem;">${w1.toFixed(2)}, ${w2.toFixed(2)}</div></div>
+        <div class="stat-tile"><div class="label">Bias</div><div class="value" style="font-size:1.1rem;">${bias.toFixed(2)}</div></div>
+        <div class="stat-tile"><div class="label">Misclassified</div><div class="value">${miscl} / ${points.length}</div></div>`;
+
+      const readout = document.getElementById("p-readout");
+      if (miscl === 0 && lastPointIdx !== null) {
+        readout.innerHTML = `🎉 <strong>Converged</strong> — the perceptron now classifies every training point correctly after ${epoch} epoch(s).`;
+      } else if (lastPointIdx !== null) {
+        const p = points[lastPointIdx];
+        readout.textContent = lastUpdated
+          ? `Tested point (${p.x}, ${p.y}) [true class ${p.label}] — it was misclassified, so weights and bias were updated.`
+          : `Tested point (${p.x}, ${p.y}) [true class ${p.label}] — already correctly classified, no update needed.`;
+      }
+    }
+
+    function trainOne() {
+      const p = points[stepIndex % points.length];
+      const lr = parseFloat(document.getElementById("lr-slider").value);
+      const output = predict(p.x, p.y);
+      const error = p.label - output;
+      lastUpdated = error !== 0;
+      if (lastUpdated) {
+        w1 += lr * error * p.x;
+        w2 += lr * error * p.y;
+        bias += lr * error;
+      }
+      lastPointIdx = stepIndex % points.length;
+      stepIndex++;
+      if (stepIndex % points.length === 0) epoch++;
+    }
+
+    document.getElementById("lr-slider").addEventListener("input", (e) => {
+      document.getElementById("lr-value").textContent = parseFloat(e.target.value).toFixed(2);
+    });
+    document.getElementById("p-step").addEventListener("click", () => { trainOne(); render(); });
+    document.getElementById("p-epoch").addEventListener("click", () => {
+      for (let i = 0; i < points.length; i++) trainOne();
+      render();
+    });
+    document.getElementById("p-reset").addEventListener("click", () => {
+      w1 = 0; w2 = 0; bias = 0; epoch = 0; stepIndex = 0; lastPointIdx = null; lastUpdated = false;
+      document.getElementById("p-readout").textContent = 'Press "Step" or "Train 1 epoch" to begin.';
+      render();
+    });
+    render();
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AI-3.4.1", k: "K2", type: "single",
+        prompt: "Which statement correctly describes the roles of the three layer types in a deep neural network?",
+        choices: [
+          { text: "The input layer receives raw inputs, hidden layers transform them through neurons, and the output layer produces the final result.", correct: true },
+          { text: "The output layer receives raw inputs and the input layer produces the final result.", correct: false },
+          { text: "Hidden layers are optional and every network must have exactly one.", correct: false },
+          { text: "Only the output layer contains neurons with weights.", correct: false },
+        ],
+        explain: "Data flows input → hidden → output; hidden layers are where most of the learned transformation happens, and every layer past the input has neurons with weights and biases." },
+      { lo: "AI-3.4.1", k: "K2", type: "single",
+        prompt: "What does a single neuron compute, in order?",
+        choices: [
+          { text: "A weighted sum of its inputs plus its bias, then passes that value through a non-linear activation function.", correct: true },
+          { text: "An average of its inputs, with no weights involved.", correct: false },
+          { text: "A random number, independent of its inputs.", correct: false },
+          { text: "The maximum of all previous layers' outputs, with no bias.", correct: false },
+        ],
+        explain: "z = weighted sum + bias, then activation value = f(z) — this two-step computation repeats at every neuron." },
+      { lo: "AI-3.4.1", k: "K2", type: "multi",
+        prompt: "Which of the following are true about weights and biases during training (select all that apply)?",
+        choices: [
+          { text: "They are typically initialized to small random values at the start of training.", correct: true },
+          { text: "Biases are sometimes initialized to zero.", correct: true },
+          { text: "They are gradually adjusted as training data is fed through the network and error is fed back.", correct: true },
+          { text: "They are fixed by the architecture and never change during training.", correct: false },
+        ],
+        explain: "Weights and biases are exactly what training adjusts — the architecture (number of layers/neurons) stays fixed; the learned numbers are what change." },
+      { lo: "AI-3.4.1", k: "K1", type: "single",
+        prompt: "What is an “epoch” in neural network training?",
+        choices: [
+          { text: "One complete pass of the entire training dataset through the network.", correct: true },
+          { text: "A single neuron's activation value.", correct: false },
+          { text: "The final trained model, ready for deployment.", correct: false },
+          { text: "A synonym for the learning rate.", correct: false },
+        ],
+        explain: "Training typically runs for many epochs, gradually adjusting weights and biases each time." },
+      { lo: "AI-3.4.1", k: "K2", type: "single",
+        prompt: "During training, what is fed backward through the network, and why?",
+        choices: [
+          { text: "The error (or loss) between the predicted and correct output, used to adjust weights and biases so the error shrinks next time.", correct: true },
+          { text: "The raw training data, so the input layer can be retrained from scratch each epoch.", correct: false },
+          { text: "The activation function itself, which changes shape every epoch.", correct: false },
+          { text: "Nothing — information in a neural network only ever flows forward.", correct: false },
+        ],
+        explain: "This backward flow of error to update weights and biases is the essence of backpropagation." },
+      { lo: "HO-3.4.2", k: "K2", type: "single",
+        prompt: "What class of problems can a single-layer perceptron correctly solve?",
+        choices: [
+          { text: "Binary classification problems that are linearly separable.", correct: true },
+          { text: "Any classification problem, regardless of shape.", correct: false },
+          { text: "Only ML regression problems.", correct: false },
+          { text: "Only problems with more than two classes.", correct: false },
+        ],
+        explain: "A perceptron's decision boundary is always a straight line (or hyperplane) — it can only correctly separate classes that a straight line can divide." },
+      { lo: "HO-3.4.2", k: "K3", type: "single",
+        prompt: "In the perceptron learning rule, if a training example is already predicted correctly (error = 0), what happens to that neuron's weights and bias on this step?",
+        choices: [
+          { text: "Nothing — the update term is multiplied by the error, so a zero error means no change.", correct: true },
+          { text: "They are reset to zero.", correct: false },
+          { text: "They are increased by the full learning rate regardless of the prediction.", correct: false },
+          { text: "The bias is removed from the model.", correct: false },
+        ],
+        explain: "The update rule is weight += learning_rate × error × input — with error = 0, the update term is 0." },
+      { lo: "HO-3.4.2", k: "K3", type: "single",
+        prompt: "Given weights w = (0.5, −0.3), bias = 0.1, and a step activation with threshold 0, what does the perceptron predict for input (x1=2, x2=1)?",
+        choices: [
+          { text: "Class 1, because z = (0.5×2) + (−0.3×1) + 0.1 = 0.8, and 0.8 ≥ 0.", correct: true },
+          { text: "Class 0, because z is negative.", correct: false },
+          { text: "It cannot be determined without training data.", correct: false },
+          { text: "Class 1, because all perceptrons always output 1.", correct: false },
+        ],
+        explain: "z = 1.0 − 0.3 + 0.1 = 0.8, which is ≥ 0, so the step activation outputs class 1." },
+      { lo: "AI-3.4.1", k: "K1", type: "single",
+        prompt: "What is a “multi-layer perceptron” (MLP)?",
+        choices: [
+          { text: "A fully-connected deep neural network, built from stacked perceptron-like layers of neurons.", correct: true },
+          { text: "A single perceptron trained on multiple datasets at once.", correct: false },
+          { text: "A perceptron that can only be used for image data.", correct: false },
+          { text: "A synonym for a decision tree.", correct: false },
+        ],
+        explain: "“Multi-layer perceptron” is another name for a fully-connected deep network — stacking the same kind of neuron computation across many layers." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s09", passPct: 65 });
+  });
+</script>
+</body>
+</html>

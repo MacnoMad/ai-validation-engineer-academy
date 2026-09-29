@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-root="">
+<header class="topbar">
+  <a class="brand" href="index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+
+  <div class="eyebrow">A hands-on path into testing and validating AI-based systems</div>
+  <h1>Become an AI Validation Engineer</h1>
+  <p class="lede">This is a from-scratch, practitioner-level training program: 30 one-hour sessions, Monday–Friday,
+    built to make you genuinely good at testing and validating AI-based systems — how they differ from
+    conventional software, how to evaluate machine learning models, and how to test data, models, and pipelines
+    like it's your job. Interactive labs, not just reading, and everything runs offline.</p>
+  <p class="lede">The curriculum borrows its scope and structure from an internationally recognized body of
+    knowledge for AI testing, so the coverage is rigorous and nothing important gets skipped — and if you ever
+    decide you want the official ISTQB Certified Tester AI Testing (CT-AI) credential to go with the skills,
+    the last few sessions double as exam prep. That part is entirely optional; the skills stand on their own
+    either way.</p>
+
+  <div class="card">
+    <div class="small" id="welcome-back-msg" style="display:none; font-weight:700; margin-bottom:.8rem;"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+      <div>
+        <div class="small" style="font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--text-faint);">Overall progress</div>
+        <div id="overall-stat" style="font-size:1.8rem; font-weight:900;">0 / 26 sessions</div>
+      </div>
+      <div style="flex:1; min-width:180px;">
+        <div class="progress-bar"><span id="overall-fill" style="width:0%;"></span></div>
+      </div>
+      <div style="display:flex; gap:.6rem; flex-wrap:wrap;">
+        <a class="btn btn-primary" id="continue-btn" href="curriculum/s01-orientation.html">Start Session 1 →</a>
+        <button class="btn btn-ghost" id="reset-progress-btn" style="display:none;">↺ Start brand new</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="backup-card">
+    <div style="font-weight:800; margin-bottom:.3rem;">💾 Back up your progress</div>
+    <p class="small" style="margin-bottom:1rem;">Your progress saves automatically in this browser as you go —
+      but over 20–30 days you won't always keep it open, and browser storage can occasionally get cleared. Save
+      a backup file after each session (or whenever) so you can restore it here, or on a different computer, if
+      that ever happens.</p>
+    <div style="display:flex; gap:.7rem; flex-wrap:wrap; align-items:center;">
+      <button class="btn btn-ghost" id="export-progress-btn">💾 Save a backup file</button>
+      <button class="btn btn-ghost" id="import-progress-btn">📂 Restore from a backup</button>
+      <input type="file" id="import-progress-input" accept="application/json,.json" hidden>
+    </div>
+    <p class="small" id="backup-status" style="margin-top:.7rem;"></p>
+  </div>
+
+  <a id="cert-banner" href="certificate.html" class="card" style="display:none; text-decoration:none; color:inherit; align-items:center; gap:1rem;">
+    <div style="font-size:1.6rem; flex-shrink:0;" id="cert-banner-icon">🎓</div>
+    <div style="flex:1; min-width:0;">
+      <div style="font-weight:800;" id="cert-banner-title">Certificate</div>
+      <div class="small" id="cert-banner-sub"></div>
+    </div>
+    <div class="btn btn-ghost" style="flex-shrink:0; pointer-events:none;">View →</div>
+  </a>
+
+  <h2>How the curriculum is weighted</h2>
+  <p>Rather than spending equal time on every topic, sessions are weighted by how much a recognized industry
+    body considers each topic to matter for a competent AI tester — <strong>Chapter 6 (Model Testing)</strong>
+    carries the most weight of all, so this course spends extra sessions there. If you do go on to sit the
+    official certification exam, this happens to line up exactly: 40 multiple-choice questions in 60 minutes,
+    65% to pass, with entry requiring the Foundation Level (CTFL) certificate — but that's a bonus, not the
+    point.</p>
+
+  <table class="data" id="exam-table">
+    <thead><tr><th>Ch.</th><th>Chapter</th><th>Content minutes</th><th>Reference exam Qs</th><th>Reference exam pts</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Your roadmap</h2>
+  <p class="small">Click any unlocked session to open it. Sessions are built incrementally — check back as you
+    progress and the next ones will appear.</p>
+  <div id="roadmap"></div>
+
+  <h2>Reference &amp; extras</h2>
+  <div class="grid-2">
+    <a class="card" style="text-decoration:none; color:inherit;" href="reference/glossary.html">
+      <strong>Glossary &amp; abbreviations</strong>
+      <p class="small" style="margin-top:.3rem;">Every AI-specific keyword and abbreviation from the syllabus, searchable.</p>
+    </a>
+    <a class="card" style="text-decoration:none; color:inherit;" href="README.html">
+      <strong>How this course works</strong>
+      <p class="small" style="margin-top:.3rem;">Folder layout, how to run the local server, and how progress tracking works.</p>
+    </a>
+  </div>
+
+</main>
+
+<script src="assets/js/course-data.js"></script>
+<script src="assets/js/glossary-data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Exam blueprint table
+    const tbody = document.querySelector("#exam-table tbody");
+    COURSE.examTarget.chapters.forEach(c => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${c.n}</td><td>${c.title}</td><td>${c.mins} min</td><td>${c.q}</td><td>${c.pts}</td>`;
+      tbody.appendChild(tr);
+    });
+    const totalQ = COURSE.examTarget.chapters.reduce((a, c) => a + c.q, 0);
+    const totalPts = COURSE.examTarget.chapters.reduce((a, c) => a + c.pts, 0);
+    const totalMin = COURSE.examTarget.chapters.reduce((a, c) => a + c.mins, 0);
+    const trTotal = document.createElement("tr");
+    trTotal.style.fontWeight = "800";
+    trTotal.innerHTML = `<td></td><td>Total</td><td>${totalMin} min</td><td>${totalQ}</td><td>${totalPts}</td>`;
+    tbody.appendChild(trTotal);
+
+    // Roadmap
+    const roadmap = document.getElementById("roadmap");
+    let currentChapter = null;
+    let firstIncomplete = null;
+    COURSE.sessions.forEach(s => {
+      if (s.chapter !== currentChapter) {
+        currentChapter = s.chapter;
+        const h = document.createElement("div");
+        h.className = "small";
+        h.id = App.chapterSlug(currentChapter);
+        h.style.cssText = "font-weight:800; text-transform:uppercase; letter-spacing:.05em; margin:1.4rem 0 .5rem; color:var(--text-faint); scroll-margin-top:5.5rem;";
+        h.textContent = currentChapter;
+        roadmap.appendChild(h);
+      }
+      const complete = Progress.isComplete(s.id);
+      const quiz = Progress.quizScore(s.id);
+      if (!complete && !firstIncomplete && s.built) firstIncomplete = s;
+
+      const row = document.createElement(s.built ? "a" : "div");
+      row.className = "card";
+      row.style.cssText = "display:flex; align-items:center; gap:1rem; margin:.6rem 0; text-decoration:none; color:inherit;" + (s.built ? "" : " opacity:.55;");
+      if (s.built) row.href = s.file;
+
+      const badge = complete ? `<span class="chip" style="color:var(--success); border-color:var(--success);">✓ Done</span>`
+        : s.built ? `<span class="chip">Not started</span>`
+        : `<span class="chip">Coming soon</span>`;
+      const quizBadge = quiz ? `<span class="chip k2">${quiz.correct}/${quiz.total} quiz</span>` : "";
+
+      row.innerHTML = `
+        <div style="font-weight:900; font-size:1.1rem; color:var(--text-faint); width:2.2rem; flex-shrink:0;">${String(s.n).padStart(2,"0")}</div>
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:750;">${s.title}</div>
+          <div class="small" style="margin-top:.15rem;">${s.blurb}</div>
+        </div>
+        <div style="display:flex; gap:.4rem; flex-shrink:0;">${badge}${quizBadge}</div>
+      `;
+      roadmap.appendChild(row);
+
+      if (s.chapter === "ISTQB Prep (Optional)" && s.n === 30) {
+        const resCard = document.createElement("a");
+        resCard.href = "exams/source-pdfs.html";
+        resCard.className = "card";
+        resCard.style.cssText = "display:flex; align-items:center; gap:1rem; margin:.6rem 0 0; text-decoration:none; color:inherit; border-style:dashed;";
+        resCard.innerHTML = `
+          <div style="font-size:1.4rem; flex-shrink:0;">📄</div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:750;">Official ISTQB reference documents</div>
+            <div class="small" style="margin-top:.15rem;">The real sample exam (questions + answers) and exam-structure PDFs this block is built from — view or download the originals.</div>
+          </div>`;
+        roadmap.appendChild(resCard);
+      }
+    });
+
+    // Header progress + continue button
+    const done = Progress.completedCount();
+    document.getElementById("overall-stat").textContent = `${done} / ${COURSE.sessions.length} sessions`;
+    document.getElementById("overall-fill").style.width = Progress.overallPct() + "%";
+    const cont = document.getElementById("continue-btn");
+    if (firstIncomplete) {
+      cont.href = firstIncomplete.file;
+      cont.textContent = `Continue: Session ${firstIncomplete.n} →`;
+    } else if (done === 0) {
+      cont.textContent = "Start Session 1 →";
+    }
+
+    // Welcome back + start-brand-new (only meaningful once there's real progress to protect)
+    const resetBtn = document.getElementById("reset-progress-btn");
+    if (done > 0) {
+      const msg = document.getElementById("welcome-back-msg");
+      msg.style.display = "block";
+      msg.textContent = done === COURSE.sessions.length
+        ? "👋 Welcome back — you've finished all 30 sessions."
+        : `👋 Welcome back — you're at ${done} of ${COURSE.sessions.length} sessions. Pick up where you left off, or start over below.`;
+      resetBtn.style.display = "inline-flex";
+    }
+    resetBtn.addEventListener("click", () => {
+      const sure = confirm(
+        "This permanently erases all 30 sessions' progress, quiz scores, and any certificate name/lock on THIS device.\n\n" +
+        "If you want to keep a copy, cancel this and use \"Save a backup file\" first.\n\n" +
+        "Start a brand new training session?"
+      );
+      if (!sure) return;
+      Object.keys(localStorage)
+        .filter(k => k.startsWith("avea.") && k !== "avea.theme")
+        .forEach(k => localStorage.removeItem(k));
+      location.reload();
+    });
+
+    // Backup: export all progress to a JSON file, or restore from one.
+    document.getElementById("export-progress-btn").addEventListener("click", () => {
+      const data = { __course: "AI Validation Engineer Academy", __exportedAt: new Date().toISOString() };
+      Object.keys(localStorage)
+        .filter(k => k.startsWith("avea."))
+        .forEach(k => { data[k] = localStorage.getItem(k); });
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ai-validation-engineer-progress-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      document.getElementById("backup-status").textContent = `✓ Saved ${a.download} to your downloads folder.`;
+    });
+
+    document.getElementById("import-progress-btn").addEventListener("click", () => {
+      document.getElementById("import-progress-input").click();
+    });
+    document.getElementById("import-progress-input").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      const status = document.getElementById("backup-status");
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        let data;
+        try { data = JSON.parse(reader.result); }
+        catch (err) { status.textContent = "✗ That file isn't valid — couldn't read it as a progress backup."; return; }
+        const keys = Object.keys(data).filter(k => k.startsWith("avea."));
+        if (!keys.length) { status.textContent = "✗ That file doesn't look like a progress backup from this course."; return; }
+        if (done > 0 && !confirm(`This will overwrite your current progress (${done}/${COURSE.sessions.length} sessions) with the backup's ${keys.filter(k=>k.startsWith("avea.session.")).length} saved sessions. Continue?`)) return;
+        keys.forEach(k => localStorage.setItem(k, data[k]));
+        status.textContent = "✓ Restored — reloading…";
+        setTimeout(() => location.reload(), 600);
+      };
+      reader.onerror = () => { status.textContent = "✗ Couldn't read that file."; };
+      reader.readAsText(file);
+      e.target.value = ""; // allow re-selecting the same file later
+    });
+
+    // Certificate banner
+    const certBanner = document.getElementById("cert-banner");
+    if (done === COURSE.sessions.length) {
+      certBanner.style.display = "flex";
+      document.getElementById("cert-banner-title").textContent = "🎉 All 30 sessions complete — your certificate is ready";
+      document.getElementById("cert-banner-sub").textContent = "Claim your personalized Certificate of Completion from AI Home University.";
+    } else if (done >= COURSE.sessions.length - 3) {
+      certBanner.style.display = "flex";
+      document.getElementById("cert-banner-icon").textContent = "🔒";
+      document.getElementById("cert-banner-title").textContent = "Certificate of Completion";
+      document.getElementById("cert-banner-sub").textContent = `${done} / ${COURSE.sessions.length} sessions complete — almost there.`;
+    }
+
+    // The roadmap (and its chapter anchors) are built dynamically above, so the
+    // browser's native #hash scroll-on-load already fired and found nothing —
+    // do it ourselves now that the target actually exists.
+    if (location.hash) {
+      const target = document.getElementById(location.hash.slice(1));
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
+</script>
+</body>
+</html>

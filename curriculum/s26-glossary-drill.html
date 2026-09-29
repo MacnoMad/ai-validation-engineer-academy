@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 26 · Keyword & Glossary Mastery Drill — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+<style>
+  .flashcard-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1rem; margin: .8rem 0 1.8rem; }
+  .fc-wrap { display:flex; flex-direction:column; gap:.4rem; }
+  .flashcard .back .fc-chip { position:absolute; top:.5rem; right:.6rem; }
+  .fc-mastery { display:flex; gap:.4rem; }
+  .fc-mastery button { flex:1; font-size:.72rem; padding:.35rem .3rem; }
+  .fc-wrap.mastered .flashcard .front { border-color: var(--success, #2e8b57); }
+  .fc-wrap.review .flashcard .front { border-color: var(--danger, #c0392b); }
+  .fc-mastery .fc-yes.active { background: var(--success-soft, #e4f5ea); border-color: var(--success, #2e8b57); }
+  .fc-mastery .fc-no.active { background: var(--danger-soft, #fbe9e7); border-color: var(--danger, #c0392b); }
+  .fc-controls-row { display:flex; flex-wrap:wrap; align-items:center; gap:1rem; justify-content:space-between; }
+  .fc-stats { font-size:.85rem; color: var(--text-faint); }
+  #abbr-search { margin: .6rem 0; }
+  .chapter-block h2 { margin-top: 2rem; }
+</style>
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 26 · ISTQB Prep (Optional)</div>
+  <h1>Keyword &amp; Glossary Mastery Drill</h1>
+  <p class="lede">Every other session in this course asks you to understand and apply concepts. This one asks you to
+    simply <strong>remember</strong> them — cold, on demand, without a paragraph of context to lean on. That is a
+    different skill, and it is worth training on its own.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k1">K1 · Remember</span>
+    <span class="chip">All 7 chapters</span>
+  </div>
+
+  <div class="callout exam">
+    <div class="icon">🎯</div>
+    <div class="body">
+      <strong class="title">Why this session leans into exam language</strong>
+      Sessions 1–25 deliberately avoided leading with "exam" or "certification." This one is different on purpose:
+      it exists specifically to drill the exact keyword definitions the official ISTQB CT-AI v2.0 exam tests at
+      K1 (recall) level. If you are only after the practitioner skills, you can safely skip straight to your
+      dashboard — nothing later in the course depends on this page. If you are pursuing the credential, this is
+      the single highest-leverage hour you can spend: a large share of exam questions are just "what does this
+      term mean?"
+    </div>
+  </div>
+
+  <h2>How to use this page</h2>
+  <p>Below are flashcards for every AI-specific keyword and glossary term across all 7 syllabus chapters, grouped
+    by chapter. Click a card to flip it — the front shows just the term, the back shows the definition and which
+    chapter it belongs to. Mark each one "Knew it" or "Review" as you go; that choice is saved locally on this
+    device so you can come back and focus only on the ones you are still shaky on. After the cards, there is a
+    plain lookup table for abbreviations (those do not need flashcard-style recall, just recognition), and a
+    closing 18-question quiz sampled across every chapter.</p>
+
+  <div class="card" id="fc-controls">
+    <div class="fc-controls-row">
+      <div class="fc-stats" id="fc-stats">Loading your saved progress…</div>
+      <div style="display:flex; gap:.6rem; flex-wrap:wrap;">
+        <button class="btn btn-ghost" id="fc-shuffle">🔀 Shuffle order</button>
+        <button class="btn btn-ghost" id="fc-reset">Reset mastery tracking</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="flashcard-sections"></div>
+
+  <hr class="rule">
+
+  <h2>Abbreviations</h2>
+  <p>These are simpler lookups than concept flashcards — just recognize the expansion. Every abbreviation used
+    anywhere in the syllabus is listed here.</p>
+  <input type="text" id="abbr-search" class="glossary-search" placeholder="Search an abbreviation or its meaning…">
+  <table class="data" id="abbr-table">
+    <thead><tr><th style="width:140px;">Abbreviation</th><th>Full term</th></tr></thead>
+    <tbody id="abbr-tbody"></tbody>
+  </table>
+
+  <hr class="rule">
+
+  <h2>Closing recall check</h2>
+  <p class="small">18 rapid K1 questions sampled across all 7 chapters — the same style of question you will meet
+    on the exam. Pass mark set to 65%, matching the real exam.</p>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s26");
+    App.buildSessionNav("session-nav", "s26");
+    App.wireMarkComplete("mark-complete", "s26");
+
+    // ================================================================
+    // Complete term list — every AI-specific keyword and glossary term
+    // across all 7 syllabus chapters. Built directly from the syllabus
+    // (Keywords / AI-Specific Keywords per chapter + the full Chapter 9
+    // "AI-Specific Terms" glossary + Chapter 8 abbreviations list),
+    // with definitions paraphrased in original wording.
+    // ================================================================
+    const TERMS = [
+      // ---- Chapter 1: Introduction to Artificial Intelligence ----
+      { term: "AI-based system", chapter: 1, def: "A system whose behavior is driven, at least in part, by one or more trained AI models rather than purely by developer-written rules." },
+      { term: "Artificial intelligence (AI)", chapter: 1, def: "The broad discipline of building systems capable of performing tasks that normally require human intelligence, such as perceiving, reasoning, or learning." },
+      { term: "Narrow AI", chapter: 1, def: "AI built to perform a specific, well-defined task; every AI-based system in production today falls into this category. Also called weak AI." },
+      { term: "General AI", chapter: 1, def: "A hypothetical AI that could match human-level performance across virtually any intellectual task without task-specific retraining. Does not exist today." },
+      { term: "Super AI", chapter: 1, def: "A hypothetical AI that would exceed human intelligence across the board and continue improving itself beyond human control." },
+      { term: "Machine learning (ML)", chapter: 1, def: "A branch of AI in which a model learns statistical patterns from training data instead of following hand-written rules." },
+      { term: "ML development framework", chapter: 1, def: "A software platform (libraries and tools) used to build, train, and deploy machine learning models." },
+      { term: "Frontier AI", chapter: 1, def: "The most advanced, large-scale AI models available at a given time; still narrow AI, but pushing the current edge of capability." },
+      { term: "Technological singularity", chapter: 1, def: "The hypothetical tipping point at which AI would progress from general AI to super AI." },
+      { term: "Generative AI (GenAI)", chapter: 1, def: "AI systems built to produce new content — text, images, audio, video, or other data — rather than only classify or predict." },
+      { term: "GAN (Generative Adversarial Network)", chapter: 1, def: "A generative architecture pairing a generator that creates fake samples against a discriminator that tries to catch them, each improving the other through competition." },
+      { term: "Diffusion model", chapter: 1, def: "A generative architecture that produces content by starting from random noise and iteratively removing it, guided by patterns learned during training." },
+      { term: "Transformer", chapter: 1, def: "A neural network architecture that uses self-attention to weigh how relevant every other element in a sequence is, forming the backbone of most modern LLMs." },
+      { term: "Foundation model", chapter: 1, def: "A large, general-purpose model pretrained on broad data, later adapted or fine-tuned for many downstream tasks." },
+      { term: "Deep learning (DL)", chapter: 1, def: "A subset of machine learning that uses neural networks with many layers to learn complex patterns directly from raw data." },
+      { term: "CNN (Convolutional Neural Network)", chapter: 1, def: "A deep learning architecture built for grid-structured data such as images, well suited to recognizing spatial patterns." },
+      { term: "RNN (Recurrent Neural Network)", chapter: 1, def: "A deep learning architecture designed for sequential data such as text or time series, tracking patterns across time steps." },
+      { term: "NLP (Natural Language Processing)", chapter: 1, def: "The field concerned with enabling computers to read, interpret, and generate human language." },
+      { term: "Agentic AI", chapter: 1, def: "Autonomous AI agents, often built on LLMs, that plan and act independently across multiple steps to reach a goal." },
+      { term: "AI as a Service (AIaaS)", chapter: 1, def: "A delivery model where AI capabilities and development services are hosted centrally by a provider and consumed over the network." },
+      { term: "GPU (Graphics Processing Unit)", chapter: 1, def: "Specialized hardware originally built for rendering images, now widely used to accelerate the parallel computations needed for ML training." },
+      { term: "Von Neumann architecture", chapter: 1, def: "The classic computer architecture built around a shared memory, CPU, control unit, and input/output components." },
+      { term: "Edge AI", chapter: 1, def: "Running AI models directly on local devices near the data source, instead of relying on a remote cloud service." },
+      { term: "Edge computing", chapter: 1, def: "Processing data physically close to where it is generated, rather than sending it to a centralized data center." },
+      { term: "Neuromorphic processor", chapter: 1, def: "A chip designed to mimic the structure and behavior of biological neurons for efficient AI processing." },
+      { term: "Expert system", chapter: 1, def: "A rule-based AI application that solves problems in a narrow domain by encoding the reasoning of human experts." },
+      { term: "Fuzzy logic", chapter: 1, def: "A form of reasoning that allows degrees of truth between 0 and 1, instead of strict true/false answers, useful under uncertainty." },
+      { term: "Search algorithm", chapter: 1, def: "An algorithm that systematically explores a space of possible states to find one that satisfies a goal." },
+      { term: "Multimodal model", chapter: 1, def: "A model built to handle more than one type of data — such as text, images, and audio — together." },
+      { term: "Deepfake", chapter: 1, def: "Synthetic media created or altered with AI to convincingly imitate a real person or event." },
+      { term: "Sentiment analysis", chapter: 1, def: "Using NLP and ML to identify and classify the emotional tone expressed in a piece of text." },
+
+      // ---- Chapter 2: Quality Characteristics for AI-Based Systems ----
+      { term: "Functional adaptability", chapter: 2, def: "The AI system's ability to adjust its behavior appropriately as context or requirements change, without losing quality." },
+      { term: "AI functional correctness", chapter: 2, def: "The degree to which the AI system's outputs are accurate for a given input, acknowledging that correct can be a probability rather than one fixed answer." },
+      { term: "Intervenability", chapter: 2, def: "The degree to which a human can step in, override, or halt the AI system's automated behavior." },
+      { term: "AI robustness", chapter: 2, def: "The system's ability to keep performing acceptably when faced with invalid input, unexpected conditions, or adversarial pressure." },
+      { term: "Safety", chapter: 2, def: "The degree to which the AI system avoids states that could lead to harm to people, property, or the environment." },
+      { term: "Societal and ethical risk mitigation", chapter: 2, def: "Reducing the AI system's negative impact on people and society, such as unfair bias, discrimination, or misinformation." },
+      { term: "Transparency", chapter: 2, def: "The degree to which stakeholders can understand and appropriately trust how the system produces its outputs." },
+      { term: "User controllability", chapter: 2, def: "The degree to which a user can configure, customize, or steer the AI system's behavior." },
+      { term: "Explainable AI (XAI)", chapter: 2, def: "The area of AI concerned with making a model's outputs understandable to humans; a major driver behind transparency." },
+
+      // ---- Chapter 3: Machine Learning ----
+      { term: "Supervised learning", chapter: 3, def: "Training a model on labeled data, where each example already carries the correct answer." },
+      { term: "Unsupervised learning", chapter: 3, def: "Training a model on unlabeled data so it can discover structure or groupings on its own." },
+      { term: "Reinforcement learning", chapter: 3, def: "Training an agent to reach a goal through trial and error, guided by rewards and penalties from its environment." },
+      { term: "Classification", chapter: 3, def: "An ML function that assigns a given input to one of a set of predefined categories." },
+      { term: "Clustering", chapter: 3, def: "An ML function that groups similar data points together without predefined labels." },
+      { term: "Clustering algorithm", chapter: 3, def: "A type of ML algorithm that groups similar objects into clusters based on shared characteristics." },
+      { term: "Classifier", chapter: 3, def: "An ML model built to perform classification. Also called a classification model." },
+      { term: "Association", chapter: 3, def: "An unsupervised technique that identifies relationships and dependencies between data points." },
+      { term: "ML regression", chapter: 3, def: "An ML function that predicts a continuous numeric value rather than a category." },
+      { term: "Decision tree", chapter: 3, def: "A tree-shaped model in which each internal node represents a decision and each branch a possible outcome." },
+      { term: "Random forest", chapter: 3, def: "An ensemble technique that builds many decision trees and combines their outputs (by vote or average) for a more stable prediction." },
+      { term: "SVM (Support Vector Machine)", chapter: 3, def: "A supervised algorithm that finds the best-separating boundary between classes, or fits a regression line, in the data." },
+      { term: "Linear regression", chapter: 3, def: "A statistical technique that models the relationship between variables by fitting a straight-line equation to numeric data." },
+      { term: "Neural network", chapter: 3, def: "A network of interconnected nodes (neurons), inspired loosely by the brain, that learns to map inputs to outputs through adjustable connection weights." },
+      { term: "Neuron", chapter: 3, def: "A single processing node in a neural network that takes inputs, applies a function, and passes on an activation value." },
+      { term: "Activation function", chapter: 3, def: "The formula applied inside a neuron that turns its combined inputs into an output value." },
+      { term: "Activation value", chapter: 3, def: "The output value produced by a neuron's activation function." },
+      { term: "DNN (Deep Neural Network)", chapter: 3, def: "A neural network with several stacked layers, allowing it to learn increasingly complex representations." },
+      { term: "Perceptron", chapter: 3, def: "The simplest possible neural network: a single neuron with a single layer." },
+      { term: "Epoch", chapter: 3, def: "One full pass of the training algorithm over the entire training dataset." },
+      { term: "Hyperparameter", chapter: 3, def: "A setting that controls how a model trains or how it is configured, chosen before training rather than learned from data." },
+      { term: "Hyperparameter tuning", chapter: 3, def: "The process of searching for the hyperparameter values that best meet a given goal." },
+      { term: "Weight", chapter: 3, def: "An adjustable value on a connection between neurons that shapes the network's output and changes as training progresses." },
+      { term: "Feature", chapter: 3, def: "A single measurable property of the input data used by an ML algorithm for training or by a model for prediction." },
+      { term: "Feature engineering", chapter: 3, def: "Selecting or transforming the raw-data attributes most useful for capturing the relationships a model needs to learn." },
+      { term: "Data acquisition", chapter: 3, def: "Gathering the data relevant to the business problem the ML model is meant to solve." },
+      { term: "Data preprocessing", chapter: 3, def: "Cleaning, transforming, augmenting, and sampling raw data so it is ready to train or feed a model." },
+      { term: "Data preparation", chapter: 3, def: "The combined activities of acquiring, preprocessing, and engineering features for an ML dataset." },
+      { term: "Dataset", chapter: 3, def: "A structured collection of data used for training, evaluating, testing, or prediction." },
+      { term: "Data point", chapter: 3, def: "A single observation, made up of one or more measurements, that forms part of a dataset." },
+      { term: "Training dataset", chapter: 3, def: "The portion of data used to actually train an ML model." },
+      { term: "Validation dataset", chapter: 3, def: "A separate portion of data used to tune a trained model's hyperparameters." },
+      { term: "Augmentation", chapter: 3, def: "Creating new, synthetic data points from an existing dataset to expand or balance it." },
+      { term: "Big data", chapter: 3, def: "Datasets so large or complex in volume, variety, velocity, or variability that they require specialized tools to process." },
+      { term: "Bayesian model", chapter: 3, def: "A statistical model that represents the uncertainty of both inputs and outputs using probability." },
+      { term: "Probabilistic", chapter: 3, def: "Describing behavior in terms of likelihoods rather than a single guaranteed outcome." },
+      { term: "Deterministic", chapter: 3, def: "Producing the exact same output every time for the same input and starting state." },
+      { term: "Non-determinism", chapter: 3, def: "A property where the same starting conditions can lead to different outcomes." },
+      { term: "Ground truth", chapter: 3, def: "Information from direct, trusted observation or measurement, used as the reference for what is actually correct." },
+      { term: "Accuracy", chapter: 3, def: "The classifier performance metric measuring the proportion of all predictions that were correct." },
+      { term: "Precision", chapter: 3, def: "The classifier performance metric measuring the proportion of predicted-positive results that were actually positive." },
+      { term: "Recall", chapter: 3, def: "The classifier performance metric measuring the proportion of actual positives that were correctly identified. Also called sensitivity." },
+      { term: "F1-Score", chapter: 3, def: "The classifier performance metric that balances precision and recall into a single number." },
+      { term: "Confusion matrix", chapter: 3, def: "A table summarizing a classifier's predictions against actual outcomes, the basis for computing accuracy, precision, and recall." },
+      { term: "True positive (TP)", chapter: 3, def: "A case where the model correctly predicted the positive class." },
+      { term: "True negative (TN)", chapter: 3, def: "A case where the model correctly predicted the negative class." },
+      { term: "False positive (FP)", chapter: 3, def: "A case where the model incorrectly predicted the positive class." },
+      { term: "False negative (FN)", chapter: 3, def: "A case where the model incorrectly predicted the negative class." },
+      { term: "ML model", chapter: 3, def: "The trained artifact produced by running an ML algorithm on a training dataset." },
+      { term: "ML functional performance criteria", chapter: 3, def: "The thresholds a model's outputs must satisfy on relevant metrics to be considered good enough." },
+      { term: "ML functional performance metric", chapter: 3, def: "A measurable indicator, such as accuracy or F1-score, used to score how well a model performs its function." },
+      { term: "Neuron coverage", chapter: 3, def: "A structural coverage measure of how many neurons in a neural network were activated during testing." },
+      { term: "NBC (Neuron Boundary Coverage)", chapter: 3, def: "A structural coverage measure of how often neuron activations reach values outside the range seen during training." },
+      { term: "kMNC (K-Multisection Neuron Coverage)", chapter: 3, def: "A structural coverage measure that divides each neuron's activation range into sections and tracks how many are exercised during testing." },
+      { term: "Pretrained model", chapter: 3, def: "A model already trained on a large, general-purpose dataset, ready to be reused or fine-tuned for a specific task." },
+      { term: "RAG (Retrieval-Augmented Generation)", chapter: 3, def: "A technique where a generative AI system pulls in relevant external information at query time to supplement what it already knows." },
+      { term: "ML algorithm", chapter: 3, def: "The procedure used to build an ML model from training data." },
+      { term: "ML workflow", chapter: 3, def: "The overall set of activities used to develop, deploy, and operate an ML model." },
+      { term: "Intelligent agent", chapter: 3, def: "An autonomous program that directs its actions toward a goal, based on what it observes in its environment." },
+      { term: "Reward function", chapter: 3, def: "The function that defines what counts as success for a reinforcement learning agent." },
+      { term: "Reward hacking", chapter: 3, def: "When an agent maximizes its reward signal in a way that technically works but defeats the actual intended goal." },
+      { term: "EDA (Exploratory Data Analysis)", chapter: 3, def: "A hands-on, visual process of exploring a dataset to understand its key characteristics and patterns before modeling." },
+
+      // ---- Chapter 4: Testing AI-Based Systems ----
+      { term: "Locked AI-based system", chapter: 4, def: "A deterministic AI-based system whose model is fixed and does not change once deployed." },
+      { term: "Adaptive AI-based system", chapter: 4, def: "An AI-based system that keeps adjusting its behavior in response to changes in its operating environment after deployment." },
+      { term: "LLM (Large Language Model)", chapter: 4, def: "A text-to-text generative AI system trained on very large collections of language data." },
+      { term: "Test oracle problem", chapter: 4, def: "The challenge of deciding whether a test has passed or failed when there is no simple, fixed expected result to compare against." },
+      { term: "Exploratory testing", chapter: 4, def: "An unscripted testing approach where test design and execution happen simultaneously, guided by what the tester learns along the way." },
+      { term: "Risk-based testing", chapter: 4, def: "An approach that focuses testing effort where the likelihood and impact of failure are highest." },
+      { term: "Cross-prompt injection attack", chapter: 4, def: "An attack where malicious instructions hidden in one prompt or context segment hijack the model's behavior in a different prompt, turn, or context." },
+      { term: "RT (Red Teaming)", chapter: 4, def: "Deliberately probing a GenAI system with adversarial or edge-case inputs to surface unsafe, biased, or incorrect behavior." },
+      { term: "Chatbot", chapter: 4, def: "An application that carries on a conversation with a user through text or speech." },
+      { term: "Self-learning system", chapter: 4, def: "An adaptive system that changes its own behavior through ongoing trial-and-error experience." },
+
+      // ---- Chapter 5: Input Data Testing for Machine Learning Systems ----
+      { term: "Input data testing", chapter: 5, def: "Test approaches aimed at reducing the risks that come from the data feeding into a machine learning system." },
+      { term: "Testing for bias", chapter: 5, def: "Checking whether a dataset or model systematically favors or disadvantages certain groups." },
+      { term: "Bias", chapter: 5, def: "A systematic difference in how certain objects, people, or groups are treated compared to others." },
+      { term: "Data bias", chapter: 5, def: "Bias introduced by inaccurate, incomplete, or unrepresentative training data, which can produce unfair model outcomes." },
+      { term: "Algorithmic bias", chapter: 5, def: "Bias introduced by the ML algorithm itself, rather than by the training data." },
+      { term: "Disparate impact analysis", chapter: 5, def: "A bias-detection technique that compares outcomes for an original scenario against a counterfactual version where a sensitive attribute has been swapped." },
+      { term: "Sensitive attributes", chapter: 5, def: "Characteristics defining legally or ethically protected groups that must be handled carefully to avoid discrimination." },
+      { term: "Stratified sampling", chapter: 5, def: "A sampling technique used to confirm that a sample proportionally reflects the sub-populations that make up the whole population." },
+      { term: "Data pipeline", chapter: 5, def: "The set of stages data moves through, from acquisition to being fed into an ML model." },
+      { term: "Data pipeline testing", chapter: 5, def: "Testing the correctness of every stage the data moves through before it reaches the model." },
+      { term: "Data representativeness testing", chapter: 5, def: "Testing that checks whether a dataset properly reflects the real-world population the model will encounter." },
+      { term: "Dataset constraint testing", chapter: 5, def: "Testing that verifies a dataset satisfies defined rules or constraints, such as ranges, formats, or completeness." },
+      { term: "Label correctness testing", chapter: 5, def: "Testing that checks whether the labels attached to training data are actually correct." },
+      { term: "Annotation", chapter: 5, def: "The activity of labeling data — for example marking objects in images with bounding boxes — to support supervised learning." },
+      { term: "Multiple annotation", chapter: 5, def: "A technique where labels from several different annotators on the same data are compared to check for consistency." },
+      { term: "IAA (Inter-Annotator Agreement)", chapter: 5, def: "A measure of how consistently different annotators label the same data." },
+      { term: "Model confidence score analysis", chapter: 5, def: "A technique that flags data points with unusually low training confidence as likely mislabeled." },
+      { term: "Model loss analysis", chapter: 5, def: "A technique that flags data points with unusually high loss during training as likely mislabeled." },
+      { term: "Outlier", chapter: 5, def: "A data point that falls well outside the overall pattern of the rest of the dataset." },
+      { term: "Noise", chapter: 5, def: "Distortion or corruption present in data." },
+      { term: "Feature testing", chapter: 5, def: "Testing to confirm that a training dataset includes an appropriate set of features for the task." },
+
+      // ---- Chapter 6: Model Testing for Machine Learning Systems ----
+      { term: "A/B testing", chapter: 6, def: "Comparing two versions of a system, or model, against real users or data to see which performs better." },
+      { term: "Back-to-back testing", chapter: 6, def: "Running the same inputs through two different model versions, or a model and a reference implementation, and comparing outputs." },
+      { term: "Metamorphic testing", chapter: 6, def: "Deriving new test cases by applying known transformations to existing inputs and checking that outputs change in the expected, related way — a way around the oracle problem." },
+      { term: "Adversarial testing", chapter: 6, def: "Testing a model's resilience by deliberately feeding it inputs designed to fool it." },
+      { term: "Adversarial attack", chapter: 6, def: "The deliberate use of adversarial examples to cause an ML model to fail." },
+      { term: "Concept drift", chapter: 6, def: "A change in the real-world relationship a model is trying to predict, so today's patterns no longer match what the model learned." },
+      { term: "Data drift", chapter: 6, def: "A change in the distribution of input data over time, which can quietly degrade a deployed model's performance." },
+      { term: "Drift testing", chapter: 6, def: "Ongoing testing that watches for concept drift or data drift in a model already in production." },
+      { term: "Overfitting", chapter: 6, def: "When a model matches its training data so closely that it struggles to generalize to new, unseen data." },
+      { term: "Underfitting", chapter: 6, def: "When a model fails to capture the underlying pattern in the training data, producing consistently inaccurate predictions." },
+      { term: "Bootstrap technique", chapter: 6, def: "A resampling method that repeatedly draws samples, with replacement, from a dataset to estimate how reliable a model's performance metrics are." },
+      { term: "ML model testing", chapter: 6, def: "The overall discipline of testing a trained ML model's behavior, performance, and robustness." },
+
+      // ---- Chapter 7: Machine Learning Development Testing ----
+      { term: "ML development testing", chapter: 7, def: "Testing approaches applied during the ML development process itself to mitigate development-time risks." },
+      { term: "Shadow testing", chapter: 7, def: "Running a new model alongside the live production model on real traffic, without it affecting real users, to compare behavior before fully switching over." },
+      { term: "Defect prediction", chapter: 7, def: "Using historical data to predict which areas of a system are most likely to contain defects, or how many." },
+    ];
+
+    const ABBR = [
+      { a: "AI", f: "artificial intelligence" },
+      { a: "AIaaS", f: "AI as a service" },
+      { a: "API", f: "application programming interface" },
+      { a: "CL", f: "confidence level" },
+      { a: "CNN", f: "convolutional neural network" },
+      { a: "CPU", f: "central processing unit" },
+      { a: "DL", f: "deep learning" },
+      { a: "DNN", f: "deep neural network" },
+      { a: "EDA", f: "exploratory data analysis" },
+      { a: "FN", f: "false negative" },
+      { a: "FP", f: "false positive" },
+      { a: "GAN", f: "generative adversarial network" },
+      { a: "GenAI", f: "generative AI" },
+      { a: "GPU", f: "graphics processing unit" },
+      { a: "HO", f: "hands-on objective" },
+      { a: "IAA", f: "inter-annotator agreement" },
+      { a: "kMNC", f: "k-multisection neuron coverage" },
+      { a: "LIME", f: "Local interpretable model-agnostic explanations" },
+      { a: "LLM", f: "large language model(s)" },
+      { a: "LO", f: "learning objective" },
+      { a: "ML", f: "machine learning" },
+      { a: "MLS", f: "machine learning system(s)" },
+      { a: "MoE", f: "margin of error" },
+      { a: "NBC", f: "neuron boundary coverage" },
+      { a: "NLP", f: "natural language processing" },
+      { a: "RAG", f: "retrieval-augmented generation" },
+      { a: "RNN", f: "recurrent neural network" },
+      { a: "RT", f: "red teaming" },
+      { a: "SVM", f: "support vector machine" },
+      { a: "TN", f: "true negative" },
+      { a: "TP", f: "true positive" },
+    ];
+
+    // ---- Mastery persistence (uses the existing Progress helper) ----
+    function loadMastery() {
+      const d = Progress.get("s26");
+      return (d && d.mastery) || {};
+    }
+    function saveMastery(key, val) {
+      const m = loadMastery();
+      m[key] = val;
+      Progress.set("s26", { mastery: m });
+      updateStats();
+    }
+    function resetMastery() {
+      Progress.set("s26", { mastery: {} });
+      document.querySelectorAll(".fc-wrap").forEach(w => {
+        w.classList.remove("mastered", "review");
+        w.querySelectorAll(".fc-mastery button").forEach(b => b.classList.remove("active"));
+      });
+      updateStats();
+    }
+    function updateStats() {
+      const m = loadMastery();
+      const vals = Object.values(m);
+      const knew = vals.filter(v => v === true).length;
+      const review = vals.filter(v => v === false).length;
+      document.getElementById("fc-stats").textContent =
+        `${knew} knew it · ${review} to review · ${TERMS.length - knew - review} not yet marked · ${TERMS.length} terms total`;
+    }
+
+    // ---- Build flashcard sections, grouped by chapter ----
+    const sectionsEl = document.getElementById("flashcard-sections");
+    const chapterTitles = (typeof COURSE !== "undefined")
+      ? Object.fromEntries(COURSE.examTarget.chapters.map(c => [c.n, c.title]))
+      : {};
+    const mastery = loadMastery();
+
+    for (let ch = 1; ch <= 7; ch++) {
+      const chTerms = TERMS.filter(t => t.chapter === ch);
+      if (!chTerms.length) continue;
+
+      const block = document.createElement("div");
+      block.className = "chapter-block";
+      block.innerHTML = `<h2>Chapter ${ch} — ${chapterTitles[ch] || ""}</h2>`;
+
+      const grid = document.createElement("div");
+      grid.className = "flashcard-grid";
+      grid.dataset.chapter = ch;
+
+      chTerms.forEach((t) => {
+        const key = "s26-" + ch + "-" + t.term.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+        const wrap = document.createElement("div");
+        wrap.className = "fc-wrap";
+        if (mastery[key] === true) wrap.classList.add("mastered");
+        if (mastery[key] === false) wrap.classList.add("review");
+
+        const card = document.createElement("div");
+        card.className = "flashcard";
+        card.innerHTML = `
+          <div class="inner">
+            <div class="face front">${t.term}</div>
+            <div class="face back"><span class="chip fc-chip">Ch.${t.chapter}</span>${t.def}</div>
+          </div>`;
+        card.addEventListener("click", () => card.classList.toggle("flipped"));
+
+        const masteryRow = document.createElement("div");
+        masteryRow.className = "fc-mastery";
+        const yesBtn = document.createElement("button");
+        yesBtn.className = "btn btn-ghost fc-yes";
+        yesBtn.type = "button";
+        yesBtn.textContent = "✓ Knew it";
+        if (mastery[key] === true) yesBtn.classList.add("active");
+        const noBtn = document.createElement("button");
+        noBtn.className = "btn btn-ghost fc-no";
+        noBtn.type = "button";
+        noBtn.textContent = "✗ Review";
+        if (mastery[key] === false) noBtn.classList.add("active");
+
+        yesBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          saveMastery(key, true);
+          wrap.classList.add("mastered"); wrap.classList.remove("review");
+          yesBtn.classList.add("active"); noBtn.classList.remove("active");
+        });
+        noBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          saveMastery(key, false);
+          wrap.classList.add("review"); wrap.classList.remove("mastered");
+          noBtn.classList.add("active"); yesBtn.classList.remove("active");
+        });
+
+        masteryRow.appendChild(yesBtn);
+        masteryRow.appendChild(noBtn);
+        wrap.appendChild(card);
+        wrap.appendChild(masteryRow);
+        grid.appendChild(wrap);
+      });
+
+      block.appendChild(grid);
+      sectionsEl.appendChild(block);
+    }
+    updateStats();
+
+    // ---- Shuffle control: randomizes card order within each chapter grid ----
+    document.getElementById("fc-shuffle").addEventListener("click", () => {
+      document.querySelectorAll(".flashcard-grid").forEach(grid => {
+        const cards = Array.from(grid.children);
+        for (let i = cards.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [cards[i], cards[j]] = [cards[j], cards[i]];
+        }
+        cards.forEach(c => grid.appendChild(c));
+      });
+    });
+    document.getElementById("fc-reset").addEventListener("click", resetMastery);
+
+    // ---- Abbreviations table ----
+    const abbrBody = document.getElementById("abbr-tbody");
+    function renderAbbr(list) {
+      abbrBody.innerHTML = list.map(x => `<tr><td><strong>${x.a}</strong></td><td>${x.f}</td></tr>`).join("");
+    }
+    renderAbbr(ABBR);
+    document.getElementById("abbr-search").addEventListener("input", (e) => {
+      const q = e.target.value.toLowerCase();
+      renderAbbr(ABBR.filter(x => x.a.toLowerCase().includes(q) || x.f.toLowerCase().includes(q)));
+    });
+
+    // ---- Closing quiz: 18 K1 questions sampled across all 7 chapters ----
+    const questions = [
+      { k: "K1", type: "single", prompt: "What best defines “Frontier AI”?",
+        choices: [
+          { text: "A subset of narrow AI representing today's most advanced, large-scale AI models.", correct: true },
+          { text: "A synonym for general AI.", correct: false },
+          { text: "Hardware built specifically for AI training.", correct: false },
+          { text: "An EU regulatory classification for AI risk.", correct: false },
+        ], explain: "Frontier AI is still task-specific (narrow), just pushing the current capability edge — it is not general intelligence." },
+      { k: "K1", type: "single", prompt: "What is edge AI?",
+        choices: [
+          { text: "Running AI models on local devices near the data source instead of a remote cloud service.", correct: true },
+          { text: "AI that only runs inside a web browser.", correct: false },
+          { text: "A brand of GPU hardware.", correct: false },
+          { text: "AI models that can only process image data.", correct: false },
+        ], explain: "Edge AI keeps processing close to the data source rather than sending everything to a centralized cloud service." },
+      { k: "K1", type: "single", prompt: "In a Generative Adversarial Network (GAN), the discriminator's role is to:",
+        choices: [
+          { text: "Try to distinguish generated (fake) samples from real ones.", correct: true },
+          { text: "Generate the synthetic content directly.", correct: false },
+          { text: "Label the training dataset before training begins.", correct: false },
+          { text: "Remove noise from an image step by step.", correct: false },
+        ], explain: "The generator creates fakes; the discriminator tries to catch them, and their competition drives both to improve." },
+      { k: "K1", type: "single", prompt: "What does “intervenability” mean for an AI-based system?",
+        choices: [
+          { text: "A human's ability to step in, override, or stop the system's automated behavior.", correct: true },
+          { text: "The system's ability to keep working under bad conditions.", correct: false },
+          { text: "The system's ability to explain its own outputs.", correct: false },
+          { text: "The system's resistance to adversarial attacks.", correct: false },
+        ], explain: "Intervenability is specifically about human oversight and the ability to halt or override automated behavior." },
+      { k: "K1", type: "single", prompt: "Which quality characteristic is most about a user being able to configure or steer an AI system's behavior?",
+        choices: [
+          { text: "User controllability", correct: true },
+          { text: "AI robustness", correct: false },
+          { text: "Societal and ethical risk mitigation", correct: false },
+          { text: "Functional adaptability", correct: false },
+        ], explain: "User controllability is defined around the degree of user configuration and control, distinct from robustness or adaptability." },
+      { k: "K1", type: "single", prompt: "What distinguishes supervised learning from unsupervised learning?",
+        choices: [
+          { text: "Supervised learning trains on labeled data; unsupervised learning finds structure in unlabeled data.", correct: true },
+          { text: "Supervised learning requires no training data at all.", correct: false },
+          { text: "Unsupervised learning is only used for image data.", correct: false },
+          { text: "There is no real difference; the terms are interchangeable.", correct: false },
+        ], explain: "The presence or absence of labels is the defining distinction between the two forms of learning." },
+      { k: "K1", type: "single", prompt: "In a confusion matrix, a false positive is:",
+        choices: [
+          { text: "A case where the model incorrectly predicted the positive class.", correct: true },
+          { text: "A case where the model correctly predicted the negative class.", correct: false },
+          { text: "A case where the model incorrectly predicted the negative class.", correct: false },
+          { text: "A case where the model correctly predicted the positive class.", correct: false },
+        ], explain: "False positive means the model predicted positive when the actual answer was negative." },
+      { k: "K1", type: "single", prompt: "What is a hyperparameter?",
+        choices: [
+          { text: "A setting chosen before training that controls how a model trains or is configured.", correct: true },
+          { text: "A weight learned automatically inside the network during training.", correct: false },
+          { text: "The final trained model artifact.", correct: false },
+          { text: "A type of loss function.", correct: false },
+        ], explain: "Hyperparameters are set before training begins, unlike weights, which are learned during training." },
+      { k: "K1", type: "single", prompt: "What does the F1-score measure?",
+        choices: [
+          { text: "A balance between precision and recall in a single number.", correct: true },
+          { text: "The total number of predictions made by a model.", correct: false },
+          { text: "The time it takes a model to make a prediction.", correct: false },
+          { text: "The size of the training dataset.", correct: false },
+        ], explain: "F1-score combines precision and recall so neither metric can be optimized at the total expense of the other." },
+      { k: "K1", type: "single", prompt: "What best describes retrieval-augmented generation (RAG)?",
+        choices: [
+          { text: "A technique where a GenAI system retrieves relevant external information to supplement its own knowledge at query time.", correct: true },
+          { text: "A technique for compressing a trained model to run faster.", correct: false },
+          { text: "A method for labeling training data automatically.", correct: false },
+          { text: "A synonym for fine-tuning a foundation model.", correct: false },
+        ], explain: "RAG augments a generative model's response with information retrieved at the time of the query, rather than relying only on what it learned during training." },
+      { k: "K1", type: "single", prompt: "What is the core difference between a locked and an adaptive AI-based system?",
+        choices: [
+          { text: "A locked system's model stays fixed after deployment; an adaptive system keeps changing behavior based on new data.", correct: true },
+          { text: "A locked system cannot be tested at all.", correct: false },
+          { text: "An adaptive system never uses machine learning.", correct: false },
+          { text: "There is no meaningful difference between the two.", correct: false },
+        ], explain: "This distinction drives very different testing strategies — locked systems can rely more on fixed regression baselines, adaptive systems need ongoing monitoring." },
+      { k: "K1", type: "single", prompt: "What is red teaming, in the context of GenAI testing?",
+        choices: [
+          { text: "Deliberately probing a system with adversarial or edge-case inputs to surface unsafe or incorrect behavior.", correct: true },
+          { text: "A code review performed by a second development team.", correct: false },
+          { text: "A performance-load testing technique.", correct: false },
+          { text: "A technique for training a model faster.", correct: false },
+        ], explain: "Red teaming is an adversarial testing discipline aimed specifically at surfacing unsafe, biased, or incorrect GenAI behavior." },
+      { k: "K1", type: "single", prompt: "What does disparate impact analysis compare?",
+        choices: [
+          { text: "Outcomes for an original scenario against a counterfactual version with a sensitive attribute swapped.", correct: true },
+          { text: "Two different models' training speeds.", correct: false },
+          { text: "The accuracy of a model before and after fine-tuning.", correct: false },
+          { text: "The size of a training dataset before and after augmentation.", correct: false },
+        ], explain: "This counterfactual-swap comparison is a core bias-detection technique for input data testing." },
+      { k: "K1", type: "single", prompt: "What is label correctness testing checking for?",
+        choices: [
+          { text: "Whether the labels attached to training data are actually correct.", correct: true },
+          { text: "Whether a model's hyperparameters are optimally tuned.", correct: false },
+          { text: "Whether a dataset is large enough for training.", correct: false },
+          { text: "Whether a model's predictions are deterministic.", correct: false },
+        ], explain: "Label correctness testing targets the quality of the labels themselves, since mislabeled data directly corrupts what a model learns." },
+      { k: "K1", type: "single", prompt: "An outlier is best described as:",
+        choices: [
+          { text: "A data point that falls well outside the overall pattern of the rest of the dataset.", correct: true },
+          { text: "The average value across a dataset.", correct: false },
+          { text: "A data point used only for validation.", correct: false },
+          { text: "A synonym for noise in a dataset.", correct: false },
+        ], explain: "Outliers and noise are related but distinct: an outlier is a data point outside the normal pattern, while noise is distortion within the data itself." },
+      { k: "K1", type: "single", prompt: "What is concept drift?",
+        choices: [
+          { text: "A change in the real-world relationship a model is trying to predict, so learned patterns stop matching reality.", correct: true },
+          { text: "A change in the distribution of input data over time, unrelated to what the model is predicting.", correct: false },
+          { text: "A model that was never trained correctly in the first place.", correct: false },
+          { text: "A synonym for overfitting.", correct: false },
+        ], explain: "Concept drift is about the underlying relationship changing; data drift (a related but different term) is about the input distribution shifting." },
+      { k: "K1", type: "single", prompt: "What does metamorphic testing rely on?",
+        choices: [
+          { text: "Applying known transformations to existing inputs and checking that outputs change in the expected, related way.", correct: true },
+          { text: "Comparing a model's output against one single fixed expected answer.", correct: false },
+          { text: "Running the same test suite against two completely unrelated systems.", correct: false },
+          { text: "Measuring how fast a model responds to a request.", correct: false },
+        ], explain: "Metamorphic testing sidesteps the oracle problem by checking relationships between outputs rather than needing one exact expected answer." },
+      { k: "K1", type: "single", prompt: "What is shadow testing?",
+        choices: [
+          { text: "Running a new model alongside the live production model on real traffic, without affecting real users, to compare behavior.", correct: true },
+          { text: "Testing a model exclusively in a dark-mode user interface.", correct: false },
+          { text: "A technique for hiding a model's internal weights from testers.", correct: false },
+          { text: "Testing performed only after a model has been fully retired.", correct: false },
+        ], explain: "Shadow testing lets you validate a new model against real production traffic before it ever affects a real user's experience." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s26", passPct: 65 });
+  });
+</script>
+</body>
+</html>

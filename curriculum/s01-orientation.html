@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 1 · Welcome &amp; How This Training Works — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 1 · Orientation</div>
+  <h1>Welcome &amp; How This Training Works</h1>
+  <p class="lede">Before we touch a single topic, let's get oriented: why AI testing is a distinct discipline,
+    what this training will actually make you capable of, how the 30 sessions are structured, and where you
+    stand today.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip">No prerequisites</span>
+    <span class="chip">Foundational — sets up everything that follows</span>
+  </div>
+
+  <h2>1. Why AI-based systems need a different kind of tester</h2>
+  <p>Conventional software is built from explicit rules: a developer writes <code>if / then / else</code> logic,
+    and given the same input, the program always produces the same output. Testing that world means comparing
+    actual output to one correct expected output.</p>
+  <p>Most AI-based systems — especially anything built on machine learning (ML) — don't work that way. Instead of
+    following hand-written rules, they learn statistical patterns from training data and apply those patterns to
+    new, unseen inputs. That single shift breaks several assumptions traditional testing relies on:</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>There's often no single "correct" answer.</strong>
+      <p class="small" style="margin-top:.4rem;">Ask an LLM to summarize a paragraph and there are many acceptable
+        summaries. Testing has to shift from exact-match assertions toward statistical evaluation, acceptable
+        error rates, and quality thresholds.</p>
+    </div>
+    <div class="card">
+      <strong>The model can be a black box.</strong>
+      <p class="small" style="margin-top:.4rem;">A neural network can have billions of internal parameters. You
+        often can't read the "logic" the way you'd read source code — you have to test behavior from the
+        outside, in.</p>
+    </div>
+    <div class="card">
+      <strong>Systems can keep changing after release.</strong>
+      <p class="small" style="margin-top:.4rem;">An adaptive system that keeps learning in production can drift
+        away from the behavior you originally validated — testing becomes an ongoing activity, not a one-time
+        gate.</p>
+    </div>
+    <div class="card">
+      <strong>The data is part of the system under test.</strong>
+      <p class="small" style="margin-top:.4rem;">Bad training data produces a bad model no matter how good the
+        code is. An AI validation engineer tests <em>data</em>, the <em>model</em>, and the <em>surrounding
+        pipeline</em> — three surfaces instead of one.</p>
+    </div>
+  </div>
+
+  <p>This is the core of the discipline you're building over the next 26 sessions: everything from here on is
+    about how to adapt sound testing principles — risk-based thinking, coverage, oracles, test levels — to a
+    system that behaves probabilistically instead of deterministically.</p>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div class="body">
+      <strong class="title">Mental model to keep</strong>
+      You already know how to test. What's new is <em>where</em> uncertainty enters the system (data → model →
+      pipeline) and <em>how</em> you set a pass/fail bar when "correct" is a probability, not a boolean.
+    </div>
+  </div>
+
+  <h2>2. What you'll be able to do by the end</h2>
+  <p>This training is built for testers, test analysts, data analysts, test engineers, and technically-minded
+    managers who need to work with AI-based systems — whether or not you ever sit a certification exam. By the
+    end, you should be able to:</p>
+  <ul>
+    <li>Explain the current state of AI, including generative AI, in plain terms.</li>
+    <li>Get hands-on experience building and evaluating a simple machine learning model.</li>
+    <li>Explain how a simple neural network works and how it can be tested.</li>
+    <li>Apply the AI-specific quality characteristics used to judge whether an AI-based system is "good."</li>
+    <li>Calculate and interpret the standard performance metrics used to score ML models.</li>
+    <li>Recognize the two test levels unique to machine learning systems, and why both matter.</li>
+    <li>Contribute to a test strategy for a machine learning system.</li>
+    <li>Design and run real test cases against a machine learning system.</li>
+  </ul>
+
+  <h2>3. How the curriculum is structured</h2>
+  <p>Rather than spend equal time on every topic, this training weights each subject by how much it actually
+    matters to a competent AI validation engineer — not by how long it takes to read about. To ground that
+    weighting in something rigorous rather than just my opinion, it borrows the scope and emphasis of an
+    internationally recognized body of knowledge for AI testing (the ISTQB Certified Tester AI Testing
+    syllabus) — the same one training providers and certification bodies use. Here's exactly how it breaks
+    down:</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: curriculum weight by topic area</span></div>
+    <div class="lab-sub">This is why Sessions 17–20 (four full sessions) are dedicated to Model Testing alone.</div>
+    <div id="weight-chart"></div>
+    <div class="readout" id="weight-readout">Hover a bar to see topic-area detail.</div>
+  </div>
+
+  <p>Every quiz question across this training is also tagged with how deeply you need to know something —
+    that's what the little <span class="chip k1" style="vertical-align:middle;">K1</span>–<span class="chip k4" style="vertical-align:middle;">K4</span>
+    badges you'll see mean:</p>
+
+  <table class="data">
+    <thead><tr><th>Level</th><th>What it demands of you</th></tr></thead>
+    <tbody>
+      <tr><td><strong>K1 — Remember</strong></td><td>Recall a fact or term correctly.</td></tr>
+      <tr><td><strong>K2 — Understand</strong></td><td>Explain a concept in your own words, correctly.</td></tr>
+      <tr><td><strong>K3 — Apply</strong></td><td>Use a technique correctly on a new, concrete scenario.</td></tr>
+      <tr><td><strong>K4 — Analyze</strong></td><td>Break down a complex scenario and reason about it — the hardest tier.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <div class="icon">🎓</div>
+    <div class="body">
+      <strong class="title">If you want the official credential too</strong>
+      Because the scope lines up, this training doubles as thorough preparation for the ISTQB Certified Tester
+      AI Testing (CT-AI) v2.0 exam, entirely as a bonus: 40 multiple-choice questions in 60 minutes, 65% to
+      pass, entry requiring the Foundation Level (CTFL) certificate. Pursuing that exam is completely optional
+      and up to you — everything you learn here is useful on the job either way.
+    </div>
+  </div>
+
+  <h2>4. How this course is built</h2>
+  <div class="grid-2">
+    <div class="card">
+      <strong>30 sessions, Monday–Friday only</strong>
+      <p class="small" style="margin-top:.4rem;">About one hour each, roughly 6 calendar weeks. Weekends are
+        yours. Topic areas are weighted by real-world importance — Machine Learning (Sessions 5–10) gets 6,
+        Model Testing (17–20) gets 4, ML Development Testing (21) gets 1.</p>
+    </div>
+    <div class="card">
+      <strong>Every lesson ends with a quiz</strong>
+      <p class="small" style="margin-top:.4rem;">Instant feedback, worked explanations, and your score is saved
+        locally so the dashboard can track your progress across the whole course.</p>
+    </div>
+    <div class="card">
+      <strong>Hands-on labs, not just reading</strong>
+      <p class="small" style="margin-top:.4rem;">Interactive simulators you can drag, tune, and break: a
+        confusion-matrix calculator, a perceptron trainer, a metamorphic-testing relation builder, a red-teaming
+        sandbox, and more.</p>
+    </div>
+    <div class="card">
+      <strong>Everything runs offline</strong>
+      <p class="small" style="margin-top:.4rem;">No external links to click out to, no CDNs, no video files to
+        download. Diagrams and animations are built directly into each page.</p>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="icon">🛠</div>
+    <div class="body">
+      <strong class="title">Sessions 22–25: Applied Practice — core, not optional</strong>
+      Once the 7 syllabus topic areas are done, four sessions push beyond them into skills that make you
+      genuinely useful on a real team but aren't part of any certification: evaluation economics, instrumenting
+      and CI/CD-testing AI systems, building evaluation pipelines and launch gates, and the decision-making and
+      governance side of the job. This is core training, not a bonus — treat it the same as everything before it.
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <div class="icon">🎯</div>
+    <div class="body">
+      <strong class="title">Sessions 26–30: ISTQB certification prep — optional</strong>
+      The last block is the one genuinely optional part of this training, and it's specifically about the
+      ISTQB Certified Tester AI Testing (CT-AI) v2.0 exam: a keyword/glossary drill, two full 40-question mock
+      exams with remediation between them, a walkthrough of an official sample exam, and one last realistic run
+      with a readiness report. Skip it entirely if you're not pursuing the credential — Sessions 1–25 already
+      make you a competent AI validation engineer on their own.
+    </div>
+  </div>
+
+  <h2>5. Diagnostic baseline (ungraded)</h2>
+  <p>This isn't a pass/fail quiz — it's a snapshot of where you're starting from, so it's satisfying to compare
+    against your Session 30 score later. Answer honestly, even if that means guessing.</p>
+
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s01");
+    App.buildSessionNav("session-nav", "s01");
+    App.wireMarkComplete("mark-complete", "s01");
+
+    // ---- Interactive exam-weight chart (inline SVG, hand-built) ----
+    const chapters = COURSE.examTarget.chapters;
+    const maxQ = Math.max(...chapters.map(c => c.q));
+    const w = 640, h = 260, padL = 40, padB = 40, barGap = 14;
+    const barW = (w - padL - 20 - barGap * (chapters.length - 1)) / chapters.length;
+    let bars = "";
+    let labels = "";
+    chapters.forEach((c, i) => {
+      const barH = (c.q / maxQ) * (h - padB - 20);
+      const x = padL + i * (barW + barGap);
+      const y = h - padB - barH;
+      bars += `<rect class="wbar" data-i="${i}" x="${x}" y="${y}" width="${barW}" height="${barH}"
+                 rx="4" fill="var(--accent)" opacity="0.85" style="cursor:pointer; transition:opacity .15s;"></rect>
+               <text x="${x + barW/2}" y="${y - 8}" text-anchor="middle" font-size="13" font-weight="800"
+                 fill="var(--text)">${c.q}</text>`;
+      labels += `<text x="${x + barW/2}" y="${h - padB + 18}" text-anchor="middle" font-size="12"
+                   fill="var(--text-faint)">Ch.${c.n}</text>`;
+    });
+    document.getElementById("weight-chart").innerHTML = `
+      <svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="Exam questions per chapter">
+        <line x1="${padL}" y1="${h - padB}" x2="${w - 20}" y2="${h - padB}" stroke="var(--border)" stroke-width="1"/>
+        ${bars}${labels}
+      </svg>`;
+    document.querySelectorAll(".wbar").forEach(bar => {
+      bar.addEventListener("mouseenter", () => {
+        bar.style.opacity = "1";
+        const c = chapters[+bar.dataset.i];
+        document.getElementById("weight-readout").textContent =
+          `${c.title}: weighted at ${c.q} reference-exam questions (${c.pts} points) across ${c.mins} min of source content.`;
+      });
+      bar.addEventListener("mouseleave", () => { bar.style.opacity = "0.85"; });
+    });
+
+    // ---- Diagnostic quiz ----
+    const questions = [
+      { k: "K1", prompt: "In everyday terms, what does it mean for a machine learning model to be a “black box”?",
+        type: "single",
+        choices: [
+          { text: "It only runs on specialized black-colored server hardware.", correct: false },
+          { text: "Its internal decision-making is hard for a human to inspect or fully explain.", correct: true },
+          { text: "It cannot be tested at all.", correct: false },
+          { text: "It only accepts binary (0/1) input data.", correct: false },
+        ],
+        explain: "“Black box” describes explainability, not hardware or testability — you can still test a black-box system from the outside, by its behavior." },
+      { k: "K1", prompt: "Which best describes the difference between a conventional program and a typical ML model?",
+        type: "single",
+        choices: [
+          { text: "Conventional programs follow explicit rules written by developers; ML models learn patterns from data.", correct: true },
+          { text: "Conventional programs are always slower.", correct: false },
+          { text: "ML models cannot run on a CPU.", correct: false },
+          { text: "There is no meaningful difference.", correct: false },
+        ],
+        explain: "This is the foundational distinction the whole syllabus builds on: rule-based logic vs. learned, data-driven behavior." },
+      { k: "K1", prompt: "Why can't most AI-based system tests rely on a single “expected output” the way a calculator test can?",
+        type: "single",
+        choices: [
+          { text: "AI systems are too slow to test in real time.", correct: false },
+          { text: "Many AI outputs are probabilistic or open-ended, so there can be several acceptable answers.", correct: true },
+          { text: "AI systems never produce numeric output.", correct: false },
+          { text: "Testers are not allowed to see AI output.", correct: false },
+        ],
+        explain: "This is the oracle problem you'll study in depth in Session 11 — when there's no single correct answer, you need statistical or threshold-based pass/fail criteria instead." },
+      { k: "K1", prompt: "Which of these is an example of an AI-based system continuing to change after it has been deployed?",
+        type: "single",
+        choices: [
+          { text: "A locked model that never updates its parameters after release.", correct: false },
+          { text: "An adaptive system that keeps learning from new production data.", correct: true },
+          { text: "A calculator app.", correct: false },
+          { text: "A static PDF document.", correct: false },
+        ],
+        explain: "Adaptive systems keep changing in production, which is why ongoing monitoring and drift testing (Sessions 3, 19) matter so much for AI." },
+      { k: "K1", prompt: "Roughly how confident do you currently feel explaining the difference between supervised, unsupervised, and reinforcement learning?",
+        type: "single",
+        choices: [
+          { text: "Very confident — I could explain it to a colleague right now.", correct: true },
+          { text: "Somewhat — I've heard the terms but couldn't explain them precisely.", correct: true },
+          { text: "Not confident — these are new terms to me.", correct: true },
+          { text: "I'm not sure what “ML” stands for.", correct: true },
+        ],
+        explain: "No wrong answer here — this is a self-assessment, not a knowledge check. Chapter 3 (Sessions 5–10) covers all three forms in depth." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s01-diagnostic", passPct: null, submitLabel: "See my baseline" });
+  });
+</script>
+</body>
+</html>

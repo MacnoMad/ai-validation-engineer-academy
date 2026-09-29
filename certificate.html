@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certificate of Completion — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-root="">
+<header class="topbar">
+  <a class="brand" href="index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow no-print">Capstone</div>
+  <h1 class="no-print">Your Certificate of Completion</h1>
+  <p class="lede no-print">Finish all 30 sessions and this page turns into a printable, personalized certificate from AI
+    Home University — ready to save as a PDF, share, or frame.</p>
+
+  <div id="locked-view" class="cert-locked" hidden>
+    <div class="lock-icon">🔒</div>
+    <h3 style="margin-top:0;">Not unlocked yet</h3>
+    <p class="small">Complete all 30 sessions to unlock your personalized certificate.</p>
+    <div class="progress-bar" style="max-width:360px; margin:1.2rem auto;"><span id="locked-fill" style="width:0%;"></span></div>
+    <p class="small" id="locked-count" style="font-weight:700;"></p>
+    <div style="display:flex; gap:.7rem; justify-content:center; flex-wrap:wrap; margin-top:.8rem;">
+      <a class="btn btn-primary" href="index.html">← Back to the dashboard</a>
+      <a class="btn btn-ghost" id="locked-preview-link" href="certificate.html?preview=1">👀 Preview what it looks like</a>
+    </div>
+  </div>
+
+  <div id="cert-view" hidden>
+    <div id="preview-banner" class="callout warn no-print" hidden>
+      <div class="icon">👀</div>
+      <div class="body">
+        <strong class="title">Preview mode</strong>
+        This is a sample with a placeholder name and today's date — not an earned certificate. It unlocks for
+        real once all 30 sessions are marked complete.
+      </div>
+    </div>
+    <div class="cert-name-field no-print">
+      <div style="display:flex; gap:.7rem; align-items:center; flex-wrap:wrap; width:100%;">
+        <label for="cert-name-input" style="font-weight:700; white-space:nowrap;">Your name on the certificate:</label>
+        <input type="text" id="cert-name-input" placeholder="e.g. Alex Johnson" maxlength="60">
+        <button class="btn btn-primary" id="cert-lock-btn" type="button">🔒 Lock in this name</button>
+      </div>
+      <p class="small" id="cert-lock-note" style="width:100%; margin: .7rem 0 0;"></p>
+    </div>
+
+    <!-- Shared defs: gold gradients + the corner-flourish template, referenced by id from multiple places below -->
+    <svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+      <defs>
+        <linearGradient id="goldGradCorner" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#f6e2a0"/><stop offset=".5" stop-color="#c9a227"/><stop offset="1" stop-color="#8a6a2b"/>
+        </linearGradient>
+        <g id="cert-flourish-template">
+          <g transform="rotate(4) scale(1.35)"><path d="M0,0 C6,-8 22,-6 32,0 C22,6 6,8 0,0 Z" fill="url(#goldGradCorner)"/></g>
+          <g transform="rotate(24) scale(1.0)"><path d="M0,0 C6,-8 22,-6 32,0 C22,6 6,8 0,0 Z" fill="url(#goldGradCorner)"/></g>
+          <g transform="rotate(44) scale(1.2)"><path d="M0,0 C6,-8 22,-6 32,0 C22,6 6,8 0,0 Z" fill="url(#goldGradCorner)"/></g>
+          <g transform="rotate(64) scale(0.85)"><path d="M0,0 C6,-8 22,-6 32,0 C22,6 6,8 0,0 Z" fill="url(#goldGradCorner)"/></g>
+          <g transform="rotate(84) scale(1.1)"><path d="M0,0 C6,-8 22,-6 32,0 C22,6 6,8 0,0 Z" fill="url(#goldGradCorner)"/></g>
+          <path d="M2,2 C14,4 10,22 24,20 C34,18.5 30,32 42,34" fill="none" stroke="url(#goldGradCorner)" stroke-width="1.4" opacity=".85"/>
+          <circle cx="14" cy="3" r="2.6" fill="url(#goldGradCorner)"/>
+          <circle cx="3" cy="14" r="2.6" fill="url(#goldGradCorner)"/>
+          <circle cx="9" cy="9" r="1.6" fill="url(#goldGradCorner)" opacity=".8"/>
+        </g>
+      </defs>
+    </svg>
+
+    <div class="cert-stage">
+      <div class="cert-frame">
+        <svg class="cert-flourish cert-flourish-tl" viewBox="0 0 70 70" aria-hidden="true"><use href="#cert-flourish-template"/></svg>
+        <svg class="cert-flourish cert-flourish-tr" viewBox="0 0 70 70" aria-hidden="true"><use href="#cert-flourish-template"/></svg>
+        <svg class="cert-flourish cert-flourish-bl" viewBox="0 0 70 70" aria-hidden="true"><use href="#cert-flourish-template"/></svg>
+        <svg class="cert-flourish cert-flourish-br" viewBox="0 0 70 70" aria-hidden="true"><use href="#cert-flourish-template"/></svg>
+
+        <div class="cert-card" id="cert-card">
+          <svg class="cert-fleuron cert-fleuron-top" viewBox="0 0 200 24" aria-hidden="true">
+            <line x1="0" y1="12" x2="82" y2="12" stroke="url(#goldGradCorner)" stroke-width="1.4"/>
+            <line x1="118" y1="12" x2="200" y2="12" stroke="url(#goldGradCorner)" stroke-width="1.4"/>
+            <path d="M100,2 C92,8 92,16 100,22 C108,16 108,8 100,2 Z" fill="url(#goldGradCorner)"/>
+            <circle cx="86" cy="12" r="2.2" fill="url(#goldGradCorner)"/>
+            <circle cx="114" cy="12" r="2.2" fill="url(#goldGradCorner)"/>
+          </svg>
+
+          <div class="cert-title">Certificate</div>
+          <div class="cert-title-sub">of Completion</div>
+          <div class="cert-subtitle">AI Validation Engineer — Comprehensive Training Program</div>
+
+          <div class="cert-presented">This certifies that</div>
+          <div class="cert-name" id="cert-name-display">Your Name</div>
+
+          <div class="cert-body-text">
+            has successfully completed all <strong>30 sessions</strong> of the AI Validation Engineer Academy
+            training program, demonstrating proficiency in machine learning fundamentals, testing of AI-based
+            systems, machine learning input data and model validation, and applied AI evaluation practices —
+            scope aligned with the ISTQB&reg; Certified Tester AI Testing (CT-AI) v2.0 syllabus.
+          </div>
+
+          <div class="cert-sign-row">
+            <div class="cert-sign-block">
+              <div class="cert-signature">Alek Nikolovski</div>
+              <div class="cert-sign-line">
+                <div class="cert-sign-name">Alek Nikolovski</div>
+                <div class="cert-sign-title">Director, AI Home University</div>
+              </div>
+            </div>
+
+
+            <div class="cert-seal-block">
+              <img class="cert-logo-seal" src="assets/img/logo-ai-home-university-light.jpg" alt="AI Home University — Learn, Innovate, Certify">
+            </div>
+
+            <div class="cert-sign-block">
+              <div style="height:2.1rem;"></div>
+              <div class="cert-date-only">
+                <div class="cert-sign-name" id="cert-date-display">—</div>
+                <div class="cert-sign-title">Date of Completion</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cert-meta-row">
+            <span id="cert-id-display">Certificate No. —</span>
+            <span>AI Home University · Offline training record</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cert-actions no-print">
+      <button class="btn btn-primary" id="cert-print-btn">🖨 Download / Print as PDF</button>
+      <a class="btn btn-ghost" href="index.html">← Back to dashboard</a>
+    </div>
+    <p class="small center no-print">Tip: in the print dialog, choose "Save as PDF" as the destination, and
+      landscape orientation for the best fit.</p>
+  </div>
+</main>
+
+<script src="assets/js/course-data.js"></script>
+<script src="assets/js/glossary-data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const isPreview = new URLSearchParams(location.search).get("preview") === "1";
+    const allDone = isPreview || COURSE.sessions.every(s => Progress.isComplete(s.id));
+    const doneCount = COURSE.sessions.filter(s => Progress.isComplete(s.id)).length;
+
+    if (!allDone) {
+      // Progress regressed below 30/30 since a certificate may have been earned before —
+      // void it. This is what forces "take the course from the beginning" to get a new name:
+      // the lock (and the name/ID tied to it) only survive as long as all 30 stay complete.
+      if (localStorage.getItem("avea.certLocked")) {
+        localStorage.removeItem("avea.certLocked");
+        localStorage.removeItem("avea.certName");
+        localStorage.removeItem("avea.certId");
+      }
+      document.getElementById("locked-view").hidden = false;
+      document.getElementById("locked-fill").style.width = Math.round((doneCount / COURSE.sessions.length) * 100) + "%";
+      document.getElementById("locked-count").textContent = `${doneCount} / ${COURSE.sessions.length} sessions complete`;
+      document.getElementById("locked-preview-link").href = "certificate.html?preview=1";
+      return;
+    }
+
+    if (isPreview) {
+      document.getElementById("preview-banner").hidden = false;
+    }
+
+    document.getElementById("cert-view").hidden = false;
+
+    // Completion date = the latest "completed" timestamp recorded across all 30 sessions.
+    let latest = 0;
+    COURSE.sessions.forEach(s => {
+      const d = Progress.get(s.id);
+      if (d && d.updated && d.updated > latest) latest = d.updated;
+    });
+    const dateStr = new Date(latest || Date.now()).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+    document.getElementById("cert-date-display").textContent = dateStr;
+
+    // Trainee name: editable until locked. Locking (in real, non-preview mode) prevents
+    // swapping in a different name to mint extra fake certificates without actually
+    // redoing the course — see the "progress regressed" cleanup above for how it resets.
+    const nameInput = document.getElementById("cert-name-input");
+    const nameDisplay = document.getElementById("cert-name-display");
+    const lockBtn = document.getElementById("cert-lock-btn");
+    const lockNote = document.getElementById("cert-lock-note");
+    const isLocked = !isPreview && localStorage.getItem("avea.certLocked") === "1";
+    const savedName = localStorage.getItem("avea.certName") || (isPreview ? "Jordan Alvarez" : "");
+
+    nameInput.value = savedName;
+    nameDisplay.textContent = savedName || "Your Name";
+
+    function setLockedUI() {
+      nameInput.disabled = true;
+      lockBtn.hidden = true;
+      lockNote.textContent = "🔒 Name locked for this certificate. To issue one for a different name, reset your course progress and complete all 30 sessions again.";
+      lockNote.classList.add("is-locked");
+    }
+
+    if (isLocked) {
+      setLockedUI();
+    } else {
+      lockNote.textContent = isPreview
+        ? "Preview mode — name changes here are not saved to your real certificate."
+        : "This name locks permanently the first time you lock it in or download/print — make sure it's correct.";
+      nameInput.addEventListener("input", () => {
+        const v = nameInput.value.trim();
+        nameDisplay.textContent = v || "Your Name";
+        nameInput.style.borderColor = "";
+        if (!isPreview) localStorage.setItem("avea.certName", v);
+      });
+    }
+
+    function lockNameNow() {
+      const v = nameInput.value.trim();
+      if (!v) {
+        nameInput.style.borderColor = "var(--danger)";
+        nameInput.focus();
+        return false;
+      }
+      if (isPreview || isLocked) return true;
+      localStorage.setItem("avea.certName", v);
+      localStorage.setItem("avea.certLocked", "1");
+      setLockedUI();
+      return true;
+    }
+    lockBtn.addEventListener("click", lockNameNow);
+
+    // Certificate number: generated once in real mode, then stable forever after.
+    function hashToId(seed) {
+      let h = 0;
+      for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+      return "AIVE-" + new Date(latest || Date.now()).getFullYear() + "-" + (100000 + (h % 900000));
+    }
+    let certId = localStorage.getItem("avea.certId");
+    if (!certId && !isPreview) {
+      certId = hashToId(String(latest) + String(Date.now()) + String(Math.random()));
+      localStorage.setItem("avea.certId", certId);
+    }
+    document.getElementById("cert-id-display").textContent = "Certificate No. " + (certId || "PREVIEW-0000000");
+
+    document.getElementById("cert-print-btn").addEventListener("click", () => {
+      if (!lockNameNow()) return;
+      window.print();
+    });
+  });
+</script>
+</body>
+</html>

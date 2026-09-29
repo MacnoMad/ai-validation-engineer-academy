@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 30 · Final Mock Exam &amp; Readiness Report — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 30 · ISTQB Prep (Optional) — Final Session</div>
+  <h1>Final Mock Exam &amp; Readiness Report</h1>
+  <p class="lede">This is it — the last of thirty sessions. Part one is a full, original 40-question mock exam,
+    built to the same chapter weighting as the real ISTQB CT-AI v2.0 paper and timed at sixty minutes. Part two
+    is the actual capstone: a readiness report built from everything you've done across this course, and a
+    concrete next-steps plan for becoming a working AI validation engineer — whether or not you ever sit the
+    official exam.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ 60 min (exam) + reading</span>
+    <span class="chip">40 questions</span>
+    <span class="chip">65% to pass</span>
+    <span class="chip">Final session</span>
+  </div>
+
+  <div class="callout tip">
+    <div class="icon">🏁</div>
+    <div class="body">
+      <strong class="title">How today works</strong>
+      Take the mock exam first (Part 1) so your readiness report (Part 2) reflects a fresh, realistic data point
+      alongside your history from Sessions 1–29. If you'd rather skip straight to your report, scroll past
+      Part 1 — it reads your saved progress either way.
+    </div>
+  </div>
+
+  <h2>Part 1 — Final Mock Exam</h2>
+  <p>40 original questions, distributed across the seven syllabus chapters in exact proportion to their real
+    weight on the official exam. None of these questions are copied from the official ISTQB sample exam or from
+    any practice exam earlier in this course — they're newly written, grounded in the same learning objectives.</p>
+
+  <table class="data">
+    <thead><tr><th>Chapter</th><th>Questions on this exam</th></tr></thead>
+    <tbody id="dist-tbody"></tbody>
+    <tfoot><tr><td><strong>Total</strong></td><td><strong>40</strong></td></tr></tfoot>
+  </table>
+
+  <div class="callout warn">
+    <div class="icon">⏱</div>
+    <div class="body">
+      <strong class="title">About the timer</strong>
+      Once you begin, a 60-minute countdown displays below — it's a visual pacing aid only. It will not
+      auto-submit your answers or lock the quiz when it hits zero; finish at whatever pace actually helps you
+      learn. Treat the clock as practice for real exam-day pressure, not a hard cutoff.
+    </div>
+  </div>
+
+  <div class="card" id="exam-start-panel">
+    <strong>Ready when you are</strong>
+    <p class="small" style="margin-top:.5rem;">Find sixty uninterrupted minutes if you want the realistic
+      experience — but nothing here is being submitted anywhere except your own browser's local storage.</p>
+    <button class="btn btn-primary btn-block" id="start-exam-btn">▶ Begin the exam &amp; start the timer</button>
+  </div>
+
+  <div class="lab" id="exam-timer-wrap" style="display:none; text-align:center;">
+    <div class="small">Time remaining</div>
+    <div class="timer" id="exam-timer" style="font-size:2.2rem;">60:00</div>
+    <div class="small" id="exam-timer-note" style="margin-top:.3rem;">Visual countdown only — nothing
+      auto-submits when it reaches zero.</div>
+  </div>
+
+  <div id="quiz-mount"></div>
+
+  <div id="chapter-breakdown" style="display:none;">
+    <h3>Your score by chapter</h3>
+    <table class="data">
+      <thead><tr><th>Chapter</th><th>Score</th><th>%</th></tr></thead>
+      <tbody id="chapter-breakdown-tbody"></tbody>
+    </table>
+  </div>
+
+  <hr class="rule">
+
+  <h2>Part 2 — Your Readiness Report</h2>
+  <p>This reads your real, saved progress across all 30 sessions from this browser's local storage — completion
+    flags and quiz scores — plus today's exam result if you've taken it above. If you're opening this before
+    finishing the rest of the course, that's fine: it'll say so honestly instead of guessing.</p>
+
+  <div id="readiness-report"></div>
+
+  <h2>Next steps</h2>
+  <p>Two separate tracks from here, and you don't have to choose just one.</p>
+
+  <h3>Track A — Becoming a working AI validation engineer (do this regardless of the exam)</h3>
+  <div class="grid-2">
+    <div class="card">
+      <strong>Build a portfolio artifact</strong>
+      <p class="small" style="margin-top:.4rem;">Pick a small, real open-source ML model (a Hugging Face text
+        classifier, an image model, anything with a public model card) and write a genuine test plan for it:
+        input data risks, performance metrics with thresholds, a few metamorphic relations, an adversarial probe
+        or two, and a documented pass/fail verdict. This is the single most convincing thing you can show a
+        hiring manager — more convincing than any certificate.</p>
+    </div>
+    <div class="card">
+      <strong>Contribute to AI-testing tooling</strong>
+      <p class="small" style="margin-top:.4rem;">Open-source evaluation and observability projects (LLM eval
+        harnesses, dataset-quality checkers, drift-monitoring libraries) almost always need test cases, docs
+        fixes, or small feature contributions. Even a handful of merged pull requests demonstrates you can
+        operate in this space for real.</p>
+    </div>
+    <div class="card">
+      <strong>Stay current deliberately</strong>
+      <p class="small" style="margin-top:.4rem;">This field moves fast — new model architectures, new evaluation
+        techniques, new regulation. Follow AI safety and AI-testing communities and practitioner blogs, skim
+        model cards for major new releases, and revisit the labs in Sessions 17–20 periodically; the concepts
+        age well even as specific tools change.</p>
+    </div>
+    <div class="card">
+      <strong>Know where this skillset lands</strong>
+      <p class="small" style="margin-top:.4rem;">Everything in this course applies directly to QA/test roles at
+        companies shipping AI features, data-quality roles (Sessions 14–16 especially), ML/MLOps-adjacent
+        engineering roles that need someone rigorous about evaluation, and product or delivery roles that need
+        to reason about AI risk. This is a genuinely transferable skillset, not a single job title.</p>
+    </div>
+  </div>
+
+  <h3>Track B — If you want the official ISTQB CT-AI v2.0 credential</h3>
+  <div class="callout tip">
+    <div class="icon">🎓</div>
+    <div class="body">
+      <strong class="title">Informational only — not a registration step</strong>
+      <p>The Certified Tester AI Testing (CT-AI) exam requires holding the ISTQB Foundation Level (CTFL)
+        certificate first — that's the entry requirement, so confirm you have it before planning around this.</p>
+      <p>Beyond that, exam delivery is handled by accredited national or regional ISTQB member boards and their
+        exam providers, not by ISTQB centrally — check <strong>istqb.org</strong> for the member board covering
+        your region to find an accredited provider, current pricing, and available sitting formats (online
+        proctored vs. in-person both exist in most regions).</p>
+      <p style="margin-bottom:0;">This training deliberately covers the same 40-question, 60-minute, 65%-pass
+        structure so the mechanics of Part 1 above feel familiar if you do sit it — but pursuing the credential
+        itself is entirely optional and up to you.</p>
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <div class="icon">🏆</div>
+    <div class="body">
+      <strong class="title">Thirty sessions, roughly thirty hours, one deliberate skillset</strong>
+      However today's exam score landed, finishing a 30-session, self-paced training program end to end is
+      genuinely uncommon — most people who start something like this don't reach the last page. You now have a
+      working mental model of where uncertainty enters an AI system, how to test data, models, and pipelines as
+      three distinct surfaces, and a set of concrete techniques — confusion-matrix metrics, metamorphic testing,
+      red teaming, drift and A/B testing, dataset constraint testing, and more — that most testers never
+      formally learn. That's real, applicable capability. Congratulations on finishing it.
+    </div>
+  </div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s30");
+    App.buildSessionNav("session-nav", "s30");
+    App.wireMarkComplete("mark-complete", "s30");
+
+    if (typeof COURSE === "undefined" || typeof Progress === "undefined" || typeof Quiz === "undefined") return;
+
+    // ---- Chapter distribution table (Part 1), read straight from the single source of truth ----
+    const distBody = document.getElementById("dist-tbody");
+    COURSE.examTarget.chapters.forEach(c => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>Ch.${c.n} — ${c.title}</td><td>${c.q}</td>`;
+      distBody.appendChild(tr);
+    });
+
+    // ---- 40 original exam questions, tagged with chapter 1-7 ----
+    // Distribution: Ch1=6, Ch2=3, Ch3=7, Ch4=7, Ch5=6, Ch6=9, Ch7=2 (matches COURSE.examTarget.chapters).
+    const examQuestions = [
+      // ---- Chapter 1: Introduction to Artificial Intelligence (6) ----
+      { chapter: 1, lo: "AI-1.1.1", k: "K2", type: "single",
+        prompt: "Why is “correctness” harder to define for many AI-based systems than for a conventional program that computes a fixed formula?",
+        choices: [
+          { text: "Many AI-based systems produce probabilistic or context-dependent outputs, so several different answers can be acceptable.", correct: true },
+          { text: "AI-based systems cannot be tested at all.", correct: false },
+          { text: "Conventional programs never produce numeric output.", correct: false },
+          { text: "AI-based systems only run on specialized hardware that testers can't access.", correct: false },
+        ],
+        explain: "Rule-based systems have one expected output per input; learned, probabilistic systems often have several acceptable outputs, which is why AI testing needs threshold- and statistics-based pass/fail criteria." },
+      { chapter: 1, lo: "AI-1.1.2", k: "K2", type: "single",
+        prompt: "Which statement accurately distinguishes general AI from narrow AI?",
+        choices: [
+          { text: "General AI would perform any intellectual task a human can without needing retraining for each new task; no such system exists today.", correct: true },
+          { text: "General AI is simply a faster version of narrow AI running on more powerful hardware.", correct: false },
+          { text: "General AI already exists in the form of today's large language models.", correct: false },
+          { text: "Narrow AI refers only to AI systems built before deep learning existed.", correct: false },
+        ],
+        explain: "Every deployed AI system today, including the most advanced generative models, is narrow AI — task-specific. General AI remains hypothetical." },
+      { chapter: 1, lo: "AI-1.1.4", k: "K2", type: "single",
+        prompt: "Which GenAI architecture is most associated with weighing how relevant every other token is to the one currently being generated — the mechanism behind most modern LLMs?",
+        choices: [
+          { text: "Transformer (self-attention)", correct: true },
+          { text: "Generative Adversarial Network (GAN)", correct: false },
+          { text: "Diffusion model", correct: false },
+          { text: "Decision tree", correct: false },
+        ],
+        explain: "Self-attention, the core transformer mechanism, is what lets the model weigh the relevance of every other position in a sequence when generating each new token." },
+      { chapter: 1, lo: "AI-1.1.5", k: "K2", type: "single",
+        prompt: "A team needs to deploy a small ML model onto a power-constrained edge device, such as a battery-powered security camera. Which hardware characteristic should weigh most heavily in their choice?",
+        choices: [
+          { text: "Low power consumption and a small physical footprint, even at some cost to raw throughput.", correct: true },
+          { text: "Maximum theoretical FLOPS, regardless of power draw.", correct: false },
+          { text: "Compatibility with a full data-center GPU cluster.", correct: false },
+          { text: "The lowest possible purchase price per unit, ignoring efficiency entirely.", correct: false },
+        ],
+        explain: "Edge/embedded deployments are typically power- and thermally-constrained, so efficient, low-power hardware (or a quantized model) usually beats raw throughput as the deciding factor." },
+      { chapter: 1, lo: "AI-1.1.7", k: "K2", type: "single",
+        prompt: "What is the main purpose of an ML development framework (a library used to build and train models)?",
+        choices: [
+          { text: "It provides reusable building blocks — layers, optimizers, data-loading utilities — so a team doesn't reimplement core ML algorithms from scratch.", correct: true },
+          { text: "It automatically guarantees the resulting model is free of bias.", correct: false },
+          { text: "It replaces the need for a team to define their own performance metrics.", correct: false },
+          { text: "It is only used for deploying models, never for training them.", correct: false },
+        ],
+        explain: "ML frameworks accelerate development by supplying tested building blocks; they don't make bias, metric selection, or testing unnecessary." },
+      { chapter: 1, lo: "AI-1.1.8", k: "K2", type: "single",
+        prompt: "Why should an AI validation engineer stay aware of AI-specific regulation, such as the EU AI Act, even at an organization based outside the EU?",
+        choices: [
+          { text: "Such regulations often classify AI systems by risk level and impose testing/documentation obligations that can apply to any organization selling into that market.", correct: true },
+          { text: "Regulations only apply to companies that manufacture AI hardware.", correct: false },
+          { text: "AI regulation has no effect on testing activities, only on marketing claims.", correct: false },
+          { text: "Regulatory obligations only ever apply retroactively, after a system has already shipped.", correct: false },
+        ],
+        explain: "Risk-based AI regulation typically reaches any organization offering a system into that jurisdiction's market, not just local companies — and it directly shapes required testing and documentation depth." },
+
+      // ---- Chapter 2: Quality Characteristics for AI-Based Systems (3) ----
+      { chapter: 2, lo: "AI-2.1.1", k: "K2", type: "single",
+        prompt: "An AI-based loan-approval system consistently gives applicants with similar financial profiles very different outcomes, correlated with a protected attribute, with no defensible business reason. Which AI-specific quality characteristic is most directly at risk?",
+        choices: [
+          { text: "Fairness (freedom from unfair bias)", correct: true },
+          { text: "Performance efficiency", correct: false },
+          { text: "Usability", correct: false },
+          { text: "Portability", correct: false },
+        ],
+        explain: "Systematically different outcomes for otherwise-similar cases, without a defensible cause, is a fairness/bias concern — one of the quality characteristics that matters specifically for AI-based systems." },
+      { chapter: 2, lo: "AI-2.1.2", k: "K2", type: "single",
+        prompt: "What special consideration arises when an AI-based system is used in a safety-related context, such as an autonomous vehicle's perception module?",
+        choices: [
+          { text: "Failures can directly cause physical harm, so acceptable risk thresholds and required testing rigor are typically far stricter than for a non-safety system.", correct: true },
+          { text: "Safety-related AI systems are exempt from performance metric requirements.", correct: false },
+          { text: "Safety-related systems never need to be tested for bias.", correct: false },
+          { text: "Safety concerns only apply to conventional software, not AI-based systems.", correct: false },
+        ],
+        explain: "When failure can cause physical harm, both the acceptable error rate and the rigor of the testing process typically need to be substantially stricter." },
+      { chapter: 2, lo: "AI-2.2.1", k: "K2", type: "single",
+        prompt: "Which of the following is the best example of an acceptance criterion tailored specifically to an AI-based system, rather than a conventional one?",
+        choices: [
+          { text: "The model must maintain at least 95% recall on a held-out test set that is representative of production traffic.", correct: true },
+          { text: "The login button must be colored blue.", correct: false },
+          { text: "The application must compile without errors.", correct: false },
+          { text: "The server must respond to a health-check ping within 100 milliseconds.", correct: false },
+        ],
+        explain: "A metric-and-threshold criterion measured against representative data is characteristic of AI-based acceptance criteria; the other options are generic conventional-software checks." },
+
+      // ---- Chapter 3: Machine Learning (7) ----
+      { chapter: 3, lo: "AI-3.1.1", k: "K2", type: "single",
+        prompt: "A team trains a spam filter using thousands of emails that have each been manually labeled 'spam' or 'not spam.' Which form of machine learning does this represent?",
+        choices: [
+          { text: "Supervised learning", correct: true },
+          { text: "Unsupervised learning", correct: false },
+          { text: "Reinforcement learning", correct: false },
+          { text: "Rule-based expert systems", correct: false },
+        ],
+        explain: "Learning from data with known, human-assigned labels is the defining trait of supervised learning." },
+      { chapter: 3, lo: "AI-3.1.2", k: "K2", type: "single",
+        prompt: "In a typical ML development workflow, what is the purpose of the model evaluation stage that follows training?",
+        choices: [
+          { text: "To measure how well the trained model performs against defined metrics, typically using data it wasn't trained on.", correct: true },
+          { text: "To collect and label the raw training dataset for the first time.", correct: false },
+          { text: "To deploy the model directly into the production environment.", correct: false },
+          { text: "To permanently freeze the model so it can never be retrained.", correct: false },
+        ],
+        explain: "Evaluation checks generalization by measuring performance on held-out data the model hasn't already learned from — it happens after training and before deployment decisions." },
+      { chapter: 3, lo: "AI-3.1.4", k: "K2", type: "single",
+        prompt: "A team wants an LLM-based assistant to answer questions using their company's private, frequently-updated documentation, without retraining the model itself. Which technique fits best?",
+        choices: [
+          { text: "Retrieval-augmented generation (RAG)", correct: true },
+          { text: "Training a brand-new foundation model from scratch", correct: false },
+          { text: "Reducing the model's parameter count through pruning", correct: false },
+          { text: "Switching to an unsupervised clustering algorithm", correct: false },
+        ],
+        explain: "RAG retrieves relevant, current documents at query time and feeds them into the model's context, avoiding the need to retrain the model every time the documentation changes." },
+      { chapter: 3, lo: "AI-3.2.3", k: "K2", type: "single",
+        prompt: "Why is it important to keep the test dataset completely separate from the training and validation datasets?",
+        choices: [
+          { text: "So the final performance measurement reflects how the model handles genuinely unseen data, rather than data that already influenced it.", correct: true },
+          { text: "Because test data must always be smaller than training data by regulation.", correct: false },
+          { text: "Because test datasets are only used for hyperparameter tuning.", correct: false },
+          { text: "Because the training dataset is never allowed to contain labels.", correct: false },
+        ],
+        explain: "If test data leaks into training or validation, the resulting score is optimistic and doesn't reflect real-world generalization." },
+      { chapter: 3, lo: "AI-3.3.1", k: "K3", type: "single",
+        prompt: "A binary classifier produces this confusion matrix on a test set: TP = 40, FP = 10, FN = 20, TN = 130. What is its precision, rounded to the nearest whole percent?",
+        choices: [
+          { text: "80%", correct: true },
+          { text: "67%", correct: false },
+          { text: "33%", correct: false },
+          { text: "93%", correct: false },
+        ],
+        explain: "Precision = TP / (TP + FP) = 40 / (40 + 10) = 40/50 = 80%." },
+      { chapter: 3, lo: "AI-3.4.1", k: "K2", type: "single",
+        prompt: "In a deep neural network, what does a hidden layer do?",
+        choices: [
+          { text: "Applies weighted transformations and an activation function to inputs from the previous layer, extracting increasingly abstract features.", correct: true },
+          { text: "Stores the raw, unprocessed training dataset for later reuse.", correct: false },
+          { text: "Directly outputs the model's final prediction without any further processing.", correct: false },
+          { text: "Only exists in unsupervised learning models, never in supervised ones.", correct: false },
+        ],
+        explain: "Hidden layers sit between input and output, progressively transforming and abstracting the signal via weights and activation functions." },
+      { chapter: 3, lo: "AI-3.4.3", k: "K2", type: "single",
+        prompt: "What does 'neuron coverage' measure when testing a neural network?",
+        choices: [
+          { text: "The proportion of neurons that were activated above a given threshold across a test suite.", correct: true },
+          { text: "The percentage of the training dataset that has been manually reviewed.", correct: false },
+          { text: "How many layers the network contains in total.", correct: false },
+          { text: "The number of hyperparameters tuned during training.", correct: false },
+        ],
+        explain: "Neuron coverage is a structural test-adequacy criterion for neural networks, tracking how much of the network's internal activation behavior a test suite exercises." },
+
+      // ---- Chapter 4: Testing AI-Based Systems (7) ----
+      { chapter: 4, lo: "AI-4.1.1", k: "K2", type: "single",
+        prompt: "What is a key testability difference between a locked ML system and an adaptive (continuously learning) one?",
+        choices: [
+          { text: "A locked system's behavior is fixed after deployment and can be regression-tested like a stable baseline; an adaptive system's behavior keeps changing, requiring ongoing monitoring.", correct: true },
+          { text: "Locked systems cannot be tested at all before release.", correct: false },
+          { text: "Adaptive systems never need to be monitored once initial testing is complete.", correct: false },
+          { text: "There is no meaningful testability difference between the two.", correct: false },
+        ],
+        explain: "A locked model is a stable target for regression testing; an adaptive one can drift, so testing has to continue after release, not just before it." },
+      { chapter: 4, lo: "AI-4.1.2", k: "K2", type: "single",
+        prompt: "Why is a statistical approach often necessary when testing AI-based systems, rather than a simple exact-match assertion?",
+        choices: [
+          { text: "Because outputs are often probabilistic, so pass/fail typically has to be judged against acceptable error rates or thresholds across many test cases.", correct: true },
+          { text: "Because statistical approaches are cheaper to run than any other testing method.", correct: false },
+          { text: "Because AI systems only ever produce a single deterministic output.", correct: false },
+          { text: "Because exact-match assertions are illegal under most AI regulation.", correct: false },
+        ],
+        explain: "With probabilistic, open-ended outputs, a single exact-match check is usually meaningless — you need a large enough sample and a defined threshold instead." },
+      { chapter: 4, lo: "AI-4.1.3", k: "K2", type: "single",
+        prompt: "What is the 'oracle problem' as it applies to testing AI-based systems?",
+        choices: [
+          { text: "The difficulty of determining a reliable, correct expected result to compare actual output against, especially when there's no single correct answer.", correct: true },
+          { text: "The inability of any AI-based system to ever be tested by a human tester.", correct: false },
+          { text: "A hardware limitation that prevents running automated tests on GPUs.", correct: false },
+          { text: "A legal requirement to document every model's training data source.", correct: false },
+        ],
+        explain: "When outputs are open-ended or probabilistic, deciding what counts as a 'correct' result to test against becomes genuinely hard — that's the oracle problem." },
+      { chapter: 4, lo: "AI-4.2.1", k: "K2", type: "single",
+        prompt: "Which of the following is a recognized technique for testing generative AI outputs, where there's no single correct answer?",
+        choices: [
+          { text: "Scoring outputs against a rubric or reference set using quality/similarity criteria rather than exact string matching.", correct: true },
+          { text: "Requiring the model to produce byte-for-byte identical output on every run.", correct: false },
+          { text: "Disabling all human review of generated content.", correct: false },
+          { text: "Only testing the model once, immediately after training, and never again.", correct: false },
+        ],
+        explain: "Rubric- or similarity-based scoring accommodates the fact that many different outputs can be acceptable, unlike exact string matching." },
+      { chapter: 4, lo: "AI-4.2.2", k: "K3", type: "single",
+        prompt: "A tester deliberately crafts prompts designed to make an LLM-based chatbot reveal restricted internal instructions or bypass its safety guidance. What is this activity best described as?",
+        choices: [
+          { text: "Red teaming", correct: true },
+          { text: "Back-to-back testing", correct: false },
+          { text: "A/B testing", correct: false },
+          { text: "Label correctness testing", correct: false },
+        ],
+        explain: "Deliberately probing for ways to make a GenAI system misbehave or leak restricted information is the essence of red teaming." },
+      { chapter: 4, lo: "AI-4.3.1", k: "K2", type: "single",
+        prompt: "Which test level is unique to machine learning systems, checking the trained model itself against held-out data before it's integrated into the wider application?",
+        choices: [
+          { text: "Model testing", correct: true },
+          { text: "Unit testing", correct: false },
+          { text: "System testing", correct: false },
+          { text: "User acceptance testing", correct: false },
+        ],
+        explain: "Data testing and model testing are the two test levels specific to ML systems; model testing evaluates the trained model against held-out data on its own, before wider integration." },
+      { chapter: 4, lo: "AI-4.3.2", k: "K2", type: "single",
+        prompt: "When applying risk-based testing to a machine learning system, what typically raises the assigned risk level for a given area?",
+        choices: [
+          { text: "A high likelihood of failure (e.g. underrepresented data) combined with a high impact if that failure reaches production.", correct: true },
+          { text: "The area being easy and quick to test, regardless of its real-world impact.", correct: false },
+          { text: "The area having already passed testing once before.", correct: false },
+          { text: "The area being outside the scope of the current sprint.", correct: false },
+        ],
+        explain: "Risk-based testing combines likelihood and impact; areas with both high failure likelihood and high consequence get prioritized for deeper testing." },
+
+      // ---- Chapter 5: Input Data Testing for Machine Learning Systems (6) ----
+      { chapter: 5, lo: "AI-5.1.1", k: "K2", type: "single",
+        prompt: "Which of the following is a recognized test approach for mitigating risk in the input data used by a machine learning system?",
+        choices: [
+          { text: "Profiling the dataset for missing values, outliers, and class imbalance before training begins.", correct: true },
+          { text: "Skipping data review entirely and relying only on model-level metrics after training.", correct: false },
+          { text: "Assuming all publicly sourced datasets are automatically representative.", correct: false },
+          { text: "Testing the deployment infrastructure instead of the dataset.", correct: false },
+        ],
+        explain: "Profiling data quality issues early is a core input-data risk-mitigation activity, catching problems before they propagate into a trained model." },
+      { chapter: 5, lo: "AI-5.1.2", k: "K2", type: "single",
+        prompt: "Which technique would most directly help detect bias in a training dataset?",
+        choices: [
+          { text: "Comparing model performance metrics across different demographic or subgroup slices to check for significant disparities.", correct: true },
+          { text: "Increasing the overall size of the dataset without examining its composition.", correct: false },
+          { text: "Measuring only the model's average inference latency.", correct: false },
+          { text: "Checking that the dataset file loads without a parsing error.", correct: false },
+        ],
+        explain: "Bias often hides behind a good overall average; slicing performance by subgroup is what reveals disparities an aggregate metric would mask." },
+      { chapter: 5, lo: "AI-5.1.3", k: "K2", type: "single",
+        prompt: "What does data pipeline testing focus on, as distinct from testing the model itself?",
+        choices: [
+          { text: "Verifying that the stages which collect, clean, transform, and feed data into the model work correctly and preserve data integrity.", correct: true },
+          { text: "Measuring the trained model's accuracy on a held-out test set.", correct: false },
+          { text: "Comparing two different model architectures against each other.", correct: false },
+          { text: "Evaluating the readability of the model's generated text.", correct: false },
+        ],
+        explain: "Pipeline testing targets the infrastructure that moves and transforms data before it ever reaches the model — a different surface than model performance testing." },
+      { chapter: 5, lo: "AI-5.1.4", k: "K2", type: "single",
+        prompt: "A facial recognition model was trained almost entirely on daytime, well-lit photos. What testing concern does this most directly raise?",
+        choices: [
+          { text: "Data representativeness — the training data may not reflect the full range of real-world conditions the model will face.", correct: true },
+          { text: "Model coverage — the neural network doesn't have enough hidden layers.", correct: false },
+          { text: "Hardware compatibility — the model can't run on edge devices.", correct: false },
+          { text: "Regulatory compliance — the model automatically violates the EU AI Act.", correct: false },
+        ],
+        explain: "A dataset skewed toward one condition (lighting, in this case) is a representativeness problem — the model is likely to underperform outside that condition." },
+      { chapter: 5, lo: "AI-5.1.5", k: "K3", type: "single",
+        prompt: "Applying dataset constraint testing to a customer 'age' field that should only contain values from 0 to 120, which test case would be most valuable?",
+        choices: [
+          { text: "A record with age = -5 or age = 200, to confirm invalid values are rejected or flagged.", correct: true },
+          { text: "A record with age = 35, since it's a common, unremarkable value.", correct: false },
+          { text: "A record missing the customer's name field entirely.", correct: false },
+          { text: "A record with the age field spelled correctly in the column header.", correct: false },
+        ],
+        explain: "Constraint testing specifically targets boundary and out-of-range values to confirm the dataset (or its validation) correctly rejects or flags violations." },
+      { chapter: 5, lo: "AI-5.1.6", k: "K2", type: "single",
+        prompt: "Why is label correctness testing important for a supervised learning dataset?",
+        choices: [
+          { text: "Because the model learns directly from the labels — incorrect labels teach it the wrong patterns, degrading real-world performance.", correct: true },
+          { text: "Because labels only affect how fast the model trains, not what it learns.", correct: false },
+          { text: "Because label correctness only matters for unsupervised learning, not supervised learning.", correct: false },
+          { text: "Because mislabeled data is automatically filtered out during training.", correct: false },
+        ],
+        explain: "Supervised learning is only as good as its labels; systematically wrong labels directly teach the model incorrect associations." },
+
+      // ---- Chapter 6: Model Testing for Machine Learning Systems (9) ----
+      { chapter: 6, lo: "AI-6.1.1", k: "K2", type: "single",
+        prompt: "Which of the following is a recognized test approach for mitigating risk in a trained ML model itself, as opposed to its input data?",
+        choices: [
+          { text: "Benchmarking the model's performance metrics against a defined acceptance threshold on a held-out test set.", correct: true },
+          { text: "Reviewing only the raw CSV files used before any training occurred.", correct: false },
+          { text: "Checking that the training job's log file exists.", correct: false },
+          { text: "Verifying the model's file size is under a certain number of megabytes.", correct: false },
+        ],
+        explain: "Benchmarking against defined thresholds on held-out data is a model-level risk mitigation activity, distinct from data-level checks." },
+      { chapter: 6, lo: "AI-6.1.2", k: "K2", type: "single",
+        prompt: "What is the primary purpose of reviewing an ML model's documentation (such as a model card) as a test activity?",
+        choices: [
+          { text: "To verify the model's intended use, known limitations, and training data characteristics are accurately and clearly documented before deployment.", correct: true },
+          { text: "To rewrite the model's source code for readability.", correct: false },
+          { text: "To confirm the documentation file uses a specific font.", correct: false },
+          { text: "To replace the need for any performance testing.", correct: false },
+        ],
+        explain: "Model documentation review checks that limitations and intended use are accurately captured — critical for anyone deciding whether the model is appropriate for a given use case." },
+      { chapter: 6, lo: "AI-6.1.3", k: "K2", type: "single",
+        prompt: "When performing ML functional performance testing on a probabilistic system, why can't a single test run reliably confirm a metric like accuracy?",
+        choices: [
+          { text: "A single run only samples one outcome from a distribution of possible behaviors; performance must be assessed over a sufficiently large and representative test set.", correct: true },
+          { text: "Because accuracy can only be calculated after the model has been deleted.", correct: false },
+          { text: "Because probabilistic models never produce measurable outputs.", correct: false },
+          { text: "Because a single test run always produces a perfect score.", correct: false },
+        ],
+        explain: "Probabilistic behavior means any one run is just a sample; you need enough runs over representative data for the measured metric to be trustworthy." },
+      { chapter: 6, lo: "AI-6.1.4", k: "K2", type: "single",
+        prompt: "What is the goal of adversarial testing for a machine learning model?",
+        choices: [
+          { text: "To find small, often intentionally crafted input perturbations that cause the model to produce incorrect or unexpected output.", correct: true },
+          { text: "To measure how quickly the model can be retrained from scratch.", correct: false },
+          { text: "To confirm the model's user interface matches the design mockups.", correct: false },
+          { text: "To verify the model was trained using a specific programming language.", correct: false },
+        ],
+        explain: "Adversarial testing probes for inputs, often subtly perturbed, that expose the model's fragility or cause it to misbehave." },
+      { chapter: 6, lo: "AI-6.1.5", k: "K3", type: "single",
+        prompt: "A tester is validating an image classifier and has no independent oracle for most images. Which of these is a reasonable metamorphic relation to test?",
+        choices: [
+          { text: "Rotating an image by a small angle (e.g. 5 degrees) should not change the model's predicted class.", correct: true },
+          { text: "Every image in the dataset must be exactly 100 KB in file size.", correct: false },
+          { text: "The model's training log must contain the word 'success'.", correct: false },
+          { text: "Two completely unrelated images should always receive the same prediction.", correct: false },
+        ],
+        explain: "Metamorphic testing defines a relation between an input transformation and an expected relationship in the output — a small rotation shouldn't flip the predicted class, even without knowing the 'true' label." },
+      { chapter: 6, lo: "AI-6.1.7", k: "K2", type: "single",
+        prompt: "What is 'drift testing' used to detect in an operational machine learning system?",
+        choices: [
+          { text: "A change over time in the statistical properties of production data, or in the relationship between inputs and outputs, that can degrade model performance.", correct: true },
+          { text: "Whether the model's source code has been modified without authorization.", correct: false },
+          { text: "Whether the hardware running the model has overheated.", correct: false },
+          { text: "Whether the model's file has been renamed.", correct: false },
+        ],
+        explain: "Drift testing monitors for data or concept drift in production — real-world conditions shifting away from what the model was validated on." },
+      { chapter: 6, lo: "AI-6.1.8", k: "K2", type: "single",
+        prompt: "A model achieves 99% accuracy on its training data but only 61% on new, unseen data. What does this pattern most likely indicate?",
+        choices: [
+          { text: "Overfitting — the model has memorized the training data rather than learning generalizable patterns.", correct: true },
+          { text: "Underfitting — the model is too simple to learn any pattern at all.", correct: false },
+          { text: "The test dataset is corrupted and must be discarded.", correct: false },
+          { text: "The model is performing exactly as intended.", correct: false },
+        ],
+        explain: "A large gap between training and unseen-data performance, with training performance near-perfect, is the classic signature of overfitting." },
+      { chapter: 6, lo: "AI-6.1.9", k: "K2", type: "single",
+        prompt: "How is A/B testing typically used in the context of machine learning systems?",
+        choices: [
+          { text: "Routing different segments of live traffic to two model versions and comparing real-world outcome metrics between them.", correct: true },
+          { text: "Running the exact same input through the exact same model twice to check for identical output.", correct: false },
+          { text: "Testing only the letters 'A' and 'B' as sample input strings.", correct: false },
+          { text: "Comparing a model's documentation against its source code.", correct: false },
+        ],
+        explain: "A/B testing splits live traffic between two variants to compare real business or outcome metrics under real conditions." },
+      { chapter: 6, lo: "AI-6.1.10", k: "K2", type: "single",
+        prompt: "What does back-to-back testing of machine learning systems involve?",
+        choices: [
+          { text: "Running the same inputs through two different model implementations or versions and comparing the outputs for unexpected discrepancies.", correct: true },
+          { text: "Testing a model twice in a row using identical hardware only.", correct: false },
+          { text: "Deploying a model to two different cloud providers simultaneously without comparison.", correct: false },
+          { text: "Reviewing a model's documentation twice for spelling errors.", correct: false },
+        ],
+        explain: "Back-to-back testing compares outputs from two implementations or versions on the same inputs, surfacing unexpected divergence between them." },
+
+      // ---- Chapter 7: Machine Learning Development Testing (2) ----
+      { chapter: 7, lo: "AI-7.1.1", k: "K2", type: "single",
+        prompt: "Which of the following is a recognized test approach for mitigating risk during ML development, before deployment?",
+        choices: [
+          { text: "Version-controlling datasets, code, and model artifacts together so any experiment can be reproduced and audited.", correct: true },
+          { text: "Deleting earlier model versions immediately once a new one is trained.", correct: false },
+          { text: "Skipping code review for any script that touches training data.", correct: false },
+          { text: "Only testing the final production model, never intermediate experiments.", correct: false },
+        ],
+        explain: "Reproducibility — being able to trace exactly which data, code, and parameters produced a given model — is a core ML-development risk mitigation practice." },
+      { chapter: 7, lo: "AI-7.1.2", k: "K2", type: "single",
+        prompt: "What is a key focus of ML system deployment testing?",
+        choices: [
+          { text: "Confirming the model behaves correctly once integrated into the actual production environment and infrastructure it will run in, not just the training/research environment.", correct: true },
+          { text: "Confirming the model's training loss reached exactly zero.", correct: false },
+          { text: "Confirming the dataset used for training contains no duplicate rows.", correct: false },
+          { text: "Confirming the model card includes a photo of the development team.", correct: false },
+        ],
+        explain: "Deployment testing validates the model in its real serving context — infrastructure, latency, integration points — which can differ meaningfully from the research/training environment." },
+    ];
+
+    // ---- Exam timer (visual only — never auto-submits) ----
+    let examRemaining = 60 * 60;
+    let examTimerId = null;
+
+    function pad(n) { return n.toString().padStart(2, "0"); }
+
+    function updateTimerDisplay() {
+      const el = document.getElementById("exam-timer");
+      if (!el) return;
+      el.textContent = `${pad(Math.floor(examRemaining / 60))}:${pad(examRemaining % 60)}`;
+      if (examRemaining <= 300) el.style.color = "var(--danger)";
+    }
+
+    function startExamTimer() {
+      updateTimerDisplay();
+      examTimerId = setInterval(() => {
+        examRemaining--;
+        updateTimerDisplay();
+        if (examRemaining <= 0) {
+          clearInterval(examTimerId);
+          examTimerId = null;
+          const note = document.getElementById("exam-timer-note");
+          if (note) note.textContent = "Time's up — this is a visual timer only, so nothing was submitted automatically. Finish at your own pace.";
+        }
+      }, 1000);
+    }
+
+    function stopExamTimer() {
+      if (examTimerId) { clearInterval(examTimerId); examTimerId = null; }
+      const note = document.getElementById("exam-timer-note");
+      if (note) note.textContent = "Exam submitted — great work.";
+    }
+
+    // ---- Chapter breakdown table, built from correctness we track ourselves ----
+    function renderChapterBreakdown(byChapter) {
+      const wrap = document.getElementById("chapter-breakdown");
+      const tbody = document.getElementById("chapter-breakdown-tbody");
+      if (!wrap || !tbody) return;
+      tbody.innerHTML = "";
+      COURSE.examTarget.chapters.forEach(c => {
+        const stat = byChapter[c.n] || { correct: 0, total: 0 };
+        const pct = stat.total ? Math.round((stat.correct / stat.total) * 100) : 0;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>Ch.${c.n} — ${c.title}</td><td>${stat.correct} / ${stat.total}</td><td>${pct}%</td>`;
+        tbody.appendChild(tr);
+      });
+      wrap.style.display = "block";
+      wrap.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function handleExamFinish(correct, total) {
+      const byChapter = {};
+      for (let n = 1; n <= 7; n++) byChapter[n] = { correct: 0, total: 0 };
+
+      const cards = document.querySelectorAll("#quiz-mount .qcard");
+      cards.forEach((card, qi) => {
+        const q = examQuestions[qi];
+        const inputs = card.querySelectorAll("input");
+        const chosen = Array.from(inputs).filter(i => i.checked).map(i => parseInt(i.value, 10));
+        const correctIdx = q.choices.map((c, i) => c.correct ? i : -1).filter(i => i >= 0);
+        const selfAssess = correctIdx.length === q.choices.length;
+        const isCorrect = selfAssess ? chosen.length > 0
+          : (chosen.length === correctIdx.length && chosen.every(i => correctIdx.includes(i)));
+        byChapter[q.chapter].total++;
+        if (isCorrect) byChapter[q.chapter].correct++;
+      });
+
+      Progress.set("s30", { examScore: { correct, total, byChapter } });
+      renderChapterBreakdown(byChapter);
+      stopExamTimer();
+      renderReadinessReport();
+    }
+
+    const startBtn = document.getElementById("start-exam-btn");
+    if (startBtn) {
+      startBtn.addEventListener("click", () => {
+        document.getElementById("exam-start-panel").style.display = "none";
+        document.getElementById("exam-timer-wrap").style.display = "block";
+        Quiz.render("quiz-mount", examQuestions, { sessionId: "s30", passPct: 65, onFinish: handleExamFinish });
+        startExamTimer();
+      });
+    }
+
+    // ---- Part 2: Readiness report, reading real progress across all 30 sessions ----
+    function renderReadinessReport() {
+      const el = document.getElementById("readiness-report");
+      if (!el) return;
+      const sessions = COURSE.sessions;
+      const totalCount = sessions.length;
+      const completedCount = Progress.completedCount();
+
+      const quizRecords = sessions
+        .map(s => ({ s, q: Progress.quizScore(s.id) }))
+        .filter(r => r.q && typeof r.q.pct === "number");
+      const avgPct = quizRecords.length
+        ? Math.round(quizRecords.reduce((sum, r) => sum + r.q.pct, 0) / quizRecords.length)
+        : null;
+      const weakQuizzes = quizRecords.filter(r => r.q.pct < 65);
+      const incomplete = sessions.filter(s => !Progress.isComplete(s.id));
+
+      const s30data = Progress.get("s30");
+      const examData = s30data && s30data.examScore ? s30data.examScore : null;
+      const examPct = examData ? Math.round((examData.correct / examData.total) * 100) : null;
+
+      let tone = "tip", title = "", body = "";
+
+      if (completedCount === 0 && quizRecords.length === 0) {
+        tone = "tip";
+        title = "No progress recorded yet";
+        body = "This report reads your saved progress from Sessions 1–29 plus today's exam, straight from this browser's local storage. Nothing has been recorded yet — come back here once you've worked through some of the course, or take the mock exam above for at least one data point.";
+      } else if (
+        completedCount >= totalCount - 2 &&
+        avgPct !== null && avgPct >= 75 &&
+        (examPct === null || examPct >= 65)
+      ) {
+        tone = "tip";
+        title = "You're genuinely ready";
+        body = `You've completed ${completedCount} of ${totalCount} sessions with a ${avgPct}% average quiz score` +
+          (examPct !== null ? ` and scored ${examPct}% on this final mock exam` : "") +
+          `. That's a strong, consistent signal — you have the working knowledge of a competent AI validation engineer, independent of whether you ever sit an official exam.`;
+      } else {
+        tone = "warn";
+        title = "Close, with specific gaps worth closing";
+        const bits = [];
+        if (completedCount < totalCount) bits.push(`${totalCount - completedCount} session(s) aren't marked complete yet`);
+        if (avgPct !== null && avgPct < 75) bits.push(`your average quiz score is ${avgPct}%`);
+        if (examPct !== null && examPct < 65) bits.push(`today's mock exam came in at ${examPct}%, below the 65% pass mark`);
+        body = bits.length
+          ? `You've made real progress (${completedCount}/${totalCount} sessions complete), but ${bits.join("; ")}. See the specific sessions and chapters below rather than just re-reading everything.`
+          : `You've made progress, but there isn't quite enough data yet for a confident verdict — keep going and check back here.`;
+      }
+
+      let html = `
+        <div class="stat-row">
+          <div class="stat-tile"><div class="label">Sessions complete</div><div class="value">${completedCount} / ${totalCount}</div></div>
+          <div class="stat-tile"><div class="label">Avg. quiz score</div><div class="value">${avgPct !== null ? avgPct + "%" : "—"}</div></div>
+          <div class="stat-tile"><div class="label">Final exam score</div><div class="value">${examPct !== null ? examPct + "%" : "Not yet taken"}</div></div>
+        </div>
+        <div class="callout ${tone}">
+          <div class="icon">${tone === "tip" ? "🎯" : "🧭"}</div>
+          <div class="body"><strong class="title">${title}</strong>${body}</div>
+        </div>`;
+
+      if (incomplete.length) {
+        const byChap = {};
+        incomplete.forEach(s => { (byChap[s.chapter] = byChap[s.chapter] || []).push(s); });
+        const rows = Object.keys(byChap).map(ch => {
+          const list = byChap[ch].map(s => `Session ${s.n} (${s.title})`).join(", ");
+          return `<li><strong>${ch}:</strong> ${list}</li>`;
+        }).join("");
+        html += `<div class="card"><strong>Not yet marked complete</strong><ul style="margin-top:.6rem;">${rows}</ul></div>`;
+      }
+
+      if (weakQuizzes.length) {
+        const rows = weakQuizzes
+          .sort((a, b) => a.s.n - b.s.n)
+          .map(r => `<li>Session ${r.s.n} — ${r.s.title} (${r.q.pct}%)</li>`)
+          .join("");
+        html += `<div class="card"><strong>Lesson quiz scores below 65% — worth a revisit</strong><ul style="margin-top:.6rem;">${rows}</ul></div>`;
+      }
+
+      if (examData) {
+        const weakChapters = COURSE.examTarget.chapters.filter(c => {
+          const stat = examData.byChapter[c.n];
+          return stat && stat.total && (stat.correct / stat.total) < 0.65;
+        });
+        if (weakChapters.length) {
+          const rows = weakChapters.map(c => {
+            const stat = examData.byChapter[c.n];
+            return `<li>Ch.${c.n} — ${c.title}: ${stat.correct} / ${stat.total} on today's exam</li>`;
+          }).join("");
+          html += `<div class="card"><strong>Weakest chapters on today's final exam</strong><ul style="margin-top:.6rem;">${rows}</ul></div>`;
+        }
+      }
+
+      el.innerHTML = html;
+    }
+
+    renderReadinessReport();
+  });
+</script>
+</body>
+</html>

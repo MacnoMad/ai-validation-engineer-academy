@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 10 · NN Coverage Measures + Chapter 3 Review — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 10 · Chapter 3 — Machine Learning (part 6 of 6)</div>
+  <h1>How Do You Know You've Tested a Neural Network Enough?</h1>
+  <p class="lede">First: the coverage measures built specifically for neural networks, since ordinary code
+    coverage can't see inside a trained model. Then, because this closes out Chapter 3, a full review spanning
+    everything from forms of ML through today's coverage measures — your checkpoint before Chapter 4.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~75 min</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">LO: AI-3.4.3</span>
+    <span class="chip">Exam weight: part of 7 questions for Chapter 3</span>
+    <span class="chip">Includes: full Chapter 3 review quiz</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">neuron coverage</span><span class="kw">k-multisection neuron coverage</span>
+    <span class="kw">neuron boundary coverage</span><span class="kw">structural coverage</span>
+    <span class="kw">test adequacy</span>
+  </div>
+
+  <h2>1. Why ordinary code coverage doesn't map onto a neural network</h2>
+  <p>Traditional structural coverage — statement, branch, or path coverage — measures how much of a program's
+    <em>explicitly written logic</em> your tests exercised. A trained neural network doesn't have that kind of
+    logic to walk through: there are no <code>if</code>/<code>else</code> branches representing its decisions.
+    Its behavior is entirely dictated by learned weights, biases, and the activation values they produce — the
+    same computation you built by hand in Session 9, just repeated across possibly millions of neurons.</p>
+  <p>That gap is why a separate family of <strong>neural network structural coverage metrics</strong> has
+    emerged: measures designed to describe how thoroughly your test inputs have exercised a model's
+    <em>internal</em> mechanisms, even though there's no source code to point at.</p>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">Scope check</strong>
+      This is specifically about the trained model's internals. Ordinary code coverage is still entirely
+      relevant to the code around the model — the data pipeline, pre/post-processing, and the application
+      logic that calls the model. It's only the model itself that needs a different lens.
+    </div>
+  </div>
+
+  <h2>2. Neuron Coverage</h2>
+  <p>The most basic of the three: <strong>Neuron Coverage</strong> measures the proportion of neurons in the
+    network whose output (activation value) exceeded a specified threshold at least once, across all the test
+    inputs you ran.</p>
+  <p>Think of it like a coverage map for a huge control panel of switches: running tests tells you which
+    switches actually got flipped "on" at least once. If a neuron's activation value never rises above the
+    threshold during testing, you have no evidence at all about how that neuron behaves once it <em>does</em>
+    activate — it's untested territory.</p>
+
+  <h2>3. k-Multisection Neuron Coverage (kMNC)</h2>
+  <p>Plain neuron coverage has a blind spot: a neuron could be marked "covered" the moment it crosses the
+    threshold once, even if every test input only ever pushed it into one narrow slice of its full output
+    range. <strong>k-Multisection Neuron Coverage</strong> fixes this by dividing each neuron's known output
+    range into <code>k</code> equal sections (buckets), then measuring the proportion of all those buckets,
+    across all neurons, that were activated by at least one test input. It's a finer-grained lens on the same
+    idea — not just "did this neuron ever fire," but "how much of its actual behavioral range did we exercise."</p>
+
+  <h2>4. Neuron Boundary Coverage (NBC)</h2>
+  <p><strong>Neuron Boundary Coverage</strong> measures something different: the proportion of neurons whose
+    output during testing went <em>beyond</em> the range that neuron ever produced during training — either
+    higher than its training-time maximum, or lower than its training-time minimum.</p>
+  <p>These out-of-range activations matter because they mark exactly the inputs the network never experienced
+    while learning — the corner cases where its behavior is least predictable and most likely to expose a
+    defect or a fragile, unlearned response.</p>
+
+  <table class="data">
+    <thead><tr><th>Measure</th><th>What it captures</th><th>A low score means</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Neuron Coverage</strong></td><td>Did each neuron ever activate past a threshold?</td>
+        <td>Some neurons' "on" behavior was never observed at all.</td></tr>
+      <tr><td><strong>kMNC</strong></td><td>How much of each neuron's known output range was exercised?</td>
+        <td>Tests are clustered in a narrow slice of each neuron's behavior.</td></tr>
+      <tr><td><strong>NBC</strong></td><td>Did any neuron produce an output outside its training-time range?</td>
+        <td>You haven't yet probed the model's least-predictable, out-of-experience corners.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>5. Hands-on: watch coverage accumulate across test inputs</h2>
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: neuron activation coverage simulator</span></div>
+    <div class="lab-sub">Eight neurons across two toy hidden layers. Each "Run test input" click simulates one
+      test case flowing through the network and generates a plausible activation value per neuron — this is a
+      randomized illustration, not a real trained model, but the coverage bookkeeping (thresholds, buckets,
+      out-of-range detection) works exactly like the real metrics.</div>
+
+    <div class="controls">
+      <button class="btn btn-primary" id="nc-run">▶ Run test input</button>
+      <button class="btn btn-ghost" id="nc-reset">Reset</button>
+      <span class="small" id="nc-count">Test inputs run: 0</span>
+    </div>
+
+    <div id="nc-neurons" style="display:flex; flex-wrap:wrap; gap:.8rem; margin:1rem 0;"></div>
+
+    <div class="stat-row" id="nc-stats"></div>
+    <div class="readout" id="nc-readout" style="margin-top:.9rem;">Press "Run test input" to begin.</div>
+  </div>
+
+  <h2>6. The catch: structural coverage alone isn't enough</h2>
+  <p>High structural coverage tells you which parts of the network you've exercised — it does not tell you the
+    network is <em>right</em>. Neural networks can learn spurious correlations, producing activations that
+    look perfectly normal while relying on the wrong reasons entirely. Commercial tool support for these
+    specific coverage measures is also still limited today. That's why testers pair structural coverage with
+    other techniques rather than relying on it alone — adversarial testing and metamorphic testing, which you'll
+    build hands-on in Sessions 18 and 19, are exactly the complementary tools for catching "right activation,
+    wrong reason" failures that coverage numbers can't see.</p>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+
+  <h2>Chapter 3 Review — Machine Learning, start to finish</h2>
+  <p>Chapter 3 carries the second-heaviest exam weight of the whole syllabus, and it's the one you've spent the
+    most sessions on — forms of ML and the workflow (Session 5), pretrained models/fine-tuning/RAG and data
+    preparation (Session 6), classification metrics and model/dataset comparison (Sessions 7–8), and neural
+    networks through today's coverage measures (Sessions 9–10). This review pulls from all of it. Treat it as a
+    genuine checkpoint, not a formality, before moving on to Chapter 4.</p>
+
+  <div id="quiz-mount-review"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s10");
+    App.buildSessionNav("session-nav", "s10");
+    App.wireMarkComplete("mark-complete", "s10");
+
+    // ---- Neuron coverage simulator ----
+    const K = 4; // buckets for kMNC
+    const neurons = Array.from({ length: 8 }, (_, i) => {
+      // Each neuron has a made-up "training-observed" range, one deliberately narrow to make NBC interesting.
+      const narrow = i === 3 || i === 6;
+      const min = narrow ? 0.35 : 0.0;
+      const max = narrow ? 0.55 : 1.0;
+      return {
+        id: i, min, max, threshold: (min + max) / 2,
+        everExceeded: false, bucketsHit: new Set(), everOutOfRange: false, lastVal: null,
+      };
+    });
+    let testCount = 0;
+
+    function runOneInput() {
+      testCount++;
+      neurons.forEach(n => {
+        const range = n.max - n.min;
+        // Random activation, occasionally spilling outside the training-observed range.
+        const spread = range * 1.4;
+        const val = n.min - range * 0.2 + Math.random() * spread;
+        n.lastVal = val;
+        if (val >= n.threshold) n.everExceeded = true;
+        if (val < n.min || val > n.max) {
+          n.everOutOfRange = true;
+        } else {
+          const bucket = Math.min(K - 1, Math.floor(((val - n.min) / range) * K));
+          n.bucketsHit.add(bucket);
+        }
+      });
+      render();
+    }
+
+    function render() {
+      const el = document.getElementById("nc-neurons");
+      el.innerHTML = neurons.map(n => {
+        const activated = n.everExceeded;
+        const color = activated ? "var(--accent)" : "var(--text-faint)";
+        const bg = activated ? "var(--accent-soft)" : "var(--bg-sunken)";
+        const ring = n.everOutOfRange ? "box-shadow:0 0 0 3px var(--danger-soft), 0 0 0 4.5px var(--danger);" : "";
+        return `<div style="width:92px; text-align:center; padding:.6rem .4rem; border-radius:var(--radius-sm); background:${bg}; border:1px solid var(--border); ${ring}">
+            <div style="width:34px; height:34px; border-radius:50%; background:${color}; margin:0 auto .4rem; opacity:.85;"></div>
+            <div class="small" style="font-weight:800;">N${n.id + 1}</div>
+            <div class="small">${n.bucketsHit.size}/${K} buckets</div>
+          </div>`;
+      }).join("");
+
+      const covered = neurons.filter(n => n.everExceeded).length;
+      const nc = Math.round((covered / neurons.length) * 100);
+      const totalBuckets = neurons.length * K;
+      const hitBuckets = neurons.reduce((s, n) => s + n.bucketsHit.size, 0);
+      const kmnc = Math.round((hitBuckets / totalBuckets) * 100);
+      const nbcCount = neurons.filter(n => n.everOutOfRange).length;
+      const nbc = Math.round((nbcCount / neurons.length) * 100);
+
+      document.getElementById("nc-stats").innerHTML = `
+        <div class="stat-tile"><div class="label">Neuron Coverage</div><div class="value">${nc}%</div></div>
+        <div class="stat-tile"><div class="label">kMNC (k=4)</div><div class="value">${kmnc}%</div></div>
+        <div class="stat-tile"><div class="label">NBC</div><div class="value">${nbc}%</div></div>`;
+      document.getElementById("nc-count").textContent = `Test inputs run: ${testCount}`;
+
+      const readout = document.getElementById("nc-readout");
+      if (testCount === 0) {
+        readout.textContent = 'Press "Run test input" to begin.';
+      } else if (nbcCount === 0) {
+        readout.textContent = `${covered}/${neurons.length} neurons have activated past their threshold so far. No neuron has gone outside its training-observed range yet — keep running test inputs to look for those corner cases (watch for a red ring).`;
+      } else {
+        readout.textContent = `${nbcCount} neuron(s) have produced an activation outside their training-observed range (red ring) — exactly the least-predictable behavior NBC is designed to surface.`;
+      }
+    }
+
+    document.getElementById("nc-run").addEventListener("click", runOneInput);
+    document.getElementById("nc-reset").addEventListener("click", () => {
+      testCount = 0;
+      neurons.forEach(n => { n.everExceeded = false; n.bucketsHit = new Set(); n.everOutOfRange = false; n.lastVal = null; });
+      render();
+    });
+    render();
+
+    // ---- Quiz: coverage-specific ----
+    const questions = [
+      { lo: "AI-3.4.3", k: "K2", type: "single",
+        prompt: "Why doesn't traditional statement/branch code coverage transfer well to a trained neural network?",
+        choices: [
+          { text: "A neural network has no explicit branching logic to walk through — its behavior comes from learned weights, biases, and activations instead.", correct: true },
+          { text: "Neural networks cannot be tested at all.", correct: false },
+          { text: "Statement coverage is only defined for compiled languages.", correct: false },
+          { text: "Neural networks never contain any surrounding code worth measuring coverage on.", correct: false },
+        ],
+        explain: "There's no source-code decision structure inside the trained model itself — coverage has to describe activation behavior instead, which is what neuron coverage, kMNC, and NBC do." },
+      { lo: "AI-3.4.3", k: "K2", type: "single",
+        prompt: "What does Neuron Coverage measure?",
+        choices: [
+          { text: "The proportion of neurons whose activation exceeded a specified threshold at least once during testing.", correct: true },
+          { text: "The percentage of test cases that passed.", correct: false },
+          { text: "The number of layers in the network.", correct: false },
+          { text: "The accuracy of the trained model.", correct: false },
+        ],
+        explain: "It's about which neurons were ever meaningfully “active,” not about pass/fail results or model accuracy." },
+      { lo: "AI-3.4.3", k: "K2", type: "single",
+        prompt: "What does k-Multisection Neuron Coverage (kMNC) add beyond plain Neuron Coverage?",
+        choices: [
+          { text: "A finer-grained view of how much of each neuron's output range was actually exercised, by dividing that range into k sections.", correct: true },
+          { text: "It replaces the need for a threshold entirely.", correct: false },
+          { text: "It only measures the output layer.", correct: false },
+          { text: "It counts how many times the model was retrained.", correct: false },
+        ],
+        explain: "A neuron can cross the threshold once and still leave most of its output range unexplored — kMNC catches that gap." },
+      { lo: "AI-3.4.3", k: "K2", type: "single",
+        prompt: "What does Neuron Boundary Coverage (NBC) specifically detect?",
+        choices: [
+          { text: "Neurons producing an output beyond the maximum, or below the minimum, they ever produced during training.", correct: true },
+          { text: "Neurons that were never connected to the output layer.", correct: false },
+          { text: "The total number of weights in the network.", correct: false },
+          { text: "Whether the training dataset was balanced.", correct: false },
+        ],
+        explain: "NBC flags activations in territory the network never experienced while learning — its true “corner cases.”" },
+      { lo: "AI-3.4.3", k: "K2", type: "single",
+        prompt: "Why are NBC “hits” particularly interesting to a tester?",
+        choices: [
+          { text: "They mark inputs pushing the network into behavior it never saw during training, where predictions are least reliable.", correct: true },
+          { text: "They always indicate the model is broken and must be retrained immediately.", correct: false },
+          { text: "They only occur when the model has 100% accuracy.", correct: false },
+          { text: "They have no practical meaning for testing.", correct: false },
+        ],
+        explain: "An NBC hit doesn't prove a defect exists, but it flags exactly where to look for one — untested, out-of-experience behavior." },
+      { lo: "AI-3.4.3", k: "K2", type: "multi",
+        prompt: "Which of these are accurate statements about neural network structural coverage overall (select all that apply)?",
+        choices: [
+          { text: "High structural coverage does not guarantee the network will generalize well to real-world data.", correct: true },
+          { text: "Commercial tool support for these specific coverage measures is currently limited.", correct: true },
+          { text: "It should typically be combined with other techniques, like adversarial or metamorphic testing.", correct: true },
+          { text: "Achieving 100% neuron coverage guarantees no defects remain in the model.", correct: false },
+        ],
+        explain: "Structural coverage is a useful signal about what's been exercised, not a correctness guarantee — networks can learn spurious correlations that produce “correct-looking” activations for the wrong reasons." },
+      { lo: "AI-3.4.3", k: "K3", type: "single",
+        prompt: "After running 50 test inputs, one neuron has never exceeded its activation threshold. What does that tell you, and what's the appropriate next step?",
+        choices: [
+          { text: "That neuron's “active” behavior is completely untested — consider designing test inputs specifically intended to push it past threshold.", correct: true },
+          { text: "That neuron is broken and must be removed from the network.", correct: false },
+          { text: "Nothing — neuron coverage has no bearing on test adequacy.", correct: false },
+          { text: "The whole model must be retrained from scratch.", correct: false },
+        ],
+        explain: "A neuron that's never activated is simply unexercised territory — the practical response is targeted additional testing, not assuming the model is faulty." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s10", passPct: 65 });
+
+    // ---- Chapter 3 Review quiz (spans 3.1 - 3.4 / Sessions 5-10) ----
+    const reviewQuestions = [
+      { lo: "AI-3.1.1", k: "K2", type: "single",
+        prompt: "Which learning approach trains on unlabeled data, grouping similar inputs together based on shared features?",
+        choices: [
+          { text: "Unsupervised learning", correct: true },
+          { text: "Supervised learning", correct: false },
+          { text: "Reinforcement learning", correct: false },
+          { text: "ML regression", correct: false },
+        ],
+        explain: "Unsupervised learning finds structure (e.g., clusters) in data with no output labels provided." },
+      { lo: "AI-3.1.2", k: "K2", type: "single",
+        prompt: "In the ML workflow, what's the difference between a “model hyperparameter” and an “algorithm hyperparameter”?",
+        choices: [
+          { text: "A model hyperparameter defines the model's structure (e.g., number of neural network layers); an algorithm hyperparameter controls the training process itself (e.g., number of training iterations).", correct: true },
+          { text: "There is no real difference between the two terms.", correct: false },
+          { text: "Model hyperparameters are set after deployment; algorithm hyperparameters are set before training.", correct: false },
+          { text: "Algorithm hyperparameters only apply to unsupervised learning.", correct: false },
+        ],
+        explain: "One shapes what the model looks like; the other shapes how it's trained — both are set before training begins." },
+      { lo: "AI-3.1.4", k: "K2", type: "single",
+        prompt: "What is the key difference between fine-tuning and Retrieval-Augmented Generation (RAG)?",
+        choices: [
+          { text: "Fine-tuning further trains and changes the pretrained model itself; RAG supplies relevant external data in the prompt without changing the model.", correct: true },
+          { text: "RAG always requires more training data than fine-tuning.", correct: false },
+          { text: "Fine-tuning and RAG cannot both be applied to the same model.", correct: false },
+          { text: "RAG changes the model's weights permanently, exactly like fine-tuning.", correct: false },
+        ],
+        explain: "Fine-tuning changes the pretrained model's parameters; RAG leaves the model untouched and instead enriches the prompt with retrieved, relevant information." },
+      { lo: "AI-3.1.4", k: "K2", type: "single",
+        prompt: "Why does testing matter after fine-tuning a pretrained model for a new task?",
+        choices: [
+          { text: "Any biases or vulnerabilities already present in the pretrained model typically carry over into the fine-tuned model.", correct: true },
+          { text: "Fine-tuning always removes any pre-existing bias automatically.", correct: false },
+          { text: "Fine-tuned models can never be tested using the same techniques as models trained from scratch.", correct: false },
+          { text: "Testing is only required if RAG is also used.", correct: false },
+        ],
+        explain: "Fine-tuning adapts a model to a new task, but inherited weaknesses from the original pretrained model don't automatically disappear." },
+      { lo: "AI-3.2.3", k: "K2", type: "single",
+        prompt: "What's the purpose of the test (holdout) dataset in the ML workflow?",
+        choices: [
+          { text: "To evaluate the final tuned model once, giving an unbiased estimate of its real-world performance.", correct: true },
+          { text: "To train the model's weights directly.", correct: false },
+          { text: "To tune hyperparameters iteratively during development.", correct: false },
+          { text: "It serves exactly the same purpose as the validation dataset.", correct: false },
+        ],
+        explain: "Training data trains the model, validation data supports tuning, and the test/holdout dataset gives one final, unbiased read on performance." },
+      { lo: "AI-3.2.3", k: "K2", type: "single",
+        prompt: "When is k-fold cross-validation especially useful?",
+        choices: [
+          { text: "When data is limited, so a simple three-way train/validation/test split would leave too little data for effective training.", correct: true },
+          { text: "Only when the dataset is extremely large.", correct: false },
+          { text: "It replaces the need for a test dataset in every situation.", correct: false },
+          { text: "Only for unsupervised learning problems.", correct: false },
+        ],
+        explain: "k-fold cross-validation lets limited data be reused efficiently for both training and validation across multiple folds, improving reliability of the performance estimate." },
+      { lo: "AI-3.2.1", k: "K2", type: "single",
+        prompt: "Which of these is an example of a data preprocessing activity (as opposed to data acquisition or feature engineering)?",
+        choices: [
+          { text: "Imputing missing values and removing outliers.", correct: true },
+          { text: "Gathering data from APIs and databases.", correct: false },
+          { text: "Selecting the most relevant features for the model.", correct: false },
+          { text: "Labeling data for a supervised learning task.", correct: false },
+        ],
+        explain: "Cleaning steps like imputing missing values and removing outliers/duplicates fall under data preprocessing; gathering and labeling data is acquisition, and selecting relevant features is feature engineering." },
+      { lo: "AI-3.3.1", k: "K2", type: "single",
+        prompt: "What's the core difference between precision and recall?",
+        choices: [
+          { text: "Precision measures how many predicted positives were actually correct; recall measures how many actual positives were successfully found.", correct: true },
+          { text: "Precision and recall always produce the same value.", correct: false },
+          { text: "Recall is only defined for regression problems.", correct: false },
+          { text: "Precision measures training time, not classification correctness.", correct: false },
+        ],
+        explain: "Precision = TP/(TP+FP); Recall = TP/(TP+FN) — one is about the reliability of positive predictions, the other about not missing real positives." },
+      { lo: "AI-3.3.1", k: "K2", type: "single",
+        prompt: "What is the F1-score designed to summarize?",
+        choices: [
+          { text: "A single balanced measure combining precision and recall (their harmonic mean), useful when both matter and may trade off against each other.", correct: true },
+          { text: "The total number of correct predictions only.", correct: false },
+          { text: "The model's training time.", correct: false },
+          { text: "The size of the confusion matrix.", correct: false },
+        ],
+        explain: "F1 is the harmonic mean of precision and recall — it stays low if either one is low, which is exactly what makes it useful when you care about both." },
+      { lo: "HO-3.3.3", k: "K3", type: "single",
+        prompt: "Why is it important to change only one variable (model OR dataset) at a time when comparing training runs?",
+        choices: [
+          { text: "So any observed change in performance can be validly attributed to that one variable, rather than being confounded by multiple simultaneous changes.", correct: true },
+          { text: "Changing more than one variable makes the model train faster.", correct: false },
+          { text: "It's a legal requirement under the EU AI Act.", correct: false },
+          { text: "ML functional performance metrics cannot be calculated otherwise.", correct: false },
+        ],
+        explain: "This is basic controlled-comparison discipline — the same reasoning behind A/B and back-to-back testing later in the course." },
+      { k: "K2", type: "single",
+        prompt: "How does RMSE differ from MAE as an ML regression error metric?",
+        choices: [
+          { text: "RMSE squares errors before averaging (then square-roots the result), so it penalizes large errors more heavily than MAE, which averages absolute errors evenly.", correct: true },
+          { text: "MAE and RMSE always produce identical values.", correct: false },
+          { text: "RMSE is only usable for classification problems.", correct: false },
+          { text: "MAE penalizes large errors more heavily than RMSE.", correct: false },
+        ],
+        explain: "Squaring in MSE/RMSE amplifies the effect of large errors; MAE treats every unit of error equally." },
+      { lo: "AI-3.4.1", k: "K2", type: "single",
+        prompt: "What is passed to the next layer by a neuron, once it has computed its weighted sum plus bias?",
+        choices: [
+          { text: "The activation value produced by passing that sum through a non-linear activation function.", correct: true },
+          { text: "The raw, unprocessed weighted sum with no activation function applied.", correct: false },
+          { text: "The neuron's bias value alone.", correct: false },
+          { text: "The learning rate.", correct: false },
+        ],
+        explain: "The activation function's output — the activation value — is what flows forward to the next layer." },
+      { lo: "HO-3.4.2", k: "K2", type: "single",
+        prompt: "What is the fundamental structural limitation of a single-layer perceptron?",
+        choices: [
+          { text: "It can only correctly classify problems that are linearly separable.", correct: true },
+          { text: "It cannot be trained using labeled data.", correct: false },
+          { text: "It requires more training data than any deep network.", correct: false },
+          { text: "It can only process image data.", correct: false },
+        ],
+        explain: "Its decision boundary is always a straight line (or flat hyperplane) — non-linearly-separable patterns like XOR are beyond a single perceptron's reach." },
+      { lo: "AI-3.4.3", k: "K2", type: "single",
+        prompt: "Which neural network coverage measure specifically looks for activations that exceed the range seen during training?",
+        choices: [
+          { text: "Neuron Boundary Coverage (NBC)", correct: true },
+          { text: "Neuron Coverage", correct: false },
+          { text: "k-Multisection Neuron Coverage (kMNC)", correct: false },
+          { text: "F1-score", correct: false },
+        ],
+        explain: "NBC is specifically about out-of-training-range activations — the network's least-predictable corners." },
+      { lo: "AI-3.4.3", k: "K2", type: "single",
+        prompt: "Why should structural coverage measures for neural networks be paired with techniques like adversarial or metamorphic testing?",
+        choices: [
+          { text: "Because high coverage doesn't guarantee correct generalization — a network can produce normal-looking activations while relying on spurious, incorrect correlations.", correct: true },
+          { text: "Because structural coverage measures are only theoretical and cannot actually be computed.", correct: false },
+          { text: "Because adversarial testing replaces the need for any performance metrics.", correct: false },
+          { text: "Because metamorphic testing is required before a model can be deployed to any environment.", correct: false },
+        ],
+        explain: "Coverage tells you what was exercised, not whether the reasoning behind the activations is sound — that's exactly the gap adversarial and metamorphic testing help close." },
+    ];
+    Quiz.render("quiz-mount-review", reviewQuestions, { sessionId: "s10-review", passPct: 65 });
+  });
+</script>
+</body>
+</html>

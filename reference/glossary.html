@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glossary &amp; Abbreviations — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Reference</div>
+  <h1>Glossary &amp; Abbreviations</h1>
+  <p class="lede">Every AI-specific keyword you're expected to remember (K1) for the exam, in one searchable
+    place. This page grows as new sessions are built — right now it covers Sessions 1–2. Bookmark it; you'll
+    lean on it heavily during Session 22's keyword drill.</p>
+
+  <input type="text" id="search" placeholder="Search a term…" style="width:100%; padding:.75rem 1rem; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--bg-elevated); color:var(--text); font-size:1rem; margin:1.2rem 0;">
+
+  <div id="terms"></div>
+
+  <p class="small center" style="margin-top:2rem;">No matches? The term likely belongs to a chapter we haven't
+    reached yet — check back after that session.</p>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script>
+  const mount = document.getElementById("terms");
+  function renderList(list) {
+    mount.innerHTML = "";
+    if (!list.length) { mount.innerHTML = `<p class="small">No terms match yet.</p>`; return; }
+    list.forEach(t => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.margin = ".6rem 0";
+      card.innerHTML = `<div style="display:flex; justify-content:space-between; gap:1rem; align-items:baseline;">
+          <strong>${t.term}</strong><span class="chip">Ch.${t.chapter}</span>
+        </div>
+        <p class="small" style="margin-top:.4rem;">${t.def}</p>`;
+      mount.appendChild(card);
+    });
+  }
+  renderList(GLOSSARY_TERMS);
+  document.getElementById("search").addEventListener("input", (e) => {
+    const q = e.target.value.toLowerCase();
+    renderList(GLOSSARY_TERMS.filter(t => t.term.toLowerCase().includes(q) || t.def.toLowerCase().includes(q)));
+  });
+</script>
+</body>
+</html>

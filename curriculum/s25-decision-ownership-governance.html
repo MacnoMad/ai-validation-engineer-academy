@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 25 · Decision-Making, Ownership & Governance — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 25 · Applied Practice — capstone</div>
+  <h1>Decision-Making, Ownership & Governance</h1>
+  <p class="lede">Everything from Session 22 onward has built toward this moment: you have numbers — an eval
+    score moved. Now what? Today closes the Applied Practice block, and the whole course, by covering how
+    evaluation signals actually turn into ship/hold/rollback decisions, why AI systems need a named owner for
+    their reliability the same way traditional systems have site reliability engineers, and how an organization
+    keeps its evaluation practice healthy over time instead of letting it rot.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k4">K3–K4 · Apply & Analyze</span>
+    <span class="chip">Applied Practice — capstone</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">ship / hold / rollback</span><span class="kw">AI Reliability Lead</span>
+    <span class="kw">evaluation cadence</span><span class="kw">governance review</span>
+    <span class="kw">escalation path</span><span class="kw">postmortem</span>
+  </div>
+
+  <h2>1. Turning evaluation signals into product decisions</h2>
+  <p>A metric moved. On its own, that sentence tells you almost nothing — the same 3-point drop in a quality
+    score can mean "ignore it, that's noise" or "stop everything," depending on context you have to actively go
+    get. A working decision framework asks the same five questions every time, in order:</p>
+
+  <ol>
+    <li><strong>Is this metric blocking or optimization?</strong> (Session 22) A blocking-metric failure starts
+      from a much stronger default than an optimization-metric wobble.</li>
+    <li><strong>Is the change statistically significant, or noise?</strong> (Session 22's distributional
+      thinking) A single low sample, a small evaluation set, or known run-to-run variance can produce a movement
+      that looks real but isn't.</li>
+    <li><strong>What's the magnitude and the trend?</strong> A one-off blip that recovers on the next run is very
+      different from a sustained, worsening trend line.</li>
+    <li><strong>What's the blast radius?</strong> A regression affecting every user is a different conversation
+      than one confined to a small, already-flagged segment.</li>
+    <li><strong>Is there a known cause?</strong> A recent deploy, a model-provider update, or a shift in the
+      underlying data all change how urgently — and how — you respond.</li>
+  </ol>
+
+  <p>Those five answers point toward one of three responses:</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Ship</strong>
+      <p class="small" style="margin-top:.4rem;">The signal is within the accepted tradeoff, not statistically
+        meaningful, or affects a scope the team has already decided is acceptable. Proceed as planned.</p>
+    </div>
+    <div class="card">
+      <strong>Hold</strong>
+      <p class="small" style="margin-top:.4rem;">The signal is ambiguous, moderate-risk, or the cause is unknown.
+        Pause the release, investigate, and re-decide once you know more — this is the "gather more information"
+        branch, not a permanent no.</p>
+    </div>
+    <div class="card">
+      <strong>Rollback</strong>
+      <p class="small" style="margin-top:.4rem;">A blocking metric has clearly regressed, or there's a live safety
+        issue. Revert to the previous known-good state immediately; investigate afterward, not instead of acting
+        now.</p>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="icon">🧩</div>
+    <div class="body">
+      <strong class="title">The decision is rarely just "is it good?"</strong>
+      It's "is it good enough, at this confidence level, for this blast radius, given what we know about the
+      cause?" Treating every metric movement as a simple pass/fail collapses exactly the nuance this framework is
+      built to preserve.
+    </div>
+  </div>
+
+  <h2>2. An ownership model for AI reliability</h2>
+  <p>Traditional software has a well-established answer to "who's responsible for the system staying reliable in
+    production?" — site reliability engineering (SRE), a discipline built specifically around uptime, incident
+    response, and operational health. AI systems need the equivalent, because without a named owner, evaluation
+    infrastructure predictably rots: golden datasets go stale, thresholds drift out of calibration, alerts get
+    ignored because everyone assumes someone else is watching, and there's no one with clear authority to call
+    hold or rollback under pressure.</p>
+
+  <p>A useful, descriptive way to name this responsibility — <strong>not</strong> an official certification or a
+    formal industry title, just a concept worth having on your team — is an <strong>"AI Reliability Lead."</strong>
+    Typical responsibilities of that role:</p>
+
+  <ul>
+    <li>Owns the golden dataset and its upkeep — including folding new production failures into it.</li>
+    <li>Owns the evaluation pipeline and the CI/CD gates built on top of it (Sessions 23–24).</li>
+    <li>Is the clear escalation point when a production monitor fires.</li>
+    <li>Coordinates the launch-gate sign-off process for new features.</li>
+    <li>Maintains the incident runbook and drives postmortems after regressions.</li>
+  </ul>
+
+  <div class="callout warn">
+    <div class="icon">🪞</div>
+    <div class="body">
+      <strong class="title">Not a 1-to-1 copy of SRE</strong>
+      SRE for traditional systems centers heavily on uptime and latency. AI reliability ownership covers those
+      too, but adds a dimension traditional SRE rarely has to own directly: <em>correctness and quality drift</em>
+      — a system that's perfectly "up" can still be silently wrong. The role borrows SRE's operating discipline,
+      not its exact scope.
+    </div>
+  </div>
+
+  <h2>3. Evaluation cadence & governance</h2>
+  <p>How often evals should run isn't one answer — it scales with how quickly something could go wrong and how
+    expensive the check is:</p>
+
+  <table class="data">
+    <thead><tr><th>Cadence</th><th>What runs</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Continuous (every PR)</td><td>Fast smoke suite, blocking metrics</td><td>Catches regressions before they merge, at the point they're cheapest to fix.</td></tr>
+      <tr><td>Scheduled (nightly / weekly)</td><td>Full golden-dataset run</td><td>Catches slower-to-surface or rarer regressions the fast suite misses.</td></tr>
+      <tr><td>Triggered</td><td>Full eval, whenever a model provider updates, a data source changes, or a major prompt/pipeline change lands</td><td>External changes can shift behavior without any code change on your side.</td></tr>
+      <tr><td>Periodic audit (e.g., quarterly)</td><td>Golden dataset refresh, threshold recalibration, review of the scoring functions themselves</td><td>Even the evaluation system can drift — a scorer calibrated a year ago may no longer match current expectations.</td></tr>
+    </tbody>
+  </table>
+
+  <p>Who reviews results also scales with stakes: engineering/validation owns the day-to-day; a product or domain
+    expert makes the judgment calls that need real-world context (is this wording actually acceptable?);
+    compliance or legal reviews anything in a regulated domain; leadership weighs in on ship/hold/rollback calls
+    with real business impact. And none of this floats free of the rest of the organization — it should plug into
+    existing change-management processes, feed real incidents into postmortems with documented follow-up actions,
+    keep an audit trail for regulated industries, and — closing the loop one more time — route every discovered
+    failure back into the golden dataset that started this whole session.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: ship, hold, or rollback?</span></div>
+    <div class="lab-sub">Review the signal, apply the five-question framework from Section 1, and make the call.
+      Try all three scenarios — each is designed to test a different part of the framework.</div>
+    <div class="controls">
+      <button class="btn btn-ghost decision-scenario" data-scenario="ship">Scenario A</button>
+      <button class="btn btn-ghost decision-scenario" data-scenario="hold">Scenario B</button>
+      <button class="btn btn-ghost decision-scenario" data-scenario="rollback">Scenario C</button>
+    </div>
+    <div id="decision-brief" class="card" style="margin:1rem 0;"></div>
+    <div class="controls">
+      <button class="btn btn-primary decision-choice" data-choice="ship">Ship</button>
+      <button class="btn btn-primary decision-choice" data-choice="hold">Hold</button>
+      <button class="btn btn-primary decision-choice" data-choice="rollback">Rollback</button>
+    </div>
+    <div class="readout" id="decision-readout">Read the brief, then make your call.</div>
+  </div>
+
+  <h2>Closing: what you've actually built</h2>
+  <p>Look back at where this started. Session 1 opened with a simple but load-bearing idea: AI-based systems
+    don't follow hand-written rules, they learn patterns from data, and that single shift breaks assumptions
+    conventional testing takes for granted. Everything since has been about rebuilding sound testing judgment on
+    top of that shift — through the ISTQB syllabus's seven chapters covering the AI landscape, machine learning
+    fundamentals, neural networks, AI-specific quality characteristics, performance metrics, the two ML-specific
+    test levels, black-box and white-box model testing, and development/deployment risk — and then, in these four
+    Applied Practice sessions, past the syllabus entirely into the economics, instrumentation, pipeline
+    architecture, and governance judgment that separate someone who can define terms from someone who can
+    actually run AI evaluation on a real team.</p>
+
+  <p>That's not a small distinction, and it's the one this course has been built around from the start: you now
+    have both a rigorous, recognized foundation and the applied judgment to reason about cost-quality tradeoffs,
+    instrument a system properly, build the pipeline and gates that keep it honest, and make — and defend — the
+    ship/hold/rollback call when it matters. That is what being a genuinely skilled AI validation engineer looks
+    like, independent of any exam.</p>
+
+  <div class="callout exam">
+    <div class="icon">🎓</div>
+    <div class="body">
+      <strong class="title">If you're pursuing the ISTQB credential too</strong>
+      Sessions 26–30 are there for exactly that, entirely optional: a keyword and glossary drill, two full mock
+      exams with remediation between them, an official sample-exam walkthrough, and a final readiness report.
+      Nothing in that block teaches new skills — it's exam mechanics on top of everything you already know from
+      Sessions 1–25.
+    </div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s25");
+    App.buildSessionNav("session-nav", "s25");
+    App.wireMarkComplete("mark-complete", "s25");
+
+    // ---- Ship / hold / rollback decision lab ----
+    const scenarios = {
+      ship: {
+        title: "Scenario A — Minor optimization-metric dip after a prompt tweak",
+        brief: "A prompt wording change shipped yesterday. The “average response conciseness” score (an optimization metric) dropped from 87 to 84 on the nightly golden-set run. No blocking metric moved. The drop is within the range seen on prior runs with no code change at all (known sampling variance). Affects all traffic equally. Cause: likely the prompt wording change, though not confirmed.",
+        recommended: "ship",
+        explanation: "This is an optimization metric, the movement is within known noise range (not clearly significant), and there's no blocking-metric regression. The right call is to ship and keep tracking the trend — a hold or rollback here would be over-reacting to noise on a non-gating metric."
+      },
+      hold: {
+        title: "Scenario B — Ambiguous accuracy dip on a new model version",
+        brief: "A model-provider version bump was deployed 2 hours ago. Overall accuracy (a blocking metric, floor 95%) shows 94.1% on a small sample of 40 live requests — technically below floor, but the sample is small and the confidence interval is wide. No safety violations. Affects all traffic. Cause: the model version bump is the clear suspect, but the sample size makes the result uncertain.",
+        recommended: "hold",
+        explanation: "The metric is blocking, which argues for caution — but the sample size is too small to be confident this is a real regression rather than noise. This is exactly the “ambiguous, moderate-risk, cause plausible but unconfirmed” case that calls for a hold: pause the rollout, gather a larger sample or run the full golden set, and re-decide with better information rather than guessing in either direction."
+      },
+      rollback: {
+        title: "Scenario C — Confirmed safety regression after a retrieval-config change",
+        brief: "A retrieval configuration change shipped 30 minutes ago. PII leak rate (a blocking metric, required 0%) jumped from 0.0% to 1.2% on the full nightly golden-set run — a large, clearly significant jump, confirmed by three independent scoring passes. Affects all users of the feature. Cause: directly traced to the retrieval config change via trace IDs (Session 23).",
+        recommended: "rollback",
+        explanation: "A blocking metric has failed with high confidence, full traffic is affected, and the cause is confirmed and traceable to a specific recent change. This is a clear, actionable rollback: revert immediately, then investigate and fix before attempting to re-deploy."
+      },
+    };
+
+    let activeDecisionScenario = "ship";
+    let decisionMade = false;
+
+    function renderBrief(name) {
+      const sc = scenarios[name];
+      document.getElementById("decision-brief").innerHTML = `<strong>${sc.title}</strong><p class="small" style="margin-top:.5rem;">${sc.brief}</p>`;
+      document.getElementById("decision-readout").textContent = "Read the brief, then make your call.";
+      decisionMade = false;
+    }
+
+    function selectDecisionScenario(name) {
+      activeDecisionScenario = name;
+      document.querySelectorAll(".decision-scenario").forEach(b => b.style.borderColor = b.dataset.scenario === name ? "var(--accent)" : "var(--border)");
+      renderBrief(name);
+    }
+
+    document.querySelectorAll(".decision-scenario").forEach(btn => {
+      btn.addEventListener("click", () => selectDecisionScenario(btn.dataset.scenario));
+    });
+
+    document.querySelectorAll(".decision-choice").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (decisionMade) return;
+        decisionMade = true;
+        const sc = scenarios[activeDecisionScenario];
+        const choice = btn.dataset.choice;
+        const correct = choice === sc.recommended;
+        const readout = document.getElementById("decision-readout");
+        readout.innerHTML = `<strong style="color:${correct ? 'var(--success)' : 'var(--warning)'};">
+            You chose: ${choice.toUpperCase()} — the recommended call was ${sc.recommended.toUpperCase()}.</strong>
+          <br><br>${sc.explanation}`;
+      });
+    });
+
+    selectDecisionScenario("ship");
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AP-25.1", k: "K2", type: "single",
+        prompt: "In the ship/hold/rollback framework, what does a “hold” decision represent?",
+        choices: [
+          { text: "Pausing the release to investigate an ambiguous or moderate-risk signal before deciding, rather than a permanent no.", correct: true },
+          { text: "A permanent cancellation of the feature.", correct: false },
+          { text: "The same action as a rollback.", correct: false },
+          { text: "Ignoring the signal entirely and proceeding as planned.", correct: false },
+        ],
+        explain: "Hold is the “gather more information” branch — used when the signal is ambiguous or the cause is unconfirmed, not a final verdict." },
+      { lo: "AP-25.2", k: "K4", type: "single",
+        prompt: "A blocking metric shows a small drop on a sample of only 15 live requests, with a wide confidence interval, right after a model-provider update. What does the decision framework suggest?",
+        choices: [
+          { text: "Hold — the metric is blocking (which argues for caution) but the sample is too small to confirm a real regression, so more data should be gathered before deciding.", correct: true },
+          { text: "Ship immediately since blocking metrics can be ignored if the sample is small.", correct: false },
+          { text: "Rollback immediately without checking sample size or significance.", correct: false },
+          { text: "The framework doesn't apply to model-provider updates.", correct: false },
+        ],
+        explain: "This mirrors distributional thinking from Session 22: a small sample can produce a movement that looks real but isn't yet statistically confirmed — the honest response is to gather more evidence, not guess in either direction." },
+      { lo: "AP-25.3", k: "K2", type: "single",
+        prompt: "Which factor is NOT one of the five questions the decision framework asks about a moved metric?",
+        choices: [
+          { text: "How aesthetically pleasing the dashboard chart looks.", correct: true },
+          { text: "Whether the metric is blocking or optimization.", correct: false },
+          { text: "Whether the change is statistically significant or noise.", correct: false },
+          { text: "What the blast radius (affected scope) is.", correct: false },
+        ],
+        explain: "The five real questions are: blocking vs. optimization, statistical significance, magnitude/trend, blast radius, and known cause — chart aesthetics play no role in the decision." },
+      { lo: "AP-25.4", k: "K2", type: "single",
+        prompt: "What is the “AI Reliability Lead” concept, as described in this session?",
+        choices: [
+          { text: "A descriptive ownership role — not an official certification or formal industry title — responsible for evaluation health, similar to how SRE owns reliability for traditional systems.", correct: true },
+          { text: "An official, government-issued certification required to work on AI systems.", correct: false },
+          { text: "A synonym for a data scientist.", correct: false },
+          { text: "A role that only exists at large technology companies.", correct: false },
+        ],
+        explain: "It's explicitly a descriptive concept for naming a real responsibility on a team, not a formal credential." },
+      { lo: "AP-25.5", k: "K3", type: "multi",
+        prompt: "Which of these are typical responsibilities of an AI reliability ownership role (select all that apply)?",
+        choices: [
+          { text: "Owning the golden dataset and keeping it current", correct: true },
+          { text: "Being the clear escalation point when a production monitor fires", correct: true },
+          { text: "Driving postmortems after regressions", correct: true },
+          { text: "Personally approving every individual user-facing response before it's sent", correct: false },
+        ],
+        explain: "Ownership is about the health of the evaluation and monitoring system, not manually reviewing every single live response — that would defeat the purpose of automation." },
+      { lo: "AP-25.6", k: "K4", type: "single",
+        prompt: "How does AI reliability ownership differ from traditional SRE, according to this session?",
+        choices: [
+          { text: "It borrows SRE's operating discipline but must additionally own correctness and quality drift, since a system can be perfectly “up” while being silently wrong.", correct: true },
+          { text: "It is identical to traditional SRE in every respect.", correct: false },
+          { text: "It has nothing in common with SRE at all.", correct: false },
+          { text: "It only concerns itself with server uptime, exactly like traditional SRE.", correct: false },
+        ],
+        explain: "Traditional SRE centers on uptime/latency; AI reliability ownership adds the dimension of ongoing correctness and quality drift, which uptime metrics alone don't capture." },
+      { lo: "AP-25.7", k: "K3", type: "single",
+        prompt: "Why does a periodic (e.g., quarterly) audit of the evaluation system itself matter, beyond continuous and scheduled eval runs?",
+        choices: [
+          { text: "Because the evaluation system can drift too — golden datasets, thresholds, and scoring functions calibrated a year ago may no longer match current expectations.", correct: true },
+          { text: "Because continuous and scheduled runs are unnecessary once a quarterly audit exists.", correct: false },
+          { text: "Because quarterly audits replace the need for a named ownership role.", correct: false },
+          { text: "Because it is only relevant to blocking metrics, never optimization metrics.", correct: false },
+        ],
+        explain: "Periodic audits catch a different failure mode than day-to-day eval runs: the evaluation infrastructure itself going stale, not just the system it's evaluating." },
+      { lo: "AP-25.8", k: "K3", type: "single",
+        prompt: "A blocking metric fails with high statistical confidence, full traffic is affected, and the cause is confirmed via trace IDs to a specific recent change. What is the appropriate response?",
+        choices: [
+          { text: "Rollback immediately, then investigate and fix before attempting to redeploy.", correct: true },
+          { text: "Hold and wait a few days to see if the metric recovers on its own.", correct: false },
+          { text: "Ship as planned since the underlying cause has at least been identified.", correct: false },
+          { text: "Escalate only to compliance and take no technical action.", correct: false },
+        ],
+        explain: "High-confidence blocking-metric failure with full-traffic impact and a confirmed cause is the clearest possible rollback case — act first, investigate the fix afterward." },
+      { lo: "AP-25.9", k: "K2", type: "single",
+        prompt: "How does this session describe the relationship between Sessions 1–25 and Sessions 26–30?",
+        choices: [
+          { text: "Sessions 1–25 already make someone a competent AI validation engineer; Sessions 26–30 add optional ISTQB exam mechanics on top, teaching no new skills.", correct: true },
+          { text: "Sessions 26–30 are required before any of Sessions 1–25 count as complete.", correct: false },
+          { text: "Sessions 1–25 are only useful as preparation for Sessions 26–30.", correct: false },
+          { text: "There is no meaningful difference between the two blocks.", correct: false },
+        ],
+        explain: "This reflects the course's explicit positioning: the certification-prep block is optional exam mechanics layered on top of skills already built, not a prerequisite for competence." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s25", passPct: 65 });
+  });
+</script>
+</body>
+</html>

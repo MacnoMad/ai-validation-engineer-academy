@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 24 · Evaluation Pipelines, Launch Gates & Drift Monitoring — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 24 · Applied Practice — core skill</div>
+  <h1>Evaluation Pipelines, Launch Gates & Drift Monitoring</h1>
+  <p class="lede">Instrumentation and CI/CD gates (Session 23) tell you a change didn't break anything you already
+    test for. Today's session is about the bigger machine those gates plug into: how a full evaluation pipeline
+    is architected, what concrete criteria decide whether an AI feature is actually ready to launch, and how you
+    keep watching it once it's live — because passing your evals once is not the same as staying correct.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k3">K3 · Apply</span>
+    <span class="chip">Applied Practice — core skill</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">golden dataset</span><span class="kw">scoring function</span>
+    <span class="kw">aggregation</span><span class="kw">launch readiness gate</span>
+    <span class="kw">accuracy floor</span><span class="kw">latency budget</span>
+    <span class="kw">drift monitoring</span><span class="kw">alerting threshold</span>
+  </div>
+
+  <h2>1. Evaluation pipeline architecture</h2>
+  <p>Every serious AI evaluation system, no matter how it's built, breaks down into the same four stages. Knowing
+    them by name makes it much easier to diagnose why an eval result is misleading you — the problem is almost
+    always in one specific stage.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>1. Golden dataset</strong>
+      <p class="small" style="margin-top:.4rem;">A curated, versioned set of representative inputs — common
+        cases, known edge cases, and past production failures (fed straight from the reproducible traces built in
+        Session 23). It must be refreshed as the product evolves; a stale golden dataset quietly stops reflecting
+        reality even while every eval keeps "passing."</p>
+    </div>
+    <div class="card">
+      <strong>2. Scoring functions</strong>
+      <p class="small" style="margin-top:.4rem;">The function(s) that turn one output into a number or label:
+        exact-match, rule-based checks (regex, schema validation), reference-based similarity, model-graded
+        ("LLM-as-judge" against a rubric), or human grading used as the gold standard to calibrate the automated
+        scorers. Different quality dimensions — correctness, safety, tone, format — usually need different scoring
+        functions.</p>
+    </div>
+    <div class="card">
+      <strong>3. Aggregation</strong>
+      <p class="small" style="margin-top:.4rem;">How individual scored examples roll up into one reportable
+        number: a simple mean, a pass-rate against a per-item threshold, a weighted average by segment
+        importance, or a worst-case/minimum across critical segments. This choice matters enormously — a mean and
+        a worst-segment aggregation can tell opposite stories about the same raw scores (this is Session 22's
+        distributional thinking, applied at the pipeline-design level).</p>
+    </div>
+    <div class="card">
+      <strong>4. Reporting</strong>
+      <p class="small" style="margin-top:.4rem;">The dashboard or report that surfaces the aggregated score,
+        breakdowns by segment, trend over time, and drill-down into individual failing examples — built for the
+        people who actually decide whether to ship, hold, or roll back (Session 25).</p>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="icon">🧭</div>
+    <div class="body">
+      <strong class="title">Diagnosing a misleading result</strong>
+      "The eval score looks great but users are complaining" almost always traces back to one of these four
+      stages: a golden dataset that no longer represents real traffic, a scoring function that's miscalibrated
+      against what users actually care about, an aggregation that hides a failing segment behind a healthy mean,
+      or a report nobody with the authority to act ever actually looks at.
+    </div>
+  </div>
+
+  <h2>2. Launch readiness gates</h2>
+  <p>A <strong>launch readiness gate</strong> is a specific, checkable criterion that must be satisfied before an
+    AI feature is allowed to ship — or to stay live. The most effective gates are defined <em>before</em>
+    development finishes, not negotiated under pressure the week of launch, precisely so nobody can quietly move
+    the goalposts when a deadline is close.</p>
+
+  <table class="data">
+    <thead><tr><th>Gate category</th><th>What it checks</th></tr></thead>
+    <tbody>
+      <tr><td>Accuracy / quality floor</td><td>The blocking-metric threshold from the evaluation pipeline (Session 22's blocking metrics, measured via the pipeline above).</td></tr>
+      <tr><td>Safety checks</td><td>Toxicity/harmful-content rate, PII leakage, resistance to jailbreak or adversarial prompts (ties to red teaming, Session 12).</td></tr>
+      <tr><td>Latency budget</td><td>p95/p99 response time under a hard ceiling — the distributional view of latency from Session 22, not just the mean.</td></tr>
+      <tr><td>Cost ceiling</td><td>Cost per request within budget at expected volume.</td></tr>
+      <tr><td>Human review sign-off</td><td>A qualified human — domain expert, legal/compliance, or product owner — reviews a representative sample and formally signs off, especially for regulated or high-stakes domains.</td></tr>
+      <tr><td>Rollback readiness</td><td>A tested kill switch or fast-revert path exists in case something goes wrong after launch.</td></tr>
+    </tbody>
+  </table>
+
+  <p>Not every feature needs every gate at full strength — an internal, low-stakes prototype and an
+    externally-facing, regulated financial tool warrant very different rigor. What matters is that the gate list
+    and thresholds are decided deliberately, scaled to actual risk, and agreed before testing starts.</p>
+
+  <h2>3. Monitoring for drift once a system is in production</h2>
+  <p>Clearing every launch gate answers "was this system good enough on the day it shipped?" It says nothing
+    about next month. AI systems can silently degrade in production through <strong>drift</strong> — the same
+    concept Session 19 covers from a testing-design angle, revisited here from the live-monitoring side:</p>
+  <ul>
+    <li><strong>Data drift</strong> — the real-world inputs the system sees start looking different from the data
+      it was trained or validated on.</li>
+    <li><strong>Concept drift</strong> — the relationship between inputs and the "correct" answer itself changes
+      over time (user expectations shift, a policy changes, a new fraud pattern emerges).</li>
+  </ul>
+
+  <p>Live monitoring means continuously recomputing a subset of your eval metrics — or fast proxy signals like
+    confidence-score distribution, human-escalation rate, or refusal rate — against a sample of real production
+    traffic, then comparing the result to a stored baseline. When a metric crosses a threshold or shows a
+    statistically meaningful trend shift, an alert fires.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Canary / shadow evaluation</strong>
+      <p class="small" style="margin-top:.4rem;">Before a full rollout, run the new version alongside the old one
+        on a small slice of traffic (or in "shadow" mode, where its output is scored but never shown to users) to
+        catch problems before they reach everyone.</p>
+    </div>
+    <div class="card">
+      <strong>Ongoing production monitoring</strong>
+      <p class="small" style="margin-top:.4rem;">After full rollout, continuous sampling and scoring keeps
+        watching indefinitely — this is what catches drift that only appears weeks or months after launch, well
+        past the point any pre-launch gate could have seen it.</p>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="icon">🔔</div>
+    <div class="body">
+      <strong class="title">Design alerts deliberately</strong>
+      An overly sensitive threshold trains people to ignore alerts ("alert fatigue"), which defeats the entire
+      point of monitoring. Every alert should tie to a clear owner and a runbook (Session 25 covers who that
+      owner is) — and any real failure this monitoring catches should feed back into the golden dataset, closing
+      the loop with the pipeline built earlier in this session.
+    </div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: launch-gate checklist simulator</span></div>
+    <div class="lab-sub">A fictional AI feature is up for launch. Review its measured results against the gate
+      criteria and render a verdict — then try the other scenarios to see how the same gates play out
+      differently.</div>
+    <div class="controls">
+      <button class="btn btn-ghost gate-scenario" data-scenario="ready">Scenario A — MedAssist triage bot</button>
+      <button class="btn btn-ghost gate-scenario" data-scenario="borderline">Scenario B — Loan-eligibility explainer</button>
+      <button class="btn btn-ghost gate-scenario" data-scenario="notready">Scenario C — Internal HR FAQ bot</button>
+    </div>
+    <div id="gate-checklist" style="margin:1rem 0;"></div>
+    <div class="controls">
+      <button class="btn btn-primary" id="gate-evaluate">Evaluate launch readiness</button>
+    </div>
+    <div class="readout" id="gate-readout">Pick a scenario, then press "Evaluate launch readiness."</div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s24");
+    App.buildSessionNav("session-nav", "s24");
+    App.wireMarkComplete("mark-complete", "s24");
+
+    // ---- Launch-gate checklist lab ----
+    const scenarios = {
+      ready: {
+        title: "MedAssist — symptom-triage chatbot (health system)",
+        gates: [
+          { name: "Accuracy floor (required ≥ 95%)", value: "96.2%", pass: true },
+          { name: "Safety: critical toxicity rate (required 0%)", value: "0.0%", pass: true },
+          { name: "Latency budget p95 (required ≤ 1000ms)", value: "820ms", pass: true },
+          { name: "Cost ceiling (required ≤ $0.02/req)", value: "$0.014/req", pass: true },
+          { name: "Human (clinical) review sign-off", value: "Completed", pass: true },
+          { name: "Rollback / kill switch tested", value: "Tested, < 2 min revert", pass: true },
+        ],
+      },
+      borderline: {
+        title: "LoanExplain — loan-eligibility explainer (fintech)",
+        gates: [
+          { name: "Accuracy floor (required ≥ 95%)", value: "91.4%", pass: false },
+          { name: "Safety: critical toxicity rate (required 0%)", value: "0.0%", pass: true },
+          { name: "Latency budget p95 (required ≤ 1500ms)", value: "1120ms", pass: true },
+          { name: "Cost ceiling (required ≤ $0.05/req)", value: "$0.041/req", pass: true },
+          { name: "Human (compliance) review sign-off", value: "Not yet completed", pass: false },
+          { name: "Rollback / kill switch tested", value: "Tested, < 5 min revert", pass: true },
+        ],
+      },
+      notready: {
+        title: "HR-FAQ — internal HR policy Q&A bot (low external risk)",
+        gates: [
+          { name: "Accuracy floor (required ≥ 85%)", value: "88.0%", pass: true },
+          { name: "Safety: critical toxicity rate (required 0%)", value: "0.0%", pass: true },
+          { name: "Latency budget p95 (required ≤ 2000ms)", value: "2400ms", pass: false },
+          { name: "Cost ceiling (required ≤ $0.01/req)", value: "$0.009/req", pass: true },
+          { name: "Human (HR) review sign-off", value: "Completed", pass: true },
+          { name: "Rollback / kill switch tested", value: "Not yet tested", pass: false },
+        ],
+      },
+    };
+
+    let activeGateScenario = "ready";
+
+    function renderChecklist(name) {
+      const sc = scenarios[name];
+      const wrap = document.getElementById("gate-checklist");
+      let rows = sc.gates.map(g => `
+        <div style="display:flex; justify-content:space-between; gap:1rem; padding:.5rem 0; border-bottom:1px solid var(--border);">
+          <span>${g.name}</span>
+          <span class="small" style="font-family:var(--mono);">${g.value}</span>
+        </div>`).join("");
+      wrap.innerHTML = `<div class="card" style="margin:0;"><strong>${sc.title}</strong><div style="margin-top:.6rem;">${rows}</div></div>`;
+    }
+
+    function selectGateScenario(name) {
+      activeGateScenario = name;
+      document.querySelectorAll(".gate-scenario").forEach(b => b.style.borderColor = b.dataset.scenario === name ? "var(--accent)" : "var(--border)");
+      renderChecklist(name);
+      document.getElementById("gate-readout").textContent = 'Review the checklist above, then press "Evaluate launch readiness."';
+    }
+
+    document.querySelectorAll(".gate-scenario").forEach(btn => {
+      btn.addEventListener("click", () => selectGateScenario(btn.dataset.scenario));
+    });
+
+    document.getElementById("gate-evaluate").addEventListener("click", () => {
+      const sc = scenarios[activeGateScenario];
+      const failing = sc.gates.filter(g => !g.pass);
+      const readout = document.getElementById("gate-readout");
+      if (failing.length === 0) {
+        readout.innerHTML = `<strong style="color:var(--success);">✅ GO — all ${sc.gates.length} launch gates pass.</strong> ${sc.title} is ready to ship at its current build.`;
+      } else {
+        const list = failing.map(g => `<li>${g.name} — currently ${g.value}</li>`).join("");
+        readout.innerHTML = `<strong style="color:var(--danger);">⛔ NO-GO — ${failing.length} of ${sc.gates.length} gate(s) failing:</strong><ul style="margin:.5rem 0 0 1.1rem;">${list}</ul>`;
+      }
+    });
+
+    selectGateScenario("ready");
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AP-24.1", k: "K2", type: "single",
+        prompt: "What is a “golden dataset” in an evaluation pipeline?",
+        choices: [
+          { text: "A curated, versioned set of representative inputs — including known edge cases and past production failures — used to evaluate the system under test.", correct: true },
+          { text: "A dataset that is deliberately never updated once created.", correct: false },
+          { text: "The full, unfiltered production traffic log.", correct: false },
+          { text: "A dataset used only for training, never for evaluation.", correct: false },
+        ],
+        explain: "A golden dataset needs to stay curated and current — refreshed as the product evolves and as real failures are discovered — or it quietly stops reflecting reality." },
+      { lo: "AP-24.2", k: "K3", type: "single",
+        prompt: "A team scores correctness with exact string matching, tone with an LLM-as-judge rubric, and format compliance with a schema validator. What does this illustrate about scoring functions?",
+        choices: [
+          { text: "Different quality dimensions usually need different scoring functions, chosen to fit what's actually being measured.", correct: true },
+          { text: "A single scoring function should always be used for every quality dimension.", correct: false },
+          { text: "Exact-match scoring is always the most accurate choice for every dimension.", correct: false },
+          { text: "LLM-as-judge scoring should never be combined with rule-based scoring.", correct: false },
+        ],
+        explain: "Correctness, tone, and format compliance are different kinds of judgments — matching the scoring method to the dimension is standard evaluation pipeline design." },
+      { lo: "AP-24.3", k: "K4", type: "single",
+        prompt: "Two pipelines score the exact same raw per-example results. One aggregates with a simple mean and shows 94% overall; the other aggregates by worst-performing segment and shows 71% for a specific user group. Which conclusion is best supported?",
+        choices: [
+          { text: "Aggregation choice can produce very different headline stories from identical underlying data, so the aggregation method must be chosen deliberately, not treated as a neutral formality.", correct: true },
+          { text: "One of the two pipelines must have a bug, since they can't both be valid on the same data.", correct: false },
+          { text: "The mean is always the more trustworthy aggregation method.", correct: false },
+          { text: "Aggregation method never affects the headline result meaningfully.", correct: false },
+        ],
+        explain: "Both aggregations can be computed correctly from the same raw scores and still tell very different stories — this is Session 22's distributional thinking applied directly to pipeline design." },
+      { lo: "AP-24.4", k: "K2", type: "multi",
+        prompt: "Which of these are typical launch readiness gate categories (select all that apply)?",
+        choices: [
+          { text: "Accuracy / quality floor", correct: true },
+          { text: "Latency budget (e.g., p95 under a ceiling)", correct: true },
+          { text: "Human review sign-off for high-stakes domains", correct: true },
+          { text: "Whichever metric happened to look best in the most recent report", correct: false },
+        ],
+        explain: "Real launch gates are specific, pre-agreed criteria — accuracy floors, latency budgets, and sign-off requirements — not whichever number happens to look flattering at the time." },
+      { lo: "AP-24.5", k: "K3", type: "single",
+        prompt: "Why should launch gate criteria be defined before development finishes, rather than decided the week of launch?",
+        choices: [
+          { text: "To prevent the thresholds from being quietly loosened under deadline pressure, which would undermine the whole point of having a gate.", correct: true },
+          { text: "Because gates decided early are always mathematically more accurate.", correct: false },
+          { text: "Because it's a legal requirement in every jurisdiction.", correct: false },
+          { text: "It doesn't matter when gates are defined as long as they exist eventually.", correct: false },
+        ],
+        explain: "Defining gates in advance removes the temptation to move the goalposts when a deadline is close — the whole value of a gate comes from it being agreed before there's pressure to bend it." },
+      { lo: "AP-24.6", k: "K2", type: "single",
+        prompt: "What is the difference between data drift and concept drift?",
+        choices: [
+          { text: "Data drift is real-world inputs starting to look different from training/validation data; concept drift is the relationship between inputs and the correct answer changing over time.", correct: true },
+          { text: "They are two names for exactly the same phenomenon.", correct: false },
+          { text: "Data drift only affects text systems; concept drift only affects image systems.", correct: false },
+          { text: "Concept drift can only happen immediately after deployment, never later.", correct: false },
+        ],
+        explain: "Data drift is about the inputs changing shape; concept drift is about what counts as a correct answer changing — both are live-monitoring concerns distinct from a one-time launch check." },
+      { lo: "AP-24.7", k: "K3", type: "single",
+        prompt: "What is the purpose of canary or shadow evaluation before a full rollout?",
+        choices: [
+          { text: "To test the new version against a small slice of traffic (or score it without showing it to users) so problems are caught before they affect everyone.", correct: true },
+          { text: "To permanently replace all post-launch monitoring.", correct: false },
+          { text: "To skip the launch-gate checklist for low-risk features.", correct: false },
+          { text: "To guarantee zero drift will ever occur after full rollout.", correct: false },
+        ],
+        explain: "Canary/shadow evaluation is a pre-full-rollout safety step; it doesn't replace ongoing production monitoring, which is what catches drift that only appears well after launch." },
+      { lo: "AP-24.8", k: "K3", type: "single",
+        prompt: "A monitoring threshold is set so sensitively that it fires several alerts a day, most of which turn out to be normal variance. What is the main risk this creates?",
+        choices: [
+          { text: "Alert fatigue — the team starts ignoring alerts, which defeats the purpose of monitoring for the rare alert that matters.", correct: true },
+          { text: "The monitoring system will automatically recalibrate itself with no further action needed.", correct: false },
+          { text: "It guarantees drift will never be missed.", correct: false },
+          { text: "It has no meaningful downside as long as the alerts are technically accurate.", correct: false },
+        ],
+        explain: "Overly sensitive thresholds train people to tune alerts out — deliberate threshold design, tied to a clear owner and runbook, is what keeps monitoring actually useful." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s24", passPct: 65 });
+  });
+</script>
+</body>
+</html>

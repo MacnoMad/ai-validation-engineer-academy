@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 11 · Locked vs. Adaptive Systems &amp; Test Oracles — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 11 · Chapter 4 — Testing AI-Based Systems (part 1 of 3)</div>
+  <h1>Locked vs. Adaptive Systems &amp; Test Oracles</h1>
+  <p class="lede">This is the conceptual hinge of the whole course. Everything you've learned about how AI
+    systems differ from conventional software (Session 1) and how they're built (Sessions 5–10) now turns into
+    a hard practical question: once you've built the thing, how do you actually know whether a given output is
+    <em>right</em> — and does that answer even stay the same over time?</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">LOs: AI-4.1.1 – AI-4.1.3</span>
+    <span class="chip">Exam weight: part of 7 questions for Chapter 4</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">locked AI-based system</span><span class="kw">adaptive AI-based system</span>
+    <span class="kw">test oracle</span><span class="kw">test oracle problem</span>
+    <span class="kw">ground truth</span><span class="kw">proxy oracle</span>
+  </div>
+
+  <h2>1. Locked vs. adaptive: two very different testing problems</h2>
+  <p>Back in Session 1 you saw that an AI-based system's behavior can keep changing after release, and that this
+    is one of the assumptions traditional testing quietly relies on and AI breaks. Chapter 4 gives that idea a
+    name and a hard line down the middle: every AI-based system is, at any given moment, either <strong>locked</strong>
+    or <strong>adaptive</strong>.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Locked AI-based system</strong>
+      <p class="small" style="margin-top:.4rem;">Behavior is fixed once deployed. A trained DNN's weights and
+        biases don't change in production — the only way to change what it does is to retrain it and ship a new
+        version. Safety-critical components like a self-driving car's lane-detection or traffic-sign-recognition
+        model are typically locked on purpose: predictable behavior is the whole point.</p>
+    </div>
+    <div class="card">
+      <strong>Adaptive AI-based system</strong>
+      <p class="small" style="margin-top:.4rem;">Behavior can change after deployment — most classically a
+        reinforcement-learning system updating from a reward signal, or a system retraining itself against a
+        shifting operational environment. An e-commerce recommender that keeps adjusting to a shopper's evolving
+        behavior is adaptive. Crucially, the specific direction of that change can't be predicted in advance.</p>
+    </div>
+  </div>
+
+  <p>Most GenAI systems, like LLM-based chatbots, sit in between: they're locked at runtime (the deployed model
+    doesn't change mid-conversation) but get periodically retrained or fine-tuned and re-released — so in
+    practice, AI-based systems span a continuum from fully deterministic and locked to deliberately
+    self-learning and adaptive, rather than falling neatly into two boxes.</p>
+
+  <table class="data">
+    <thead><tr><th>Dimension</th><th>Locked</th><th>Adaptive</th></tr></thead>
+    <tbody>
+      <tr><td>Behavior after deployment</td><td>Fixed until a new version is retrained and shipped</td><td>Can change on its own, e.g. via a reward function or new operational data</td></tr>
+      <tr><td>Testability</td><td>Largely deterministic — expected results stay valid over time</td><td>Behavior can change during or because of testing itself</td></tr>
+      <tr><td>What "re-test" means</td><td>An updated locked model is effectively treated as a new system — full retest</td><td>You can't pre-write test cases for behaviors that don't exist yet</td></tr>
+      <tr><td>Practical strategy</td><td>Conventional pre-release test-then-ship approach works well</td><td>Test the learning mechanism itself, then run an automated core-functionality suite whenever the system changes significantly, plus ongoing monitoring for performance degradation</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">"Locked" doesn't mean "perfectly deterministic"</strong>
+      Even a locked, deployed DNN can behave non-deterministically in practice — floating-point precision limits
+      and parallel execution on GPU hardware can produce tiny run-to-run differences. "Locked" describes the
+      model's parameters, not a guarantee of bit-for-bit repeatable output.
+    </div>
+  </div>
+
+  <h2>2. Why pass/fail thresholds replace exact-match assertions</h2>
+  <p>A conventional test asserts <code>actual == expected</code>. That single-instance thinking breaks down for
+    AI-based systems, and the syllabus gives four concrete reasons a <strong>statistical approach</strong> is
+    usually required instead:</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Non-determinism</strong>
+      <p class="small" style="margin-top:.4rem;">The same input may not always produce the same output. One
+        instance of a model mislabeling a cat as a dog doesn't tell you the model is broken — or working — you
+        need a large enough test suite for the result to be statistically meaningful.</p>
+    </div>
+    <div class="card">
+      <strong>Distributional performance</strong>
+      <p class="small" style="margin-top:.4rem;">Training data never perfectly matches the real operational
+        environment. You need a statistically representative sample of real-world scenarios to know how the
+        model will actually behave, not just how it behaves on hand-picked examples.</p>
+    </div>
+    <div class="card">
+      <strong>Uncertainty and bias</strong>
+      <p class="small" style="margin-top:.4rem;">AI systems can be confidently wrong. Statistical tools —
+        confidence intervals, hypothesis testing, error analysis — let you quantify accuracy, fairness, and
+        robustness instead of eyeballing a handful of examples.</p>
+    </div>
+    <div class="card">
+      <strong>Regulatory &amp; safety context</strong>
+      <p class="small" style="margin-top:.4rem;">Regulated domains (healthcare, transport) often require
+        demonstrating that a system meets a safety or fairness bar with high confidence across a broad range of
+        scenarios — a claim only statistical evidence can support.</p>
+    </div>
+  </div>
+
+  <p>The practical upshot: instead of "did it get the exact right answer," AI testing usually asks "does its
+    <em>rate</em> of correct, safe, or acceptable behavior clear a defined threshold, measured across a large
+    enough and representative enough sample?" You'll get hands-on with the statistical machinery behind this —
+    confidence intervals, sampling, significance — when you reach the Model Testing sessions (17–20).</p>
+
+  <h2>3. The oracle problem, in depth</h2>
+  <p>A <strong>test oracle</strong> is whatever mechanism tells you whether a test passed or failed — usually,
+    the expected result you compare the actual result against. In conventional software, a clear specification
+    usually makes the oracle obvious: the requirements document <em>is</em> the oracle. AI-based systems break
+    this in five distinct ways:</p>
+
+  <ul>
+    <li><strong>Probabilistic &amp; non-deterministic nature</strong> — outputs can vary for identical inputs,
+      so a strict pass/fail check often needs a threshold or tolerance range instead of one exact value.</li>
+    <li><strong>Exploratory development &amp; incomplete specifications</strong> — AI development is often
+      exploratory by nature; requirements may be vague, evolving, or missing entirely, leaving nothing precise
+      to generate expected results from.</li>
+    <li><strong>Complexity of tasks</strong> — some tasks are too complex for a human to verify by hand at all,
+      making manual oracle checks impractical.</li>
+    <li><strong>Subjectivity of behavior</strong> — "correct" can be a matter of opinion. What one user expects
+      from a virtual assistant, another user disagrees with.</li>
+    <li><strong>Self-learning systems</strong> — for an adaptive system, "correct" behavior can legitimately
+      change over time as the model keeps learning, so a test oracle fixed at one point in time can go stale.</li>
+  </ul>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div class="body">
+      <strong class="title">Ground truth isn't always available</strong>
+      When a task has an objective, verifiable answer, testers can use <strong>ground truth</strong> — a
+      trusted, independently verified correct answer — as the oracle. The whole point of the oracle problem is
+      that for a large share of real AI-based systems (open-ended GenAI output, subjective quality judgments,
+      genuinely novel predictions) ground truth simply doesn't exist to check against.
+    </div>
+  </div>
+
+  <p>The syllabus offers five overlapping strategies for building a usable oracle anyway:</p>
+  <table class="data">
+    <thead><tr><th>Strategy</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr><td>Output boundaries</td><td>Agree on acceptable ranges, distributions, or tolerances instead of one exact value — e.g. an autonomous car must stop within a maximum distance.</td></tr>
+      <tr><td>Environmental boundaries</td><td>Pin down test-environment conditions (lighting, temperature, network latency) so the same conditions reliably produce comparable, repeatable output.</td></tr>
+      <tr><td>Expert consultation</td><td>Domain experts judge expected results directly — useful, but their opinions can differ or simply be wrong.</td></tr>
+      <tr><td>Specialized testing techniques</td><td>A/B testing, back-to-back testing, and metamorphic testing compare behaviors or verify properties without needing an explicit expected output for every single case (you'll build a metamorphic-testing lab in Session 19).</td></tr>
+      <tr><td>Proxy oracles</td><td>Use a secondary system — sometimes another AI model — to judge the output when no direct expected result exists, e.g. training a separate model on labeled data to predict for unlabeled test cases. Use with care: a proxy oracle can reproduce the same biases or blind spots as the system it's checking.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4. Lab: pick the right oracle strategy</h2>
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: oracle strategy simulator</span></div>
+    <div class="lab-sub">Read each AI-based system scenario, then pick which oracle strategy fits best. There's
+      often a defensible second-best answer — the feedback explains the reasoning either way.</div>
+    <div id="oracle-scenario" style="margin:1rem 0; padding:1rem; border:1px solid var(--border); border-radius:10px; background:var(--bg-sunken);"></div>
+    <div class="controls" id="oracle-choices" style="flex-wrap:wrap;"></div>
+    <div class="readout" id="oracle-readout">Choose a strategy for the scenario above.</div>
+    <div class="controls" style="margin-top:.8rem;">
+      <button class="btn btn-ghost" id="oracle-next">Next scenario →</button>
+      <span class="small" id="oracle-progress"></span>
+    </div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s11");
+    App.buildSessionNav("session-nav", "s11");
+    App.wireMarkComplete("mark-complete", "s11");
+
+    // ---- Oracle strategy lab ----
+    const STRATEGIES = ["Output/statistical threshold", "Metamorphic relation", "Human-in-the-loop (expert)", "Proxy oracle"];
+    const scenarios = [
+      {
+        text: "An autonomous vehicle's braking system must be verified: given a range of speeds and road conditions, does the car stop within a safe distance? There's no single 'correct' stopping distance — but there is a defined acceptable range for each condition.",
+        best: "Output/statistical threshold",
+        feedback: {
+          "Output/statistical threshold": "Correct. This is a textbook output-boundary case: define an acceptable range/tolerance per condition (e.g. 'stops within 40m at 60km/h on dry tarmac, 95% of trials') and test against that threshold across many runs.",
+          "Metamorphic relation": "Not the best fit here — a metamorphic relation checks that a *transformation* of the input produces a predictable *transformation* of the output (e.g. 'a wetter road should never produce a shorter stopping distance'). That could be a useful secondary check, but the primary oracle need here is a numeric safety threshold.",
+          "Human-in-the-loop (expert)": "Too slow and too subjective for this — braking distance is a measurable physical quantity with regulatory tolerances, not a judgment call for a person to make test-by-test.",
+          "Proxy oracle": "There's no need for a secondary predictive model here — the acceptable stopping distance can be defined directly from physics and safety regulations, which makes a direct threshold oracle far simpler and more trustworthy."
+        }
+      },
+      {
+        text: "A GenAI chatbot is asked to summarize a customer support ticket. Multiple different summaries could all be considered good — there's no single reference summary to compare against, and quality partly comes down to tone and clarity.",
+        best: "Human-in-the-loop (expert)",
+        feedback: {
+          "Human-in-the-loop (expert)": "Correct. Subjective, open-ended quality (clarity, tone, usefulness) is exactly the case the syllabus flags for expert/human judgment — though at scale, teams often pair this with a second GenAI model as a proxy oracle to triage most cases and reserve humans for edge cases.",
+          "Output/statistical threshold": "A numeric threshold struggles here because 'quality' isn't a single measurable quantity the way stopping distance is — you'd need to first define a rubric, which usually means a human (or human-defined criteria) is doing the real judging.",
+          "Metamorphic relation": "Possible as a supplementary check (e.g. 'a summary of a longer ticket shouldn't drop key details a shorter one keeps') but it won't tell you whether the summary reads well or matches the desired tone — that needs judgment.",
+          "Proxy oracle": "A second GenAI model judging summary quality is a legitimate real-world proxy-oracle approach and a reasonable second choice — but it still needs to be calibrated against human judgment first, and can silently inherit the same blind spots as the system it's checking."
+        }
+      },
+      {
+        text: "A team is testing a new fraud-detection model on a huge batch of new, unlabeled transactions. They don't have time to manually label all of them, but they do have an older, well-validated rule-based fraud system still running in parallel.",
+        best: "Proxy oracle",
+        feedback: {
+          "Proxy oracle": "Correct. Using the older, trusted system's output to check the new model's predictions on unlabeled data is a classic proxy oracle. It's not perfect ground truth, but it's a reasonable stand-in — just watch for cases where the new model is *supposed* to outperform the old one, since disagreement there isn't necessarily an error.",
+          "Output/statistical threshold": "You'd still eventually want a pass-rate threshold, but you need *something* to compare individual predictions against first — that's exactly the role the older system is playing here.",
+          "Metamorphic relation": "Could catch consistency issues (e.g. 'flagging one transaction as fraud shouldn't flip if you only change the timestamp format') but doesn't solve the core problem of not knowing which unlabeled transactions are actually fraudulent.",
+          "Human-in-the-loop (expert)": "Manually reviewing a huge unlabeled batch is exactly what the team doesn't have time for — that's the whole reason a proxy oracle is attractive here."
+        }
+      },
+      {
+        text: "A translation feature is being tested. The team wants to check that translating a sentence to French and back to English should produce a result with roughly the same meaning as the original — without needing a human to grade every single translation.",
+        best: "Metamorphic relation",
+        feedback: {
+          "Metamorphic relation": "Correct. 'Translate then translate back should preserve meaning' is a relationship between an input and a transformed input's outputs, not a single expected value — the defining feature of a metamorphic relation, and it works even when no reference translation exists.",
+          "Output/statistical threshold": "There's no simple numeric range to define here since 'meaning' isn't a scalar quantity — the useful signal comes from comparing round-trip output to the original, which is what a metamorphic relation does.",
+          "Human-in-the-loop (expert)": "Works, but doesn't scale — the whole appeal of this scenario is finding an oracle that doesn't require a human to grade every translation.",
+          "Proxy oracle": "You could use a second translation model as a proxy oracle, but it risks compounding the same weaknesses as the model under test. The round-trip relationship is a more elegant, self-contained check."
+        }
+      },
+      {
+        text: "A hospital wants high confidence, backed by evidence suitable for a regulator, that a diagnostic imaging model's overall miss rate for a specific condition stays below an agreed safety limit across the full range of patient demographics and imaging equipment it will see in production.",
+        best: "Output/statistical threshold",
+        feedback: {
+          "Output/statistical threshold": "Correct. This is precisely the regulatory/safety-context reason a statistical approach exists: demonstrate, with confidence intervals and a large enough representative sample, that the miss rate stays under an agreed threshold — not that one scan was read correctly.",
+          "Human-in-the-loop (expert)": "Expert radiologists are essential for *labeling* the evaluation set with ground truth in the first place, but the pass/fail claim the regulator wants is a statistical one across many cases, not a single expert opinion per case.",
+          "Metamorphic relation": "Could supplement this (e.g. 'a mirrored image shouldn't change the diagnosis') but doesn't by itself produce the confidence-backed miss-rate claim a regulator needs.",
+          "Proxy oracle": "Ground truth is available here (confirmed diagnoses, biopsy results, expert-labeled scans), so there's no need to fall back on an indirect proxy — use the real ground truth and statistical thresholds directly."
+        }
+      }
+    ];
+    let oi = 0;
+    const sceneEl = document.getElementById("oracle-scenario");
+    const choicesEl = document.getElementById("oracle-choices");
+    const readoutEl = document.getElementById("oracle-readout");
+    const progEl = document.getElementById("oracle-progress");
+
+    function renderScenario() {
+      const s = scenarios[oi];
+      sceneEl.innerHTML = `<strong>Scenario ${oi + 1} of ${scenarios.length}:</strong> ${s.text}`;
+      choicesEl.innerHTML = "";
+      readoutEl.textContent = "Choose a strategy for the scenario above.";
+      progEl.textContent = `${oi + 1} / ${scenarios.length}`;
+      STRATEGIES.forEach(strat => {
+        const btn = document.createElement("button");
+        btn.className = "btn btn-ghost";
+        btn.textContent = strat;
+        btn.addEventListener("click", () => {
+          choicesEl.querySelectorAll("button").forEach(b => b.disabled = true);
+          const correct = strat === s.best;
+          btn.style.borderColor = correct ? "var(--success)" : "var(--danger)";
+          btn.style.background = correct ? "var(--success-soft)" : "var(--danger-soft)";
+          readoutEl.innerHTML = `<strong>${correct ? "✓ Good fit." : "Not the strongest fit."}</strong> ${s.feedback[strat]}`;
+        });
+        choicesEl.appendChild(btn);
+      });
+    }
+    document.getElementById("oracle-next").addEventListener("click", () => {
+      oi = (oi + 1) % scenarios.length;
+      renderScenario();
+    });
+    renderScenario();
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AI-4.1.1", k: "K2", type: "single",
+        prompt: "What fundamentally distinguishes a locked AI-based system from an adaptive one?",
+        choices: [
+          { text: "A locked system's behavior stays fixed after deployment; an adaptive system can change its own behavior post-deployment.", correct: true },
+          { text: "Locked systems cannot be tested at all.", correct: false },
+          { text: "Adaptive systems are always faster than locked systems.", correct: false },
+          { text: "Locked systems are only used for generative AI.", correct: false },
+        ],
+        explain: "Locked = fixed parameters after release (retraining is required to change behavior); adaptive = can evolve on its own, e.g. via a reward function or new operational data." },
+      { lo: "AI-4.1.1", k: "K2", type: "single",
+        prompt: "Why are locked AI-based systems generally easier to test than adaptive ones?",
+        choices: [
+          { text: "Because they're largely deterministic, so expected results stay valid over time.", correct: true },
+          { text: "Because they never run on GPUs.", correct: false },
+          { text: "Because they don't require any statistical evaluation.", correct: false },
+          { text: "Because they're always simpler models with fewer parameters.", correct: false },
+        ],
+        explain: "A locked model's parameters don't change after deployment, so a test suite built against it keeps being valid — an adaptive system's behavior can shift during or because of testing." },
+      { lo: "AI-4.1.1", k: "K2", type: "single",
+        prompt: "Where do most deployed LLM-based chatbots sit on the locked–adaptive spectrum?",
+        choices: [
+          { text: "In between — locked at runtime, but periodically retrained/fine-tuned and re-released.", correct: true },
+          { text: "Fully adaptive — they retrain themselves after every single conversation.", correct: false },
+          { text: "Fully locked forever, with no update path at all.", correct: false },
+          { text: "Outside the spectrum entirely — the concept doesn't apply to GenAI.", correct: false },
+        ],
+        explain: "The model doesn't change mid-conversation (locked at runtime) but the underlying weights are periodically updated and re-shipped — a midpoint on the continuum." },
+      { lo: "AI-4.1.2", k: "K2", type: "multi",
+        prompt: "Which of the following are reasons a statistical approach is often needed to test AI-based systems (select all that apply)?",
+        choices: [
+          { text: "Non-determinism — the same input may not always produce the same output.", correct: true },
+          { text: "Training data rarely matches the operational distribution exactly.", correct: true },
+          { text: "Regulated industries often require high-confidence evidence across a broad range of scenarios.", correct: true },
+          { text: "AI-based systems are always faster to test than conventional software.", correct: false },
+        ],
+        explain: "Non-determinism, distributional mismatch between training and operational data, and regulatory/safety demands are three of the four syllabus reasons (the fourth is handling uncertainty and bias)." },
+      { lo: "AI-4.1.2", k: "K2", type: "single",
+        prompt: "A model misclassifies one cat photo as a dog during testing. What does this single result tell you about the model's overall correctness?",
+        choices: [
+          { text: "Very little on its own — a single instance can't reliably represent overall functional correctness; you need a statistically significant sample.", correct: true },
+          { text: "The model has completely failed and should not be deployed.", correct: false },
+          { text: "The model is definitely well above its accuracy threshold.", correct: false },
+          { text: "It proves the training data was mislabeled.", correct: false },
+        ],
+        explain: "This is the core rationale for statistical testing: a probabilistic system's overall quality is a rate across many trials, not a verdict from one example." },
+      { lo: "AI-4.1.3", k: "K2", type: "single",
+        prompt: "What is the 'test oracle problem'?",
+        choices: [
+          { text: "The difficulty of determining whether a given output is correct, especially when there's no clear expected result to compare against.", correct: true },
+          { text: "A bug that only occurs in Oracle-brand database software.", correct: false },
+          { text: "The inability to run any automated tests on an AI system.", correct: false },
+          { text: "A licensing issue that blocks testing tools from running.", correct: false },
+        ],
+        explain: "The oracle problem is about knowing what 'correct' even means for a given test — a much harder question for AI-based systems than for conventional software with clear specifications." },
+      { lo: "AI-4.1.3", k: "K2", type: "multi",
+        prompt: "Which factors make the test oracle problem worse specifically for AI-based systems (select all that apply)?",
+        choices: [
+          { text: "The system's outputs are probabilistic, so a strict pass/fail check often needs a threshold instead of an exact value.", correct: true },
+          { text: "Correctness can be subjective — different users may reasonably expect different 'right' answers.", correct: true },
+          { text: "A self-learning system's definition of 'correct' can shift over time as it keeps training.", correct: true },
+          { text: "AI-based systems always come with complete, unambiguous specifications.", correct: false },
+        ],
+        explain: "The opposite is usually true — AI development is often exploratory, with vague or evolving requirements, which is itself one of the syllabus's named contributors to the oracle problem." },
+      { lo: "AI-4.1.3", k: "K2", type: "single",
+        prompt: "What is a 'proxy oracle'?",
+        choices: [
+          { text: "A secondary system, sometimes another AI model, used to judge or validate output when no direct expected result is available.", correct: true },
+          { text: "A server that proxies network traffic to a test environment.", correct: false },
+          { text: "The original, unmodified training dataset used to build the model.", correct: false },
+          { text: "A formal legal agreement authorizing someone to sign off on test results.", correct: false },
+        ],
+        explain: "A proxy oracle stands in for a missing ground truth — e.g. a separate model trained on labeled data, used to predict expected results for unlabeled test cases. It should be used carefully, since it can reproduce the same biases as the system it's checking." },
+      { lo: "AI-4.1.3", k: "K2", type: "single",
+        prompt: "An autonomous car must 'stop within a maximum distance' rather than an exact distance. Which oracle strategy does this best illustrate?",
+        choices: [
+          { text: "Defining output boundaries — an agreed acceptable range, limit, or tolerance.", correct: true },
+          { text: "Expert consultation.", correct: false },
+          { text: "A proxy oracle.", correct: false },
+          { text: "Metamorphic testing.", correct: false },
+        ],
+        explain: "Output boundaries replace one exact expected value with an agreed acceptable range or limit — exactly the shape of a maximum stopping distance." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s11", passPct: 65 });
+  });
+</script>
+</body>
+</html>

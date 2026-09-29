@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 3 · Hardware, Hosting &amp; Regulation — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 3 · Chapter 1 — Introduction to AI (part 2 of 2)</div>
+  <h1>Hardware, Hosting &amp; Regulation</h1>
+  <p class="lede">Today you're moving from "what is AI" to "what does it actually run on, where does it live, what
+    do you build it with, and who's watching how it's built." These are the practical decisions that shape almost
+    every constraint you'll test against later: latency budgets, cost ceilings, privacy requirements, and
+    compliance obligations all trace back to choices made here.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">LOs: AI-1.1.5 – AI-1.1.8</span>
+    <span class="chip">Exam weight: part of 6 questions for Chapter 1</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">ML development framework</span><span class="kw">GPU</span><span class="kw">ASIC</span>
+    <span class="kw">neuromorphic processor</span><span class="kw">quantization</span><span class="kw">AIaaS</span>
+    <span class="kw">EU AI Act</span>
+  </div>
+
+  <h2>1. Hardware for machine learning systems</h2>
+  <p>Every model has to run on physical silicon somewhere, and the hardware choice isn't cosmetic — it decides
+    how fast a model trains, how much it costs to run, how much power it burns, and even where it can physically
+    be deployed. Two different phases of a model's life often use two different kinds of hardware entirely:
+    <strong>training</strong> (building the model from data — usually the heavier job) and
+    <strong>inference</strong> (using the finished model to make a prediction — usually the lighter, repeated
+    job). A speech-recognition model might be trained on a rack of datacenter GPUs but do its actual inference
+    on the modest chip inside a budget smartphone.</p>
+
+  <p>What ML workloads generally want from hardware is fairly specific: the ability to hold and move around
+    large data structures (weights, activations, batches of input), the ability to run huge numbers of
+    identical, simple operations at the same time (this is what "massively parallel" means — think matrix
+    multiplication, which is just millions of small multiply-and-add operations repeated over and over), and,
+    increasingly, the option to trade numeric precision for speed via <strong>quantization</strong> — doing the
+    math with fewer bits per number (say, 4 or 8 bits instead of 32) so each operation is cheaper, more of them
+    fit in memory and cache at once, and the chip draws less power. The tradeoff is a small amount of accuracy
+    lost to rounding error, which is usually an acceptable price for the speed and cost gained.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: CPU vs. GPU vs. ASIC vs. neuromorphic</span></div>
+    <div class="lab-sub">Click a chip to see what it's built for, and where an AI validation engineer would
+      expect to run into it.</div>
+    <div id="hw-chips" style="display:flex; flex-wrap:wrap; gap:.5rem; margin:1rem 0;"></div>
+    <div class="readout" id="hw-readout">Click a hardware type above to begin.</div>
+  </div>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">Common misconception</strong>
+      A CPU isn't "worse" than a GPU in general — it usually runs at a higher clock speed and handles complex,
+      branching logic better. It's specifically <em>bad at ML's kind of work</em> because it only has a handful
+      of powerful cores instead of the thousands of simple ones ML math wants. For small-scale or lightweight
+      ML work, a GPU is typically still the practical sweet spot; purpose-built AI chips (ASICs) only pay off at
+      larger, more specialized scale.
+    </div>
+  </div>
+
+  <h3>Quantization, hands-on</h3>
+  <p>Drag the slider below to see, in simplified illustrative terms, what dropping numeric precision does to a
+    model's footprint and speed. This isn't a real benchmark — real gains depend heavily on the model and
+    hardware — but the direction of the tradeoff is accurate.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: quantization tradeoff simulator</span></div>
+    <div class="lab-sub">Fewer bits per number = smaller, faster, less power-hungry — at the cost of precision.</div>
+    <div class="controls">
+      <label>Bits per number
+        <input type="range" id="quant-slider" min="0" max="3" step="1" value="3" style="width:220px;">
+      </label>
+      <span class="chip" id="quant-bits-label">32-bit (full precision)</span>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:.6rem; max-width:460px;">
+      <div>
+        <div class="small">Relative model size in memory</div>
+        <div class="progress-bar"><span id="quant-size-fill" style="width:100%; background:linear-gradient(90deg,var(--accent-2),var(--accent));"></span></div>
+      </div>
+      <div>
+        <div class="small">Relative inference speed</div>
+        <div class="progress-bar"><span id="quant-speed-fill" style="width:25%;"></span></div>
+      </div>
+      <div>
+        <div class="small">Illustrative accuracy risk</div>
+        <div class="progress-bar"><span id="quant-risk-fill" style="width:5%; background:var(--warning);"></span></div>
+      </div>
+    </div>
+    <div class="readout" id="quant-readout" style="margin-top:.9rem;">32-bit is the reference point — nothing traded away yet.</div>
+  </div>
+
+  <h2>2. Development and hosting of AI models</h2>
+  <p>Two separate decisions get made, often independently: <strong>where a model gets built</strong>
+    (development) and <strong>where it runs once it's finished</strong> (hosting). Neither has one right answer
+    — the correct choice depends on model size, budget, latency needs, and how sensitive the data is.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Local development</strong>
+      <p class="small" style="margin-top:.4rem;">Coding and training on your own machines. Gives you full
+        control and keeps data private. Fine for small models (decision trees, compact neural nets) on a
+        laptop; mid-sized models need a dedicated GPU; large models need an on-premises server cluster —
+        with the power, cooling, and hardware costs that implies.</p>
+    </div>
+    <div class="card">
+      <strong>Cloud development</strong>
+      <p class="small" style="margin-top:.4rem;">Public cloud providers offer pre-configured environments,
+        pay-as-you-go pricing, and easy scaling with little upfront hardware spend. Private clouds trade some
+        of that convenience for stronger security and privacy guarantees, at a higher upfront cost.</p>
+    </div>
+    <div class="card">
+      <strong>Hybrid development</strong>
+      <p class="small" style="margin-top:.4rem;">Very common in practice: prototype locally, then scale
+        training out to the cloud; keep sensitive steps (like preparing private data) on-premises while
+        renting cloud compute only for the heavy, non-sensitive lifting.</p>
+    </div>
+    <div class="card">
+      <strong>Build vs. buy</strong>
+      <p class="small" style="margin-top:.4rem;">Third-party AI (pretrained models or "AI as a Service" —
+        <strong>AIaaS</strong>) gets you to market fast with less specialized talent needed. Building privately
+        gives you a system tailored exactly to your requirements, but demands in-house ML expertise or an
+        outsourced team to get there.</p>
+    </div>
+  </div>
+
+  <p>Hosting mirrors the same three shapes. <strong>Local hosting</strong> runs the finished model on personal
+    devices or on-premises servers — private and free of ongoing cloud licensing fees, but limited by whatever
+    hardware is physically present. <strong>Cloud hosting</strong> (public or private) gives you elastic,
+    maintenance-free scaling that's ideal for workloads that spike unpredictably, at the cost of ongoing fees
+    and less direct control. <strong>Hybrid hosting</strong> runs some inference locally — often for latency or
+    privacy reasons — while bursting to the cloud when demand or complexity requires it.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: which hosting model fits this scenario?</span></div>
+    <div class="lab-sub">Click a scenario to see which approach fits best, and why. As a validation engineer,
+      the hosting model tells you what you need to test for (network latency? offline behavior? data
+      residency?).</div>
+    <div id="host-scenarios"></div>
+    <div class="readout" id="host-readout">Pick a scenario above.</div>
+  </div>
+
+  <h2>3. Machine learning development frameworks</h2>
+  <p>An <strong>ML development framework</strong> is the toolkit developers build a model with, roughly the way
+    a web framework is the toolkit a website gets built with. Rather than writing matrix math and gradient
+    calculations by hand, developers work through a framework that already provides the hard parts:</p>
+
+  <ul>
+    <li><strong>Data handling</strong> — loading, cleaning, formatting, and transforming data into whatever
+      shape the model needs.</li>
+    <li><strong>Model building</strong> — libraries of algorithms and building blocks for specifying the model's
+      architecture: what type of model, how many layers, how they connect, what math runs inside them.</li>
+    <li><strong>Training and optimization</strong> — the actual algorithms that iteratively adjust the model's
+      internal parameters against the training data, sometimes across many machines at once (distributed
+      training), and sometimes starting from an existing pretrained model instead of from scratch.</li>
+    <li><strong>Evaluation</strong> — built-in tooling to measure how well the trained model performs on data it
+      hasn't seen — accuracy, precision, recall for classification; error rates for regression (you'll calculate
+      these yourself in Session 7).</li>
+    <li><strong>Deployment</strong> — converting the trained model into a format that can actually be dropped
+      into a web app, mobile app, edge device, or embedded system.</li>
+  </ul>
+
+  <p>Frameworks also differ in <strong>abstraction level</strong> — a lower-level API gives more control but
+    demands more coding expertise; a higher-level API is faster to build with but offers fewer knobs to turn —
+    and in <strong>specialization</strong>, from general-purpose frameworks that handle almost anything to
+    narrow ones tuned for a single domain like speech or vision. When you're picking (or evaluating a team's
+    choice of) a framework, the real decision factors are: the application area, how much rapid-prototyping
+    friendliness you need versus configurability for complex models, the team's actual expertise, deployment
+    constraints (some frameworks are much lighter-weight for resource-constrained edge devices), and the
+    maturity of the community and ecosystem around it — mature ecosystems mean more pretrained models, more
+    documentation, and fewer dead ends when something breaks.</p>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div class="body">
+      <strong class="title">Why a tester should care about the framework at all</strong>
+      The framework choice shapes what's testable and how. A framework with strong built-in evaluation tooling
+      makes it far easier to get the metrics you need for a test report; a low-level framework used for a
+      highly custom architecture might mean nothing is standard and every test harness is bespoke. Framework
+      choice is a legitimate topic to raise in test planning, not just an engineering concern.
+    </div>
+  </div>
+
+  <h2>4. Regulations and standards for AI</h2>
+  <p>Regulations and standards exist to build trust in AI and push development toward being safe, fair,
+    transparent, accountable, and used responsibly — and, increasingly, they define what "compliant" actually
+    means in a way a test team can be measured against.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>OECD AI Principles &amp; the UN's "Governing AI for Humanity" report</strong>
+      <p class="small" style="margin-top:.4rem;">Influential international <em>soft law</em> — not legally
+        binding, but widely used by governments and organizations as a shared reference point when writing
+        their own AI strategy. They emphasize human-centric AI, ethical considerations, and international
+        cooperation.</p>
+    </div>
+    <div class="card">
+      <strong>The EU AI Act</strong>
+      <p class="small" style="margin-top:.4rem;">A landmark, legally binding regulation using a
+        <strong>risk-based approach</strong>: AI systems are sorted into risk tiers, and higher risk means
+        stricter obligations. Non-compliance penalties are calculated as a percentage of global company
+        turnover — enough to get board-level attention. Many jurisdictions outside the EU take a lighter-touch
+        approach to avoid slowing down innovation.</p>
+    </div>
+  </div>
+
+  <table class="data">
+    <thead><tr><th>EU AI Act risk tier</th><th>What it means</th><th>Illustrative example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Unacceptable risk</strong></td><td>Prohibited outright</td><td>Manipulative subliminal techniques, real-time mass biometric surveillance in public spaces</td></tr>
+      <tr><td><strong>High risk</strong></td><td>Allowed, but under strict obligations — rigorous testing, data governance, human oversight, conformity assessment</td><td>Biometric identification, systems used in employment/hiring, critical infrastructure, credit scoring</td></tr>
+      <tr><td><strong>Limited risk</strong></td><td>Transparency obligations — the user must be told they're interacting with AI</td><td>Chatbots, AI-generated media (deepfake disclosure)</td></tr>
+      <tr><td><strong>Minimal risk</strong></td><td>No specific legal obligations</td><td>Spam filters, AI-enabled recommendation widgets, AI in video games</td></tr>
+    </tbody>
+  </table>
+
+  <p>Underneath the law sit <strong>technical standards</strong> — these are what turn a regulation's
+    high-level aspirations into something a test team can actually execute against. Two matter directly to this
+    course:</p>
+  <ul>
+    <li><strong>ISO/IEC TR 29119-11</strong> — a technical report giving detailed, practical guidance on how to
+      test AI-based systems specifically. It's part of why this course's structure lines up with recognized
+      testing practice rather than being invented from scratch.</li>
+    <li><strong>ISO/IEC 42119 series</strong> — a family of standards under development, intended to cover
+      multiple aspects of AI-based system testing as the field matures.</li>
+  </ul>
+
+  <div class="callout exam">
+    <div class="icon">🎯</div>
+    <div class="body">
+      <strong class="title">The pattern to remember</strong>
+      Soft law (OECD/UN) sets shared values → hard law (EU AI Act and similar national regulations) makes some
+      of those values legally enforceable, tiered by risk → technical standards (ISO/IEC TR 29119-11, ISO/IEC
+      42119) tell a test team concretely how to demonstrate compliance. Regulations and standards are not
+      static — they're reviewed and updated as AI capabilities and known risks evolve, so "compliant last year"
+      doesn't guarantee "compliant today."
+    </div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s03");
+    App.buildSessionNav("session-nav", "s03");
+    App.wireMarkComplete("mark-complete", "s03");
+
+    // ---- Hardware comparison chips ----
+    const hwTypes = [
+      { name: "CPU", full: "Central Processing Unit", tag: "General-purpose, high precision, few cores",
+        desc: "A handful of powerful, flexible cores optimized for complex, branching logic at high clock speed. Not built for the massively-parallel, repetitive math ML training needs, so it's typically the slowest option for training or running large models — but it's the most universally available and the easiest to develop and debug on." },
+      { name: "GPU", full: "Graphics Processing Unit", tag: "Thousands of simple cores, massively parallel",
+        desc: "Originally built for rendering graphics (which is also huge amounts of simple, parallel math), GPUs turned out to be excellent at ML for the same reason. Thousands of simple cores running the same operation on different data at once make them the practical default for training and running most ML models, especially at small-to-mid scale." },
+      { name: "ASIC", full: "Application-Specific Integrated Circuit", tag: "Purpose-built for AI, great for edge inference",
+        desc: "Chips designed and manufactured specifically for AI workloads (often bundled as a System-on-a-Chip). Multiple specialized cores, efficient in-memory data handling, and strong performance-per-watt make them the go-to choice for edge inference — running a trained model on a small device close to where the data is generated — while the heavier training work still typically happens in the cloud on other specialized hardware." },
+      { name: "Neuromorphic", full: "Neuromorphic processor", tag: "Brain-inspired, still emerging",
+        desc: "A newer, fundamentally different hardware architecture that abandons the traditional von Neumann design (separate memory and processing) in favor of circuits that mimic how biological neurons and synapses work. Still an active area of development rather than a mainstream production default, but positioned as a potential leap in power efficiency for certain AI workloads." },
+    ];
+    const hwEl = document.getElementById("hw-chips");
+    hwTypes.forEach(hw => {
+      const btn = document.createElement("button");
+      btn.className = "chip";
+      btn.style.cssText = "cursor:pointer; font-weight:700; padding:.5rem .9rem;";
+      btn.textContent = hw.name;
+      btn.addEventListener("click", () => {
+        document.getElementById("hw-readout").innerHTML =
+          `<strong>${hw.name} (${hw.full}):</strong> ${hw.desc}`;
+        hwEl.querySelectorAll("button").forEach(b => b.style.borderColor = "var(--border)");
+        btn.style.borderColor = "var(--accent)";
+      });
+      hwEl.appendChild(btn);
+    });
+
+    // ---- Quantization simulator ----
+    const bitOptions = [4, 8, 16, 32];
+    const slider = document.getElementById("quant-slider");
+    const bitsLabel = document.getElementById("quant-bits-label");
+    const sizeFill = document.getElementById("quant-size-fill");
+    const speedFill = document.getElementById("quant-speed-fill");
+    const riskFill = document.getElementById("quant-risk-fill");
+    const quantReadout = document.getElementById("quant-readout");
+    function updateQuant() {
+      const bits = bitOptions[+slider.value];
+      const sizePct = Math.round((bits / 32) * 100);
+      const speedPct = Math.min(100, Math.round((32 / bits) * 25));
+      const riskPct = Math.round(((32 - bits) / 28) * 60);
+      bitsLabel.textContent = bits === 32 ? "32-bit (full precision)" : `${bits}-bit (quantized)`;
+      sizeFill.style.width = sizePct + "%";
+      speedFill.style.width = speedPct + "%";
+      riskFill.style.width = Math.max(5, riskPct) + "%";
+      if (bits === 32) {
+        quantReadout.textContent = "32-bit is the reference point — full precision, largest footprint, slowest, essentially no rounding risk.";
+      } else {
+        quantReadout.textContent = `At ${bits}-bit: roughly ${sizePct}% of the original memory footprint, faster inference, lower power draw — and a real but usually small increase in rounding-related accuracy risk that a validation engineer should explicitly test for, not assume away.`;
+      }
+    }
+    slider.addEventListener("input", updateQuant);
+    updateQuant();
+
+    // ---- Hosting scenario picker ----
+    const scenarios = [
+      { title: "A startup wants to ship a chatbot feature in 6 weeks with no in-house ML team.",
+        answer: "AIaaS / third-party cloud model", why: "No time to build ML expertise from scratch — a hosted, pretrained model accessed as a service gets to market fastest, trading some customization for speed." },
+      { title: "A hospital needs a diagnostic-support model but patient data legally cannot leave the building.",
+        answer: "Local / on-premises hosting", why: "Strict data-residency and privacy requirements point straight at local hosting, even though it means covering the hardware cost directly." },
+      { title: "A retailer's demand-forecasting model needs to handle huge spikes around big sales events, then sit mostly idle.",
+        answer: "Public cloud hosting", why: "Highly variable load is exactly what elastic, pay-as-you-go public cloud infrastructure is built for — no idle hardware to pay for the rest of the year." },
+      { title: "A factory robot needs to react to a safety-zone breach in milliseconds, even if the internet connection drops.",
+        answer: "Hybrid: local/edge inference, cloud for everything else", why: "Safety-critical, latency-sensitive decisions need to run locally so they don't depend on network availability, while less time-critical processing can still use the cloud." },
+    ];
+    const hostEl = document.getElementById("host-scenarios");
+    scenarios.forEach(s => {
+      const btn = document.createElement("button");
+      btn.className = "card";
+      btn.style.cssText = "display:block; width:100%; text-align:left; cursor:pointer; margin-bottom:.6rem; background:var(--bg-sunken); border:1px solid var(--border);";
+      btn.innerHTML = `<span style="font-weight:700;">${s.title}</span>`;
+      btn.addEventListener("click", () => {
+        document.getElementById("host-readout").innerHTML =
+          `<strong>Best fit: ${s.answer}.</strong> ${s.why}`;
+      });
+      hostEl.appendChild(btn);
+    });
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AI-1.1.5", k: "K2", type: "single",
+        prompt: "Why do GPUs typically outperform CPUs for training and running ML models, even though CPUs often run at higher clock speeds?",
+        choices: [
+          { text: "GPUs have thousands of simple cores suited to massively parallel operations like matrix multiplication, which is most of what ML math consists of.", correct: true },
+          { text: "GPUs use less electricity than CPUs in every scenario.", correct: false },
+          { text: "CPUs cannot perform floating-point arithmetic.", correct: false },
+          { text: "GPUs are always physically smaller than CPUs.", correct: false },
+        ],
+        explain: "It's about parallelism, not raw clock speed — ML workloads are dominated by huge numbers of simple, repeated operations that GPUs' many cores handle far more efficiently." },
+      { lo: "AI-1.1.5", k: "K2", type: "single",
+        prompt: "What is quantization, in the context of ML hardware?",
+        choices: [
+          { text: "Using fewer bits per number for computation, trading some precision for speed, smaller footprint, and lower power draw.", correct: true },
+          { text: "Splitting a model across multiple physical machines.", correct: false },
+          { text: "Increasing the number of layers in a neural network.", correct: false },
+          { text: "Converting a model's outputs from probabilities into confidence percentages.", correct: false },
+        ],
+        explain: "Quantization is specifically about numeric precision (e.g., 4-bit vs. 32-bit), not architecture, layer count, or output formatting." },
+      { lo: "AI-1.1.5", k: "K2", type: "single",
+        prompt: "Which hardware type is best characterized as brain-inspired and departing from the traditional von Neumann architecture?",
+        choices: [
+          { text: "Neuromorphic processors", correct: true },
+          { text: "CPUs", correct: false },
+          { text: "GPUs", correct: false },
+          { text: "General-purpose ASICs", correct: false },
+        ],
+        explain: "Neuromorphic hardware mimics neuronal structures directly, rather than the separate memory/processing design conventional chips use." },
+      { lo: "AI-1.1.6", k: "K2", type: "single",
+        prompt: "A team wants full control over data privacy for model training and is willing to invest in dedicated servers upfront. Which development approach fits best?",
+        choices: [
+          { text: "Local (on-premises) development", correct: true },
+          { text: "Public cloud development only", correct: false },
+          { text: "AIaaS with no in-house involvement", correct: false },
+          { text: "There is no meaningful choice to make here", correct: false },
+        ],
+        explain: "Local/on-premises development trades upfront infrastructure investment for direct control and privacy — exactly the tradeoff described." },
+      { lo: "AI-1.1.6", k: "K2", type: "multi",
+        prompt: "Which of the following are accurate about AI as a Service (AIaaS) (select all that apply)?",
+        choices: [
+          { text: "It typically enables faster deployment and quicker time-to-market than building privately.", correct: true },
+          { text: "It is a way of accessing cloud-hosted pretrained or managed models as a service.", correct: true },
+          { text: "It guarantees better model accuracy than any privately built model.", correct: false },
+          { text: "It removes the need to think about data privacy entirely.", correct: false },
+        ],
+        explain: "AIaaS trades customization and some control for speed to market — it doesn't inherently guarantee accuracy, and privacy still has to be actively managed based on what data goes to the third party." },
+      { lo: "AI-1.1.7", k: "K2", type: "multi",
+        prompt: "Which of these are typical functions provided by an ML development framework (select all that apply)?",
+        choices: [
+          { text: "Data handling (loading, cleaning, transforming data)", correct: true },
+          { text: "Model building (algorithm libraries, architecture specification)", correct: true },
+          { text: "Evaluation (measuring accuracy, precision, recall, error rates)", correct: true },
+          { text: "Writing the legal terms of service for a deployed AI product", correct: false },
+        ],
+        explain: "Frameworks handle data, model building, training/optimization, evaluation, and deployment — not legal or business documentation." },
+      { lo: "AI-1.1.7", k: "K2", type: "single",
+        prompt: "A team needs to deploy a model on a resource-constrained edge device and has moderate ML expertise. Which factor is most directly relevant to their framework choice?",
+        choices: [
+          { text: "Deployment considerations — whether the framework is well-suited for resource-constrained environments.", correct: true },
+          { text: "Whether the framework's logo matches the company's brand colors.", correct: false },
+          { text: "The number of total employees at the framework's maintaining organization.", correct: false },
+          { text: "Whether the framework was released more than 10 years ago.", correct: false },
+        ],
+        explain: "Deployment fit for the target environment is one of the concrete, syllabus-relevant selection factors — cosmetic or unrelated factors aren't." },
+      { lo: "AI-1.1.8", k: "K2", type: "single",
+        prompt: "Under the EU AI Act's risk-based approach, what generally happens to a system classified as \"high risk\"?",
+        choices: [
+          { text: "It faces stringent requirements including rigorous testing, data governance, and human oversight — but is not banned.", correct: true },
+          { text: "It is banned outright, the same as an \"unacceptable risk\" system.", correct: false },
+          { text: "It has no additional obligations beyond a minimal-risk system.", correct: false },
+          { text: "It only needs to disclose that users are interacting with AI.", correct: false },
+        ],
+        explain: "High-risk is the tier below \"unacceptable\" (banned) — it's permitted but under strict obligations, distinct from the lighter transparency-only obligations of \"limited risk\" systems." },
+      { lo: "AI-1.1.8", k: "K2", type: "single",
+        prompt: "What is the primary role of ISO/IEC TR 29119-11 in the AI regulatory landscape?",
+        choices: [
+          { text: "It provides detailed, practical technical guidance on how to test AI-based systems.", correct: true },
+          { text: "It is a legally binding regulation imposing financial penalties for non-compliance.", correct: false },
+          { text: "It is a soft-law international principles document, like the OECD AI Principles.", correct: false },
+          { text: "It exclusively governs AI use in the European Union.", correct: false },
+        ],
+        explain: "ISO/IEC TR 29119-11 is a technical standard focused on testing guidance — it sits below the level of binding law, translating high-level regulatory intent into something a test team can act on." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s03", passPct: 65 });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 5 · Forms of ML &amp; the ML Workflow — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 5 · Chapter 3 — Machine Learning (part 1 of 3)</div>
+  <h1>Forms of ML &amp; the ML Workflow</h1>
+  <p class="lede">This is where the course stops talking <em>about</em> machine learning and starts building your
+    working model of it: the three fundamentally different ways an ML algorithm can learn, and the real
+    end-to-end pipeline a model travels through from "we have an idea" to "it's running in production and
+    someone is watching it." Everything from Session 6 onward assumes you're fluent in this map.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">LOs: AI-3.1.1 – AI-3.1.2</span>
+    <span class="chip">Exam weight: part of 7 questions for Chapter 3</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">machine learning</span><span class="kw">ML algorithm</span>
+    <span class="kw">supervised learning</span><span class="kw">unsupervised learning</span>
+    <span class="kw">reinforcement learning</span><span class="kw">classification</span>
+    <span class="kw">ML regression</span><span class="kw">clustering</span><span class="kw">association</span>
+    <span class="kw">ML workflow</span><span class="kw">ML development framework</span>
+    <span class="kw">model hyperparameter</span><span class="kw">algorithm hyperparameter</span>
+  </div>
+
+  <h2>1. Three fundamentally different ways to learn</h2>
+  <p>Every ML algorithm falls into one of three families, and the family is decided by one question: <strong>what
+    kind of feedback does the algorithm get while it's learning?</strong> Get comfortable telling these apart
+    fast — it's one of the most frequently tested distinctions in the whole syllabus, and it's the first thing
+    you diagnose when someone hands you an unfamiliar model to test.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Supervised learning — learns from an answer key</strong>
+      <p class="small" style="margin-top:.4rem;">Every training example comes with the correct output already
+        attached (a <em>label</em>). The algorithm's whole job is to find the mapping from input to label well
+        enough that it generalizes to inputs it's never seen. This is the most common form of ML used in
+        production today because labeled data, while expensive to produce, gives the clearest training signal.</p>
+      <p class="small" style="margin-top:.4rem;">Splits into two problem types:</p>
+      <ul class="small" style="margin:.3rem 0 0; padding-left:1.1rem;">
+        <li><strong>Classification</strong> — output is one of a fixed set of categories. Spam / not spam. Cat /
+          dog / neither. Approve / decline a loan application.</li>
+        <li><strong>ML regression</strong> — output is a continuous number. Predicted house price. A person's
+          estimated age from lifestyle data. Tomorrow's stock price. (Careful: this is a different meaning of
+          "regression" than the change-related-defect meaning used elsewhere in ISTQB material.)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <strong>Unsupervised learning — finds structure with no answer key</strong>
+      <p class="small" style="margin-top:.4rem;">The training data has no labels at all. The algorithm's job is
+        to discover structure that was already latent in the data — grouping similar things together or
+        surfacing relationships between attributes — without ever being told what "correct" looks like.</p>
+      <p class="small" style="margin-top:.4rem;">Splits into two problem types:</p>
+      <ul class="small" style="margin:.3rem 0 0; padding-left:1.1rem;">
+        <li><strong>Clustering</strong> — group data points by similarity. Segmenting customers into groups for
+          targeted marketing, without anyone pre-defining what the groups should be.</li>
+        <li><strong>Association</strong> — find relationships or dependencies between attributes. "Customers who
+          buy X also tend to buy Y" — market-basket analysis on retail transaction data.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <strong>Reinforcement learning — learns from consequences, not from a dataset</strong>
+    <p class="small" style="margin-top:.4rem;">There's no pre-collected dataset of correct answers here at all.
+      An "intelligent agent" takes actions inside an environment and receives <strong>rewards</strong> (positive
+      feedback) or <strong>penalties</strong> (negative feedback) based on the outcome. Over many trials it learns
+      a strategy — a <em>policy</em> — that tends to maximize reward. Real applications: robotics, autonomous
+      vehicles, adaptive systems like chatbots that improve from interaction outcomes.</p>
+    <p class="small" style="margin-top:.4rem;">The hard part of reinforcement learning isn't the learning
+      algorithm itself — it's the design work around it: building a realistic environment to train in, designing
+      a reward function that actually incentivizes the behavior you want (poorly designed rewards produce agents
+      that "game" the metric instead of solving the real problem), and choosing a strategy for balancing
+      exploring new actions against exploiting what already works.</p>
+  </div>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div class="body">
+      <strong class="title">The fast way to tell them apart</strong>
+      Ask: is there labeled training data? Supervised. Is there data but no labels? Unsupervised. Is there no
+      dataset at all, just an environment and a reward signal? Reinforcement. Which type an engineer chooses
+      always comes down to what data is actually available and what the task requires — not personal preference.
+    </div>
+  </div>
+
+  <h2>2. The end-to-end ML development workflow</h2>
+  <p>A model doesn't appear from a training run in isolation — it moves through a fairly standard pipeline of
+    activities, and as a validator you need to know which stage you're looking at, because the right test
+    activity and the right question to ask are different at every stage. Many production failures don't
+    originate where they're discovered; they were seeded two or three stages earlier, often in data preparation.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: walk the ML workflow</span></div>
+    <div class="lab-sub">Click each stage in order. Notice how "model generation" (train → evaluate → tune) is
+      really a loop, not a single step.</div>
+    <div id="workflow-steps"></div>
+    <div class="readout" id="workflow-readout">Click a stage above to see what happens there.</div>
+  </div>
+
+  <table class="data">
+    <thead><tr><th>Stage</th><th>What actually happens</th></tr></thead>
+    <tbody>
+      <tr><td>Understand the objectives</td><td>Stakeholders agree on the model's purpose and define acceptance criteria, including the ML functional performance metrics it must hit (Session 7).</td></tr>
+      <tr><td>Select a framework</td><td>Choose an ML development framework matched to the objectives, acceptance criteria, and business constraints.</td></tr>
+      <tr><td>Select &amp; build the algorithm</td><td>Pick an algorithm based on objectives, criteria, and available data — often pulled from a library rather than hand-coded, then compiled if required.</td></tr>
+      <tr><td>Prepare &amp; test data</td><td>Data acquisition, preprocessing, and feature engineering (Session 6) — the data used here must represent what the model will see operationally.</td></tr>
+      <tr><td>Train the model</td><td>The algorithm consumes training data to learn. Model hyperparameters (e.g. neural network layer count) and algorithm hyperparameters (e.g. number of training iterations) are set going in.</td></tr>
+      <tr><td>Evaluate the model</td><td>Score the trained model against the agreed metrics using the <strong>validation</strong> dataset. Several candidate models/algorithms are usually compared here.</td></tr>
+      <tr><td>Tune the model</td><td>Adjust hyperparameters based on evaluation results, then retrain. Train → evaluate → tune repeats — this loop is called "model generation."</td></tr>
+      <tr><td>Test the model</td><td>Once model generation lands on an acceptable model, it's tested against an independent <strong>test</strong> dataset to confirm the metrics hold up outside of tuning. Non-functional checks (e.g. prediction latency) happen here too.</td></tr>
+      <tr><td>Deploy the model</td><td>The tuned model is re-engineered with its data pipeline for its target platform (embedded system, cloud API, etc.) and re-tested after deployment.</td></tr>
+      <tr><td>Use the model</td><td>Integrated into the larger operational system — running scheduled batch predictions or responding in real time.</td></tr>
+      <tr><td>Monitor &amp; tune the model</td><td>Ongoing evaluation against acceptance criteria to catch drift. May trigger retraining with new data or new hyperparameters, sometimes validated via A/B testing against the current model.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">This is a loop, not a straight line</strong>
+      The workflow diagram reads top to bottom, but in practice teams cycle back constantly — a disappointing
+      test-dataset result can send you all the way back to "prepare &amp; test data" to fix a training set that
+      wasn't representative, not just back to tuning. Also: the workflow above doesn't include integrating the
+      ML model with the rest of the non-ML system it lives inside — that still needs its own integration, system,
+      and acceptance testing once the model is ready to plug in.
+    </div>
+  </div>
+
+  <h2>3. Hands-on lab: train a tiny linear regression model</h2>
+  <p>Time to actually do the "train the model" and "evaluate the model" steps yourself, on the simplest possible
+    supervised ML-regression problem: fitting a straight line (<code>ŷ = m·x + b</code>) to a small scattered
+    dataset. Drag the sliders by hand first and watch the error respond — then let gradient descent (a real
+    training algorithm, simplified for illustration) do it automatically.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: linear regression trainer</span></div>
+    <div class="lab-sub">The dashed line is your model's prediction. The red segments are residuals (errors) at
+      each point — that's exactly what mean squared error (MSE) is measuring.</div>
+    <div id="lr-chart"></div>
+    <div class="controls">
+      <label>Slope (m)
+        <input type="range" id="lr-slope" min="-2" max="6" step="0.1" value="0">
+      </label>
+      <label>Intercept (b)
+        <input type="range" id="lr-intercept" min="-10" max="40" step="0.5" value="0">
+      </label>
+      <button class="btn btn-primary" id="lr-train">▶ Auto-train (gradient descent)</button>
+      <button class="btn btn-ghost" id="lr-reset">Reset</button>
+    </div>
+    <div class="readout" id="lr-readout">Move the sliders to fit the line by hand, then try auto-train.</div>
+  </div>
+
+  <div class="callout tip">
+    <div class="icon">🎯</div>
+    <div class="body">
+      <strong class="title">What you just watched</strong>
+      Auto-train repeats the same loop the workflow table describes: it computes the current error (loss), nudges
+      <code>m</code> and <code>b</code> slightly in the direction that reduces that error, and repeats. Each full
+      pass over the data is an <em>epoch</em> — a term you'll see again properly in Session 9 with neural
+      networks. Real models tune far more than two parameters, but the loop is the same one at any scale.
+    </div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s05");
+    App.buildSessionNav("session-nav", "s05");
+    App.wireMarkComplete("mark-complete", "s05");
+
+    // ---- Workflow stage walkthrough ----
+    const stages = [
+      { name: "Understand objectives", desc: "Stakeholders agree on purpose and define acceptance criteria, including the ML functional performance metrics the model must hit." },
+      { name: "Select a framework", desc: "An ML development framework is chosen to match the objectives, acceptance criteria, and business priorities." },
+      { name: "Select & build algorithm", desc: "An algorithm is selected based on objectives, criteria, and available data — usually pulled from a library, then compiled if needed." },
+      { name: "Prepare & test data", desc: "Data acquisition, preprocessing, and feature engineering. The data must represent what the model will see operationally (full depth in Session 6)." },
+      { name: "Train the model", desc: "The algorithm learns from training data. Model hyperparameters (structure, e.g. NN layer count) and algorithm hyperparameters (training control, e.g. iteration count) are set." },
+      { name: "Evaluate the model", desc: "The trained model is scored against agreed metrics using the validation dataset — usually across several candidate models." },
+      { name: "Tune the model", desc: "Hyperparameters are adjusted based on evaluation results and the model is retrained. Train → evaluate → tune is the 'model generation' loop." },
+      { name: "Test the model", desc: "An independent test dataset confirms the metrics hold outside of tuning. Non-functional checks (e.g. prediction latency) happen here too." },
+      { name: "Deploy the model", desc: "The tuned model is re-engineered with its data pipeline for its target platform, then re-tested after deployment." },
+      { name: "Use the model", desc: "Integrated into the larger operational system — scheduled batch predictions or real-time responses." },
+      { name: "Monitor & tune", desc: "Ongoing evaluation catches drift; may trigger retraining, sometimes validated via A/B testing against the current model." },
+    ];
+    const stepsEl = document.getElementById("workflow-steps");
+    stepsEl.style.cssText = "display:flex; flex-wrap:wrap; gap:.5rem; margin:1rem 0;";
+    stages.forEach((s, i) => {
+      const chip = document.createElement("button");
+      chip.className = "chip";
+      chip.style.cssText = "cursor:pointer; font-weight:700;";
+      chip.textContent = `${i + 1}. ${s.name}`;
+      chip.addEventListener("click", () => {
+        document.getElementById("workflow-readout").innerHTML = `<strong>${s.name}:</strong> ${s.desc}`;
+        stepsEl.querySelectorAll("button").forEach(b => b.style.borderColor = "var(--border)");
+        chip.style.borderColor = "var(--accent)";
+      });
+      stepsEl.appendChild(chip);
+    });
+
+    // ---- Linear regression trainer ----
+    const points = [
+      { x: 1, y: 8 }, { x: 2, y: 12 }, { x: 3, y: 15 }, { x: 4, y: 19 }, { x: 5, y: 23 },
+      { x: 6, y: 25 }, { x: 7, y: 30 }, { x: 8, y: 33 }, { x: 9, y: 35 }, { x: 10, y: 40 },
+    ];
+    const w = 640, h = 320, padL = 46, padR = 16, padT = 16, padB = 40;
+    const xMin = 0, xMax = 11, yMin = 0, yMax = 45;
+    const sx = x => padL + (x - xMin) / (xMax - xMin) * (w - padL - padR);
+    const sy = y => h - padB - (y - yMin) / (yMax - yMin) * (h - padT - padB);
+
+    const slopeInput = document.getElementById("lr-slope");
+    const interceptInput = document.getElementById("lr-intercept");
+    const chartEl = document.getElementById("lr-chart");
+    const readout = document.getElementById("lr-readout");
+    const trainBtn = document.getElementById("lr-train");
+    const resetBtn = document.getElementById("lr-reset");
+    let trainTimer = null, epoch = 0;
+
+    function mse(m, b) {
+      const errs = points.map(p => (p.y - (m * p.x + b)) ** 2);
+      return errs.reduce((a, c) => a + c, 0) / points.length;
+    }
+
+    function render(note) {
+      const m = parseFloat(slopeInput.value);
+      const b = parseFloat(interceptInput.value);
+      const err = mse(m, b);
+
+      let residuals = "";
+      let dots = "";
+      points.forEach(p => {
+        const px = sx(p.x), py = sy(p.y);
+        const predY = m * p.x + b;
+        const ppy = sy(Math.max(yMin, Math.min(yMax, predY)));
+        residuals += `<line x1="${px}" y1="${py}" x2="${px}" y2="${ppy}" stroke="var(--danger)" stroke-width="1.5" opacity="0.55"/>`;
+        dots += `<circle cx="${px}" cy="${py}" r="4.5" fill="var(--accent-2)"/>`;
+      });
+      const lx1 = xMin, lx2 = xMax;
+      const ly1 = Math.max(yMin, Math.min(yMax, m * lx1 + b));
+      const ly2 = Math.max(yMin, Math.min(yMax, m * lx2 + b));
+
+      chartEl.innerHTML = `
+        <svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="Linear regression fit">
+          <line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="var(--border)"/>
+          <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h - padB}" stroke="var(--border)"/>
+          <text x="${(padL + w - padR) / 2}" y="${h - 8}" text-anchor="middle" font-size="12" fill="var(--text-faint)">x (feature)</text>
+          <text x="14" y="${(padT + h - padB) / 2}" text-anchor="middle" font-size="12" fill="var(--text-faint)" transform="rotate(-90 14 ${(padT + h - padB) / 2})">y (target)</text>
+          ${residuals}
+          <line x1="${sx(lx1)}" y1="${sy(ly1)}" x2="${sx(lx2)}" y2="${sy(ly2)}" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="6 4"/>
+          ${dots}
+        </svg>`;
+
+      const quality = err < 2 ? "Excellent fit" : err < 8 ? "Decent fit" : err < 20 ? "Rough fit" : "Poor fit — keep tuning";
+      readout.innerHTML = `m = ${m.toFixed(2)}, b = ${b.toFixed(2)} &nbsp;·&nbsp; MSE = (1/n)·Σ(y − ŷ)² = <strong>${err.toFixed(2)}</strong> &nbsp;·&nbsp; ${quality}${note ? " · " + note : ""}`;
+    }
+
+    slopeInput.addEventListener("input", () => render());
+    interceptInput.addEventListener("input", () => render());
+
+    resetBtn.addEventListener("click", () => {
+      clearInterval(trainTimer); trainTimer = null; epoch = 0;
+      slopeInput.value = 0; interceptInput.value = 0;
+      trainBtn.disabled = false; trainBtn.textContent = "▶ Auto-train (gradient descent)";
+      render("reset");
+    });
+
+    trainBtn.addEventListener("click", () => {
+      if (trainTimer) return;
+      trainBtn.disabled = true;
+      epoch = 0;
+      const lr = 0.01;
+      trainTimer = setInterval(() => {
+        epoch++;
+        let m = parseFloat(slopeInput.value), b = parseFloat(interceptInput.value);
+        let gradM = 0, gradB = 0;
+        points.forEach(p => {
+          const err = (m * p.x + b) - p.y;
+          gradM += err * p.x;
+          gradB += err;
+        });
+        gradM = (2 / points.length) * gradM;
+        gradB = (2 / points.length) * gradB;
+        m -= lr * gradM;
+        b -= lr * gradB;
+        slopeInput.value = Math.max(-2, Math.min(6, m)).toFixed(2);
+        interceptInput.value = Math.max(-10, Math.min(40, b)).toFixed(2);
+        render(`training… epoch ${epoch}`);
+        if (epoch >= 80 || mse(m, b) < 1.2) {
+          clearInterval(trainTimer); trainTimer = null;
+          trainBtn.disabled = false; trainBtn.textContent = "▶ Auto-train (gradient descent)";
+          render(`training stopped at epoch ${epoch}`);
+        }
+      }, 90);
+    });
+
+    render();
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AI-3.1.1", k: "K2", type: "single",
+        prompt: "A model is trained on a dataset where every input record already has the correct output attached. Which form of ML is this?",
+        choices: [
+          { text: "Supervised learning", correct: true },
+          { text: "Unsupervised learning", correct: false },
+          { text: "Reinforcement learning", correct: false },
+          { text: "None of these — labeled data isn't used for training.", correct: false },
+        ],
+        explain: "Labeled training data — inputs paired with correct outputs — is the defining feature of supervised learning." },
+      { lo: "AI-3.1.1", k: "K2", type: "multi",
+        prompt: "Which of the following are examples of a classification problem (select all that apply)?",
+        choices: [
+          { text: "Deciding whether an email is spam or not spam", correct: true },
+          { text: "Recognizing whether a photo contains a cat, a dog, or neither", correct: true },
+          { text: "Predicting a house's sale price in dollars", correct: false },
+          { text: "Forecasting tomorrow's stock price", correct: false },
+        ],
+        explain: "Classification assigns inputs to a fixed set of categories. Predicting a price or a stock value is ML regression — the output is a continuous number, not a category." },
+      { lo: "AI-3.1.1", k: "K2", type: "single",
+        prompt: "An agent takes actions in a simulated warehouse and receives a small reward every time it delivers a package efficiently, and a penalty if it collides with something. Which form of ML is this?",
+        choices: [
+          { text: "Reinforcement learning", correct: true },
+          { text: "Supervised learning", correct: false },
+          { text: "Unsupervised learning", correct: false },
+          { text: "Clustering", correct: false },
+        ],
+        explain: "There's no pre-labeled dataset here — the agent learns a policy from reward/penalty feedback generated by interacting with its environment, which is exactly reinforcement learning." },
+      { lo: "AI-3.1.1", k: "K2", type: "single",
+        prompt: "A retailer wants to segment customers into groups based on purchasing similarity, with no predefined group labels. Which unsupervised technique fits, and what would finding \"people who buy X also buy Y\" be called instead?",
+        choices: [
+          { text: "Clustering for the segmentation; association for the \"buy X, buy Y\" pattern", correct: true },
+          { text: "Classification for the segmentation; regression for the pattern", correct: false },
+          { text: "Reinforcement learning for both", correct: false },
+          { text: "Association for the segmentation; clustering for the pattern", correct: false },
+        ],
+        explain: "Clustering groups similar data points (the customer segments); association finds relationships between attributes (the co-purchase pattern) — both are unsupervised, but distinct problem types." },
+      { lo: "AI-3.1.2", k: "K2", type: "single",
+        prompt: "At which stage of the ML workflow are acceptance criteria, including ML functional performance metrics, first agreed with stakeholders?",
+        choices: [
+          { text: "Understand the objectives", correct: true },
+          { text: "Train the model", correct: false },
+          { text: "Deploy the model", correct: false },
+          { text: "Monitor & tune the model", correct: false },
+        ],
+        explain: "Acceptance criteria are set right at the start, during \"understand the objectives,\" so every later stage has a clear bar to measure against." },
+      { lo: "AI-3.1.2", k: "K2", type: "single",
+        prompt: "What's the difference between a model hyperparameter and an algorithm hyperparameter?",
+        choices: [
+          { text: "A model hyperparameter defines the model's structure (e.g. number of layers); an algorithm hyperparameter controls the training process (e.g. number of iterations).", correct: true },
+          { text: "There is no real difference — they're two names for the same thing.", correct: false },
+          { text: "Model hyperparameters are set after training; algorithm hyperparameters are set before.", correct: false },
+          { text: "Only algorithm hyperparameters can be tuned.", correct: false },
+        ],
+        explain: "Model hyperparameters shape what the model looks like (structure); algorithm hyperparameters shape how training itself is carried out." },
+      { lo: "AI-3.1.2", k: "K2", type: "single",
+        prompt: "Which workflow stage exists specifically to catch a model drifting away from its intended performance after it's already in production?",
+        choices: [
+          { text: "Monitor & tune the model", correct: true },
+          { text: "Evaluate the model", correct: false },
+          { text: "Select a framework", correct: false },
+          { text: "Test the model", correct: false },
+        ],
+        explain: "\"Evaluate\" and \"test\" happen before deployment, against pre-production data. Drift detection is an ongoing, post-deployment activity handled by \"monitor & tune.\"" },
+      { lo: "AI-3.1.2", k: "K2", type: "single",
+        prompt: "Why does the workflow use a separate, independent test dataset at the \"test the model\" stage instead of just reusing the validation dataset's results?",
+        choices: [
+          { text: "Because the validation dataset was already used repeatedly during tuning, so its results could be optimistically biased toward that specific model.", correct: true },
+          { text: "Because validation datasets are always too small to test with.", correct: false },
+          { text: "Because test datasets don't need to be representative of operational data.", correct: false },
+          { text: "There's no real reason — it's just a naming convention.", correct: false },
+        ],
+        explain: "Tuning repeatedly optimizes against the validation set, which can make performance on it look better than it really is. An independent test set gives a more honest, unbiased check." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s05", passPct: 65 });
+  });
+</script>
+</body>
+</html>

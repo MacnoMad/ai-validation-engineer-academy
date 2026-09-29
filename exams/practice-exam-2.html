@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 28 · Remediation + Practice Exam #2 — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+<style>
+  .exam-timer-chip {
+    display: flex; flex-direction: column; align-items: center; gap: .2rem;
+    font-variant-numeric: tabular-nums; font-weight: 900; font-size: 2.2rem;
+  }
+  .exam-timer-chip .lbl { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); }
+  .time-up-flash { color: var(--danger); animation: examFlash 1s ease-in-out infinite; }
+  @keyframes examFlash { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+  .breakdown-row { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:.6rem 0; border-bottom:1px solid var(--border); }
+  .breakdown-row:last-child { border-bottom:none; }
+  .breakdown-bar { flex:1; height:8px; border-radius:999px; background:var(--bg-sunken); overflow:hidden; border:1px solid var(--border); margin:0 .8rem; }
+  .breakdown-bar > span { display:block; height:100%; border-radius:999px; }
+</style>
+</head>
+<body data-root="../">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 28 · ISTQB Prep (Optional)</div>
+  <h1>Remediation + Practice Exam #2</h1>
+  <p class="lede">First, a quick look at how you did on Practice Exam #1 — broken down by chapter, so you know
+    exactly where to spend your remaining review time. Then a second full, timed mock exam: 40 fresh original
+    questions, none repeated from Exam #1, built to the same real chapter weighting.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ 60 min</span>
+    <span class="chip">40 questions</span>
+    <span class="chip">65% to pass</span>
+  </div>
+
+  <h2>Remediation: your Exam #1 weak spots</h2>
+  <div id="remediation-mount"></div>
+
+  <h2>Practice Exam #2</h2>
+  <div class="callout exam" id="exam-intro">
+    <div class="icon">🎯</div>
+    <div class="body">
+      <strong class="title">Ready when you are</strong>
+      <p>Same real-exam chapter weighting as Exam #1 — 6 from Chapter 1, 3 from Chapter 2, 7 from Chapter 3, 7
+        from Chapter 4, 6 from Chapter 5, 9 from Chapter 6, and 2 from Chapter 7 — but every question here is
+        different. Once you start, a 60-minute countdown begins; it won't force-submit you at zero, but treat
+        it as a hard boundary. Your score and per-chapter breakdown save locally, same as before.</p>
+      <button class="btn btn-primary" id="start-exam">▶ Start Exam</button>
+    </div>
+  </div>
+
+  <div class="lab" id="timer-box" style="display:none;">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Time remaining</span></div>
+    <div class="exam-timer-chip"><span id="exam-timer">60:00</span><span class="lbl">minutes : seconds</span></div>
+    <div class="callout danger" id="time-up-warning" style="display:none; margin-top:1rem;">
+      <div class="icon">⏰</div>
+      <div class="body"><strong class="title">Time's up</strong>The 60-minute mark has passed. This is practice,
+        not the real exam, so feel free to keep going — but note that in the real exam this is a hard stop.
+        Try to finish so your per-chapter breakdown is complete and accurate.</div>
+    </div>
+  </div>
+
+  <div id="quiz-mount"></div>
+  <div id="results-breakdown"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s28");
+    App.buildSessionNav("session-nav", "s28");
+    App.wireMarkComplete("mark-complete", "s28");
+
+    const CHAPTER_NAMES = {
+      1: "Ch.1 · Introduction to AI", 2: "Ch.2 · Quality Characteristics", 3: "Ch.3 · Machine Learning",
+      4: "Ch.4 · Testing AI-Based Systems", 5: "Ch.5 · Input Data Testing", 6: "Ch.6 · Model Testing",
+      7: "Ch.7 · ML Development Testing",
+    };
+    const CHAPTER_SESSIONS = {
+      1: "Sessions 2–3", 2: "Session 4", 3: "Sessions 5–10", 4: "Sessions 11–13",
+      5: "Sessions 14–16", 6: "Sessions 17–20", 7: "Session 21",
+    };
+
+    // ---- Remediation: read Exam #1's saved result from localStorage ----
+    function renderRemediation() {
+      const mount = document.getElementById("remediation-mount");
+      const prev = (typeof Progress !== "undefined") ? Progress.get("s27") : null;
+
+      if (!prev || !prev.examScore || !prev.examScore.byChapter) {
+        mount.innerHTML = `
+          <div class="callout tip">
+            <div class="icon">👋</div>
+            <div class="body">
+              <strong class="title">No Exam #1 result found yet</strong>
+              This browser doesn't have saved results for Practice Exam #1, so there's nothing to remediate
+              against yet. Complete <a href="practice-exam-1.html">Session 27 · Practice Exam #1</a> first, then
+              come back here — this section will automatically fill in with your weakest chapters.
+            </div>
+          </div>`;
+        return;
+      }
+
+      const bc = prev.examScore.byChapter;
+      const rows = [];
+      for (let ch = 1; ch <= 7; ch++) {
+        const d = bc[ch] || { correct: 0, total: 0 };
+        const pct = d.total ? Math.round((d.correct / d.total) * 100) : 0;
+        rows.push({ ch, pct, d });
+      }
+      const sorted = [...rows].sort((a, b) => a.pct - b.pct);
+      const weakest = sorted.filter(r => r.pct < 70 && r.d.total > 0).slice(0, 3);
+
+      let barsHtml = "";
+      rows.forEach(r => {
+        const tone = r.pct >= 80 ? "success" : r.pct >= 60 ? "warning" : "danger";
+        barsHtml += `<div class="breakdown-row">
+            <span style="min-width:220px;">${CHAPTER_NAMES[r.ch]}</span>
+            <div class="breakdown-bar"><span style="width:${r.pct}%; background:var(--${tone});"></span></div>
+            <span class="small" style="min-width:80px; text-align:right;">${r.d.correct}/${r.d.total} · ${r.pct}%</span>
+          </div>`;
+      });
+
+      let weakHtml = "";
+      if (weakest.length === 0) {
+        weakHtml = `
+          <div class="callout tip">
+            <div class="icon">💪</div>
+            <div class="body"><strong class="title">Strong result across the board</strong>
+              Every chapter scored 70% or higher on Exam #1 — nice work. No specific remediation needed; the
+              full breakdown is above for reference. Go straight into Exam #2 whenever you're ready.</div>
+          </div>`;
+      } else {
+        const items = weakest.map(r =>
+          `<li><strong>${CHAPTER_NAMES[r.ch]}</strong> — scored ${r.pct}% (${r.d.correct}/${r.d.total}). Review
+            <strong>${CHAPTER_SESSIONS[r.ch]}</strong> before Exam #2.</li>`
+        ).join("");
+        weakHtml = `
+          <div class="callout warn">
+            <div class="icon">🎯</div>
+            <div class="body"><strong class="title">Your weakest chapters from Exam #1</strong>
+              <ul style="margin:.5rem 0 0; padding-left:1.2rem;">${items}</ul>
+            </div>
+          </div>`;
+      }
+
+      mount.innerHTML = `
+        <div class="lab">
+          <div class="lab-head"><span class="dot"></span><span class="lab-title">Exam #1 result: ${prev.examScore.correct}/${prev.examScore.total}</span></div>
+          <div class="lab-sub">Saved locally in this browser when you finished Session 27.</div>
+          ${barsHtml}
+        </div>
+        ${weakHtml}`;
+    }
+    renderRemediation();
+
+    // ---- 40 original questions (different from Exam #1), same 6-3-7-7-6-9-2 weighting ----
+    const questions = [
+      // ===== Chapter 1 — Introduction to AI (6) =====
+      { chapter: 1, lo: "AI-1.1.2", k: "K2", type: "single",
+        prompt: "Which statement correctly describes Frontier AI and the technological singularity?",
+        choices: [
+          { text: "Frontier AI is a subset of narrow AI representing today's most advanced GenAI systems; the technological singularity is the hypothetical point where AI would transition from general AI to super AI.", correct: true },
+          { text: "Frontier AI is the same thing as general AI, and the singularity has already occurred.", correct: false },
+          { text: "The technological singularity refers to the moment any neural network finishes training.", correct: false },
+          { text: "Frontier AI describes a category of hardware, not software.", correct: false },
+        ],
+        explain: "Frontier AI is still narrow (task-specific), just highly advanced. The singularity is a theoretical, not-yet-reached threshold between general and super AI." },
+      { chapter: 1, lo: "AI-1.1.3", k: "K2", type: "multi",
+        prompt: "Which of the following are recognized forms of machine learning? (Select all that apply.)",
+        choices: [
+          { text: "Supervised learning", correct: true },
+          { text: "Unsupervised learning", correct: true },
+          { text: "Reinforcement learning", correct: true },
+          { text: "Fuzzy logic", correct: false },
+        ],
+        explain: "Fuzzy logic is a separate AI technology family for reasoning under uncertainty — not one of the three forms of machine learning." },
+      { chapter: 1, lo: "AI-1.1.3", k: "K2", type: "single",
+        prompt: "What mechanism allows Transformer models to weigh how relevant every other token in a sequence is to the one currently being generated?",
+        choices: [
+          { text: "Self-attention.", correct: true },
+          { text: "Backpropagation of adversarial noise.", correct: false },
+          { text: "k-fold cross-validation.", correct: false },
+          { text: "Disparate impact analysis.", correct: false },
+        ],
+        explain: "Transformers use self-attention to handle long-range dependencies in sequences — the mechanism powering LLMs and vision transformers." },
+      { chapter: 1, lo: "AI-1.1.4", k: "K2", type: "multi",
+        prompt: "Which of these are societal or ethical concerns specifically raised by GenAI's ability to create convincing synthetic content? (Select all that apply.)",
+        choices: [
+          { text: "Deepfakes and misinformation undermining trust in digital media", correct: true },
+          { text: "Workforce displacement in white-collar professions such as writing, design, and coding", correct: true },
+          { text: "High energy consumption and carbon footprint from training and running large models", correct: true },
+          { text: "GenAI models are physically incapable of generating text", correct: false },
+        ],
+        explain: "GenAI raises real concerns around misuse (deepfakes/misinformation), workforce impact, and sustainability — the fourth option is simply false; GenAI text generation is one of its core capabilities." },
+      { chapter: 1, lo: "AI-1.1.6", k: "K2", type: "single",
+        prompt: "An organization prototypes a model locally for privacy and control, then moves the compute-intensive training to the cloud once the approach looks promising. What is this development approach called?",
+        choices: [
+          { text: "A hybrid development approach.", correct: true },
+          { text: "Pure on-premises hosting.", correct: false },
+          { text: "AI as a Service (AIaaS) exclusively.", correct: false },
+          { text: "Shadow testing.", correct: false },
+        ],
+        explain: "Hybrid approaches combine local prototyping or sensitive-data handling with cloud resources for compute-intensive tasks." },
+      { chapter: 1, lo: "AI-1.1.7", k: "K2", type: "single",
+        prompt: "Which of these is NOT typically part of the functionality provided by an ML development framework?",
+        choices: [
+          { text: "Drafting legal contracts between an organization and its clients.", correct: true },
+          { text: "Data handling — loading, cleaning, and preprocessing training data.", correct: false },
+          { text: "Model building — libraries of ML algorithms and architecture design tools.", correct: false },
+          { text: "Deployment — converting a trained model into a format suitable for production.", correct: false },
+        ],
+        explain: "ML development frameworks typically provide data handling, model building, training and optimization, evaluation, and deployment support — legal contract drafting is not part of that toolkit." },
+
+      // ===== Chapter 2 — Quality Characteristics (3) =====
+      { chapter: 2, lo: "AI-2.1.1", k: "K2", type: "single",
+        prompt: "A farm sensor system notifies the farmer when its visual detection quality degrades by more than 30%, letting the farmer manually override it, and fully deactivates itself if degradation exceeds 50% without a response. Which quality characteristic does this example best illustrate?",
+        choices: [
+          { text: "User controllability — a human can intervene in the system's functioning in a timely manner.", correct: true },
+          { text: "AI functional correctness only.", correct: false },
+          { text: "Transparency only.", correct: false },
+          { text: "Functional adaptability only.", correct: false },
+        ],
+        explain: "User controllability is the property that a human or external agent can intervene in an AI-based system's functioning in a timely manner — the notify-and-override behavior is a direct example." },
+      { chapter: 2, lo: "AI-2.1.2", k: "K2", type: "single",
+        prompt: "Which AI-specific safety challenge describes the difficulty of guaranteeing a model's precise behavior, even after rigorous testing, due to factors like random number generation or small input variations?",
+        choices: [
+          { text: "Non-determinism.", correct: true },
+          { text: "Evolving regulations.", correct: false },
+          { text: "Explainability and transparency.", correct: false },
+          { text: "Vague specifications.", correct: false },
+        ],
+        explain: "Non-determinism is the challenge that even rigorously tested AI-based systems can exhibit unexpected behavior due to randomness or small input variations." },
+      { chapter: 2, lo: "AI-2.2.1", k: "K2", type: "single",
+        prompt: "Which of these is an example acceptance criterion specifically for the Transparency quality characteristic?",
+        choices: [
+          { text: "The system's operational dashboard and API must provide an endpoint returning the deployed model's version identifier and a link to its documentation.", correct: true },
+          { text: "Accuracy of 95% for an image recognition system.", correct: false },
+          { text: "A supervisor can take control of a drone within 0.5 seconds of a distress signal.", correct: false },
+          { text: "The production line shuts down within 0.5 seconds of a safety breach.", correct: false },
+        ],
+        explain: "The other options are examples for AI functional correctness, user controllability, and intervenability respectively — only the documentation/version-endpoint example targets transparency." },
+
+      // ===== Chapter 3 — Machine Learning (7) =====
+      { chapter: 3, lo: "AI-3.1.1", k: "K2", type: "single",
+        prompt: "A retailer wants to segment customers into groups with similar purchasing habits, without any predefined labels. Which unsupervised-learning technique fits this task?",
+        choices: [
+          { text: "Clustering.", correct: true },
+          { text: "Association.", correct: false },
+          { text: "ML regression.", correct: false },
+          { text: "Reinforcement learning.", correct: false },
+        ],
+        explain: "Clustering groups data points based on similarity, such as customer segmentation. Association instead identifies relationships or dependencies among attributes, such as market-basket analysis." },
+      { chapter: 3, lo: "AI-3.1.2", k: "K2", type: "single",
+        prompt: "In the ML workflow, what is the key difference between the “evaluate the model” activity and the “test the model” activity?",
+        choices: [
+          { text: "Evaluation uses the validation dataset to guide tuning; testing uses an independent test (holdout) dataset to verify the final tuned model meets its acceptance criteria.", correct: true },
+          { text: "They always use exactly the same dataset.", correct: false },
+          { text: "Testing happens before any training occurs.", correct: false },
+          { text: "Evaluation is only ever performed after deployment.", correct: false },
+        ],
+        explain: "Evaluation (validation dataset) feeds into tuning; once model generation is complete, testing uses an independent test dataset to confirm the agreed ML functional performance criteria are met." },
+      { chapter: 3, lo: "AI-3.1.4", k: "K2", type: "single",
+        prompt: "What is a defining characteristic of retrieval-augmented generation (RAG), distinguishing it from fine-tuning?",
+        choices: [
+          { text: "No change is made to the pretrained model's weights — relevant retrieved documents are instead incorporated into an enhanced prompt.", correct: true },
+          { text: "RAG always requires retraining the entire neural network.", correct: false },
+          { text: "RAG can only be used with image-generation models.", correct: false },
+          { text: "RAG eliminates the need for any external data sources.", correct: false },
+        ],
+        explain: "With RAG, no change is made to the pretrained model; relevant documents are transformed into a searchable format and incorporated into the prompt passed to the LLM at inference time." },
+      { chapter: 3, lo: "AI-3.2.1", k: "K2", type: "single",
+        prompt: "What is the primary purpose of exploratory data analysis (EDA) during data preparation?",
+        choices: [
+          { text: "To discover trends, patterns, and anomalies in the data, often through visualizations, building insight alongside other preparation steps.", correct: true },
+          { text: "To permanently delete all outliers from the dataset without review.", correct: false },
+          { text: "To replace the need for k-fold cross-validation.", correct: false },
+          { text: "To train the final production model.", correct: false },
+        ],
+        explain: "EDA discovers trends, patterns, and anomalies and visualizes data through plots and charts — it's an investigative activity, not a deletion or training step." },
+      { chapter: 3, lo: "AI-3.2.3", k: "K2", type: "single",
+        prompt: "What is leave-one-out cross-validation?",
+        choices: [
+          { text: "A special case of k-fold cross-validation where k equals the number of samples in the dataset.", correct: true },
+          { text: "A technique that always uses exactly 10 folds.", correct: false },
+          { text: "A method that removes the test dataset entirely from the workflow.", correct: false },
+          { text: "A synonym for bootstrap sampling.", correct: false },
+        ],
+        explain: "Leave-one-out cross-validation is named as a special case of k-fold cross-validation where k equals the number of samples — each fold holds out just one instance." },
+      { chapter: 3, lo: "AI-3.3.1", k: "K3", type: "single",
+        prompt: "A binary classifier evaluated on 150 cases produces: TP = 45, FP = 5, FN = 15, TN = 85. What is the model's accuracy?",
+        choices: [
+          { text: "86.7% — (45 + 85) / 150", correct: true },
+          { text: "90% — 45 / (45 + 5)", correct: false },
+          { text: "75% — 45 / (45 + 15)", correct: false },
+          { text: "81.8% — the F1-score for this matrix", correct: false },
+        ],
+        explain: "Accuracy = (TP + TN) / total = 130 / 150 ≈ 86.7%. The distractors are precision (90%), recall (75%), and F1-score (≈81.8%) — all real metrics, but not accuracy." },
+      { chapter: 3, lo: "AI-3.4.3", k: "K2", type: "single",
+        prompt: "A testing tool divides each neuron's possible output range into k sections and measures what proportion of those sections are activated during testing. What coverage measure is this?",
+        choices: [
+          { text: "k-Multisection Neuron Coverage (kMNC).", correct: true },
+          { text: "Neuron Boundary Coverage (NBC).", correct: false },
+          { text: "Basic neuron coverage.", correct: false },
+          { text: "Data representativeness coverage.", correct: false },
+        ],
+        explain: "kMNC divides each neuron's output range into k sections and measures the proportion of sections activated — distinct from NBC, which tracks outputs exceeding the training max or falling below the training min." },
+
+      // ===== Chapter 4 — Testing AI-Based Systems (7) =====
+      { chapter: 4, lo: "AI-4.1.1", k: "K2", type: "single",
+        prompt: "Although locked AI-based systems are generally considered deterministic, what can still cause a large deployed neural network to behave non-deterministically in practice?",
+        choices: [
+          { text: "Floating-point precision limits and variations in hardware execution, particularly with parallel computation on GPUs.", correct: true },
+          { text: "Locked systems are incapable of running on GPUs.", correct: false },
+          { text: "Locked systems automatically retrain themselves on every request.", correct: false },
+          { text: "Locked systems have no weights or biases.", correct: false },
+        ],
+        explain: "In practice, large neural networks can exhibit non-deterministic behavior due to floating-point precision limits and hardware execution variations, even when considered “locked.”" },
+      { chapter: 4, lo: "AI-4.1.3", k: "K2", type: "single",
+        prompt: "Two testers disagree about whether a subjective virtual-assistant response is “correct,” and no formal specification resolves the disagreement. Which test-oracle solution directly addresses this kind of subjectivity?",
+        choices: [
+          { text: "Expert consultation to help define expected results, while acknowledging that expert opinions might differ.", correct: true },
+          { text: "Neuron boundary coverage measurement.", correct: false },
+          { text: "Dataset constraint testing.", correct: false },
+          { text: "Canary testing.", correct: false },
+        ],
+        explain: "Expert consultation is a listed oracle solution: domain experts can help define expected results, though their opinions might differ or be fallible." },
+      { chapter: 4, lo: "AI-4.2.1", k: "K2", type: "single",
+        prompt: "What is the purpose of benchmark suites when testing GenAI systems?",
+        choices: [
+          { text: "They provide standardized, curated datasets and tasks that allow consistent, reproducible comparison of GenAI capabilities across different models.", correct: true },
+          { text: "They replace the need for any red teaming.", correct: false },
+          { text: "They are only usable for testing image-generation models.", correct: false },
+          { text: "They eliminate the input explosion problem entirely.", correct: false },
+        ],
+        explain: "Benchmark suites are standardized evaluation frameworks enabling consistent comparison across models on tasks like language understanding, reasoning, and coding." },
+      { chapter: 4, lo: "AI-4.2.2", k: "K2", type: "single",
+        prompt: "How does red teaming relate to blue teaming for AI-based systems?",
+        choices: [
+          { text: "Red teaming is proactive, pre-deployment attack simulation; blue teaming is ongoing, real-time defensive monitoring and filtering — insights from red teaming strengthen blue teaming.", correct: true },
+          { text: "They are two names for exactly the same activity.", correct: false },
+          { text: "Blue teaming happens only before deployment, and red teaming only after.", correct: false },
+          { text: "Red teaming is a form of unit testing performed only by developers.", correct: false },
+        ],
+        explain: "Red teaming (proactive, pre-deployment) complements blue teaming (ongoing, real-time defensive monitoring/filtering); red-teaming insights are used to strengthen blue-teaming filters and monitoring." },
+      { chapter: 4, lo: "AI-4.2.2", k: "K2", type: "multi",
+        prompt: "Which of the following are part of a typical red-teaming process? (Select all that apply.)",
+        choices: [
+          { text: "Assembling a diverse team of testers to cover a wide range of perspectives and attack vectors", correct: true },
+          { text: "Prompting the system to identify vulnerabilities, through open-ended exploration or checklists", correct: true },
+          { text: "Creating datasets from identified threats to support mitigations and system improvements", correct: true },
+          { text: "Publishing the model's full training dataset publicly before testing begins", correct: false },
+        ],
+        explain: "Red teaming's process includes assembling a diverse team, providing safe access, prompting to identify vulnerabilities, analyzing failures, and creating datasets from threats — publicly releasing training data is not part of it and would be a serious risk in itself." },
+      { chapter: 4, lo: "AI-4.3.1", k: "K2", type: "single",
+        prompt: "For a machine learning system, what does component integration testing specifically verify?",
+        choices: [
+          { text: "That inputs from the data pipeline are received as expected by the model, and predictions are correctly exchanged with other system components.", correct: true },
+          { text: "That the model achieves 95% accuracy on a hold-out test dataset.", correct: false },
+          { text: "That a deployed model can be rolled back to a previous stable state.", correct: false },
+          { text: "That a red-teaming attack cannot extract training data.", correct: false },
+        ],
+        explain: "Component integration testing for MLS focuses on verifying data-pipeline-to-model input flow and prediction exchange with other components, such as the UI." },
+      { chapter: 4, lo: "AI-4.3.2", k: "K2", type: "single",
+        prompt: "Biased training data, data-pipeline defects, and unrepresentative training data are all examples of product risks in which ML risk category?",
+        choices: [
+          { text: "Input data risk.", correct: true },
+          { text: "Development risk.", correct: false },
+          { text: "Model risk.", correct: false },
+          { text: "Deployment risk.", correct: false },
+        ],
+        explain: "Input data risk covers training-data and production-data concerns, including biased training data, pipeline defects, and unrepresentativeness." },
+
+      // ===== Chapter 5 — Input Data Testing (6) =====
+      { chapter: 5, lo: "AI-5.1.1", k: "K2", type: "multi",
+        prompt: "Which of these test approaches are suggested for mitigating the risk of poisoned training data acquired from untrustworthy sources? (Select all that apply.)",
+        choices: [
+          { text: "A/B testing", correct: true },
+          { text: "Data provenance testing", correct: true },
+          { text: "Exploratory data analysis (EDA)", correct: true },
+          { text: "Neuron boundary coverage measurement", correct: false },
+        ],
+        explain: "The input data risk table lists A/B testing, data provenance testing, EDA, and red-teaming attacks as mitigations for poisoned training data — neuron boundary coverage addresses a different risk (neural network structural coverage)." },
+      { chapter: 5, lo: "AI-5.1.2", k: "K2", type: "single",
+        prompt: "How can exploratory data analysis (EDA) help detect potential bias in training data?",
+        choices: [
+          { text: "By using visualization and clustering methods to reveal imbalanced data, skewed distributions, or anomalous groupings across sensitive attributes.", correct: true },
+          { text: "By automatically deleting all sensitive attributes from the dataset.", correct: false },
+          { text: "By retraining the model with a completely different algorithm.", correct: false },
+          { text: "By running a red-teaming session against the deployed model.", correct: false },
+        ],
+        explain: "EDA of training data uses visualization and clustering to reveal imbalances, skewed distributions, or anomalous groupings across sensitive attributes — one of the listed bias-detection approaches." },
+      { chapter: 5, lo: "AI-5.1.3", k: "K2", type: "single",
+        prompt: "As part of data pipeline testing, comparing the operational pipeline's outputs against the training pipeline's outputs, using the same inputs, is an example of which technique?",
+        choices: [
+          { text: "Back-to-back testing.", correct: true },
+          { text: "Canary testing.", correct: false },
+          { text: "Fault injection testing.", correct: false },
+          { text: "Disparate impact analysis.", correct: false },
+        ],
+        explain: "Back-to-back testing of the data pipeline compares the operational pipeline against the training pipeline to verify consistent functionality." },
+      { chapter: 5, lo: "AI-5.1.4", k: "K2", type: "single",
+        prompt: "When defining the target population as the first step of data representativeness testing, why would a tester apply stratified sampling to a representative reference dataset?",
+        choices: [
+          { text: "To create a baseline that covers all relevant subgroups in the target domain.", correct: true },
+          { text: "To remove all minority subgroups from consideration.", correct: false },
+          { text: "To guarantee the model achieves 100% accuracy.", correct: false },
+          { text: "To replace the need for a separate test dataset entirely.", correct: false },
+        ],
+        explain: "Stratified sampling applied to the reference data creates a baseline that covers all relevant subgroups in the target domain — a step under “define the target population.”" },
+      { chapter: 5, lo: "AI-5.1.5", k: "K3", type: "single",
+        prompt: "A tester defines a rule that a program's total lines-of-code must always exceed its count of lines-of-code containing defects. What category of dataset constraint is this?",
+        choices: [
+          { text: "A comparison (Greater Than) constraint.", correct: true },
+          { text: "A single-value range constraint.", correct: false },
+          { text: "A multi-value count constraint.", correct: false },
+          { text: "A missing-value constraint.", correct: false },
+        ],
+        explain: "A Greater Than constraint tests that one attribute's value exceeds another's — a comparison constraint, distinct from single-value or multi-value constraints on one attribute alone." },
+      { chapter: 5, lo: "AI-5.1.6", k: "K2", type: "single",
+        prompt: "A tester notices that certain training examples consistently produce very high loss during training, meaning the model's predictions deviate substantially from their assigned labels. What does this most likely indicate?",
+        choices: [
+          { text: "Potential mislabeling of those data points — model loss analysis.", correct: true },
+          { text: "The model has achieved perfect functional correctness.", correct: false },
+          { text: "Data pipeline latency issues.", correct: false },
+          { text: "Successful k-fold cross-validation.", correct: false },
+        ],
+        explain: "Model loss analysis flags data points with high training loss as potentially mislabeled — the model struggles to learn the assigned label, pointing to a possible defect." },
+
+      // ===== Chapter 6 — Model Testing (9) =====
+      { chapter: 6, lo: "AI-6.1.1", k: "K2", type: "single",
+        prompt: "A reinforcement-learning agent finds an unintended shortcut that maximizes its reward signal without actually achieving the intended goal. What ML model risk does this describe?",
+        choices: [
+          { text: "Reward hacking.", correct: true },
+          { text: "Overfitting.", correct: false },
+          { text: "Data drift.", correct: false },
+          { text: "An adversarial vulnerability.", correct: false },
+        ],
+        explain: "The ML model risk table lists reward hacking as its own risk, mitigated by reward-hacking-specific testing — distinct from overfitting, drift, or adversarial vulnerability." },
+      { chapter: 6, lo: "AI-6.1.2", k: "K2", type: "single",
+        prompt: "Which documentation framework offers a standardized format for describing a dataset's motivation, composition, collection process, and intended uses?",
+        choices: [
+          { text: "Datasheets for Datasets.", correct: true },
+          { text: "Model Cards.", correct: false },
+          { text: "The ML workflow diagram.", correct: false },
+          { text: "The confusion matrix.", correct: false },
+        ],
+        explain: "Datasheets for Datasets standardize the description of a dataset's motivation, composition, collection process, and uses; Model Cards instead document the model itself." },
+      { chapter: 6, lo: "AI-6.1.3", k: "K2", type: "single",
+        prompt: "A team fixes the margin of error (MoE) at ±4% and keeps increasing the number of test cases executed against a probabilistic model. What happens to the confidence level (CL)?",
+        choices: [
+          { text: "It increases — the test result becomes more certain at the same fixed precision.", correct: true },
+          { text: "It decreases.", correct: false },
+          { text: "It becomes undefined.", correct: false },
+          { text: "CL is unrelated to the number of test cases.", correct: false },
+        ],
+        explain: "As tests increase, fixing the MoE lets the confidence level increase — the result becomes more certain, the counterpart to fixing CL and watching MoE shrink." },
+      { chapter: 6, lo: "AI-6.1.4", k: "K2", type: "single",
+        prompt: "Why does understanding a model's internal architecture, parameters, and training process (white-box knowledge) typically make it easier to craft adversarial examples?",
+        choices: [
+          { text: "Direct knowledge of the model's internals lets an attacker target its specific decision boundaries and vulnerabilities without needing a substitute model.", correct: true },
+          { text: "White-box testing requires no knowledge of the model's inputs or outputs.", correct: false },
+          { text: "White-box adversarial testing can only ever be performed manually.", correct: false },
+          { text: "White-box testing is identical to black-box testing in every respect.", correct: false },
+        ],
+        explain: "White-box adversarial testing uses knowledge of the model's internals — architecture, parameters, training process — to craft targeted adversarial examples more directly than black-box approaches." },
+      { chapter: 6, lo: "AI-6.1.5", k: "K3", type: "single",
+        prompt: "A tester defines a metamorphic relation for an image classifier: rotating a photo by a few degrees should not change the model's predicted class. Which metamorphic property does this test?",
+        choices: [
+          { text: "Invariance — outputs remain stable under a defined perturbation.", correct: true },
+          { text: "Monotonicity.", correct: false },
+          { text: "Consistency across unrelated test objects.", correct: false },
+          { text: "Neuron coverage.", correct: false },
+        ],
+        explain: "Invariance checks that outputs remain stable under a perturbation of the input — a small rotation shouldn't change the predicted class, unlike monotonicity, which checks directional change." },
+      { chapter: 6, lo: "AI-6.1.7", k: "K2", type: "single",
+        prompt: "A team monitors a film-recommendation system by comparing users' explicit ratings of recommendations — the current ground truth — against the model's predicted preferences, flagging when the gap crosses a threshold. What type of drift testing is this?",
+        choices: [
+          { text: "Dynamic drift testing, which relies on user feedback providing current ground truth.", correct: true },
+          { text: "Static drift testing, which relies only on comparing input/output statistical distributions.", correct: false },
+          { text: "Adversarial testing.", correct: false },
+          { text: "A/B testing.", correct: false },
+        ],
+        explain: "Dynamic drift testing relies on user feedback (direct, like ratings, or indirect) to provide current ground truth, compared against the model's output — unlike static drift testing, which compares statistical distributions without ground truth." },
+      { chapter: 6, lo: "AI-6.1.8", k: "K2", type: "single",
+        prompt: "A test dataset deliberately includes some less-common examples unlikely to have appeared during training. The model performs significantly worse on this test dataset than it did during validation. What does this suggest?",
+        choices: [
+          { text: "The model may be overfitting — it captured patterns specific to its training data rather than generalizing well.", correct: true },
+          { text: "The model is definitely underfitting.", correct: false },
+          { text: "The test dataset is invalid and should be discarded.", correct: false },
+          { text: "Data drift has occurred in production.", correct: false },
+        ],
+        explain: "Performing significantly worse on an independent, less-common-example-heavy test dataset than on validation data is the syllabus's signature check for overfitting." },
+      { chapter: 6, lo: "AI-6.1.9", k: "K2", type: "single",
+        prompt: "How can A/B testing be used to safely manage updates to a self-learning AI-based system?",
+        choices: [
+          { text: "Run automated tests comparing the changed system to its previous state; accept the change if performance improves, otherwise revert to the previous version.", correct: true },
+          { text: "A/B testing cannot be applied to self-learning systems under any circumstances.", correct: false },
+          { text: "Always accept every change regardless of test results.", correct: false },
+          { text: "Replace A/B testing entirely with neuron coverage measurement.", correct: false },
+        ],
+        explain: "For self-learning systems, A/B testing runs automated tests after a change and compares resulting characteristics to the prior state — the change is accepted only if it's an improvement, otherwise the system reverts." },
+      { chapter: 6, lo: "AI-6.1.10", k: "K2", type: "single",
+        prompt: "What is the key difference between A/B testing and back-to-back testing of an ML system?",
+        choices: [
+          { text: "A/B testing compares two variants of the same system using ML functional performance metrics and statistics; back-to-back testing uses a pseudo-oracle to detect defects by comparing outputs on the same inputs.", correct: true },
+          { text: "They are identical techniques with different names.", correct: false },
+          { text: "Back-to-back testing can never be automated.", correct: false },
+          { text: "A/B testing requires no acceptance criteria of any kind.", correct: false },
+        ],
+        explain: "A/B testing compares two variants via performance metrics and statistical techniques; back-to-back testing instead uses a pseudo-oracle to detect defects by comparing outputs to the same inputs." },
+
+      // ===== Chapter 7 — ML Development Testing (2) =====
+      { chapter: 7, lo: "AI-7.1.1", k: "K2", type: "single",
+        prompt: "Which combination of test approaches mitigates the risk of sub-optimal hyperparameter selection, such as network structure or learning rate?",
+        choices: [
+          { text: "ML functional performance testing and A/B testing.", correct: true },
+          { text: "Installability testing only.", correct: false },
+          { text: "Rollback testing only.", correct: false },
+          { text: "Cross-device testing only.", correct: false },
+        ],
+        explain: "The ML development risk table lists ML functional performance testing and A/B testing as mitigations for sub-optimal hyperparameter selection." },
+      { chapter: 7, lo: "AI-7.1.2", k: "K2", type: "single",
+        prompt: "How does shadow testing differ from canary testing when deploying an updated ML model?",
+        choices: [
+          { text: "Shadow testing runs the new model in parallel with production on live data without affecting real responses; canary testing actually routes a small percentage of real traffic to the new model.", correct: true },
+          { text: "They are the same technique under two different names.", correct: false },
+          { text: "Shadow testing requires taking the entire system offline.", correct: false },
+          { text: "Canary testing never uses real production data.", correct: false },
+        ],
+        explain: "Shadow testing runs a new model alongside production, receiving the same requests but never affecting live responses; canary testing actually serves a small subset of real users with the new model." },
+    ];
+
+    // ---- Per-chapter grading helper (mirrors Quiz.render's own grading logic) ----
+    function gradeByChapter(qs) {
+      const byChapter = {};
+      for (let ch = 1; ch <= 7; ch++) byChapter[ch] = { correct: 0, total: 0 };
+      const cards = document.querySelectorAll("#quiz-mount .qcard");
+      cards.forEach((card, qi) => {
+        const q = qs[qi];
+        const inputs = card.querySelectorAll("input");
+        const chosen = Array.from(inputs).filter(i => i.checked).map(i => parseInt(i.value, 10));
+        const correctIdx = q.choices.map((c, i) => c.correct ? i : -1).filter(i => i >= 0);
+        const selfAssess = correctIdx.length === q.choices.length;
+        const isCorrect = selfAssess ? chosen.length > 0
+          : (chosen.length === correctIdx.length && chosen.every(i => correctIdx.includes(i)));
+        byChapter[q.chapter].total++;
+        if (isCorrect) byChapter[q.chapter].correct++;
+      });
+      return byChapter;
+    }
+
+    function renderResultsBreakdown(byChapter) {
+      const mount = document.getElementById("results-breakdown");
+      let rows = "";
+      for (let ch = 1; ch <= 7; ch++) {
+        const d = byChapter[ch];
+        const pct = d.total ? Math.round((d.correct / d.total) * 100) : 0;
+        const tone = pct >= 80 ? "success" : pct >= 60 ? "warning" : "danger";
+        rows += `<div class="breakdown-row">
+            <span style="min-width:220px;">${CHAPTER_NAMES[ch]}</span>
+            <div class="breakdown-bar"><span style="width:${pct}%; background:var(--${tone});"></span></div>
+            <span class="small" style="min-width:80px; text-align:right;">${d.correct}/${d.total} · ${pct}%</span>
+          </div>`;
+      }
+      mount.innerHTML = `
+        <div class="lab">
+          <div class="lab-head"><span class="dot"></span><span class="lab-title">Score breakdown by chapter</span></div>
+          <div class="lab-sub">Saved locally — Exam #1's remediation section on this page used the same shape of data.</div>
+          ${rows}
+        </div>`;
+      mount.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function refreshMarkCompleteUI() {
+      const btn = document.getElementById("mark-complete");
+      if (!btn) return;
+      const done = Progress.isComplete("s28");
+      btn.textContent = done ? "✓ Session complete" : "Mark session complete";
+      btn.classList.toggle("btn-primary", !done);
+      btn.classList.toggle("btn-ghost", done);
+      const mini = document.getElementById("progress-mini-fill");
+      if (mini) mini.style.width = Progress.overallPct() + "%";
+    }
+
+    // ---- Timer ----
+    let timerInterval = null;
+    let secondsLeft = 60 * 60;
+    function formatTime(s) {
+      const m = Math.floor(s / 60), sec = s % 60;
+      return String(m).padStart(2, "0") + ":" + String(sec).padStart(2, "0");
+    }
+    function startTimer() {
+      const timerEl = document.getElementById("exam-timer");
+      timerInterval = setInterval(() => {
+        secondsLeft--;
+        if (secondsLeft <= 0) {
+          secondsLeft = 0;
+          timerEl.textContent = "00:00";
+          timerEl.classList.add("time-up-flash");
+          document.getElementById("time-up-warning").style.display = "flex";
+          clearInterval(timerInterval);
+          return;
+        }
+        timerEl.textContent = formatTime(secondsLeft);
+      }, 1000);
+    }
+
+    // ---- Start Exam ----
+    document.getElementById("start-exam").addEventListener("click", () => {
+      document.getElementById("exam-intro").style.display = "none";
+      document.getElementById("timer-box").style.display = "block";
+      startTimer();
+      Quiz.render("quiz-mount", questions, {
+        sessionId: "s28",
+        passPct: 65,
+        onFinish: (correct, total) => {
+          if (timerInterval) clearInterval(timerInterval);
+          const byChapter = gradeByChapter(questions);
+          renderResultsBreakdown(byChapter);
+          Progress.set("s28", { complete: true, examScore: { correct, total, byChapter } });
+          refreshMarkCompleteUI();
+        },
+      });
+    });
+  });
+</script>
+</body>
+</html>

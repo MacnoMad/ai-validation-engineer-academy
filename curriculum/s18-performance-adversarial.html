@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 18 · Probabilistic Performance &amp; Adversarial Testing — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 18 · Chapter 6 — Model Testing for Machine Learning Systems (part 2 of 4)</div>
+  <h1>Probabilistic Performance &amp; Adversarial Testing</h1>
+  <p class="lede">Today answers two very different questions about a trained model: "how do we know if its accuracy
+    is actually good enough, with real statistical rigor?" and "how easily can it be fooled by an attacker who
+    changes the input by an amount you'd never notice?" Both are core Chapter 6 skills, and both show up heavily
+    on the exam.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">LOs: AI-6.1.3 – AI-6.1.4</span>
+    <span class="chip">🎯 Chapter 6 carries the heaviest exam weight of any chapter: 9 of 40 questions</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">margin of error</span><span class="kw">confidence level</span>
+    <span class="kw">sequential testing</span><span class="kw">statistical acceptance criteria</span>
+    <span class="kw">adversarial example</span><span class="kw">adversarial attack</span>
+    <span class="kw">transferability</span><span class="kw">black-box testing</span><span class="kw">white-box testing</span>
+  </div>
+
+  <h2>1. From "is it accurate?" to "how confident are we?"</h2>
+  <p>Back in Session 7 you built a confusion matrix from a single test run and computed accuracy, precision,
+    recall, and F1-score. That was the right first step — but it quietly assumed something: that one number,
+    computed on one dataset, tells the whole story. For a probabilistic system that behaves differently depending
+    on exactly which inputs you happen to test it with, that assumption doesn't hold. Today's first topic (6.1.3)
+    is about what changes when you stop asking "what score did the model get?" and start asking "what range of
+    scores can we say, with a stated level of confidence, the model will actually achieve in production?"</p>
+
+  <h2>2. Why probabilistic systems need statistical performance testing</h2>
+  <p>A deterministic program either passes a test or it doesn't — a single execution settles the question. An
+    ML model's behavior is a distribution: run it against a thousand different but equally valid real-world
+    inputs and you'll see a spread of correct and incorrect predictions, not a single verdict. That non-determinism
+    is exactly what Session 11 called the oracle problem, applied here to the specific question of "how good is
+    this model, overall."</p>
+  <p>ML functional performance testing tackles this by evaluating the same metrics you already know — accuracy,
+    recall, precision, F1-score — but across a <strong>large, representative dataset</strong>, and reporting the
+    result as a statistical statement rather than a simple pass/fail. That's the core shift: from "it scored 94%
+    on this run" to "we can say with 95% confidence that its true accuracy is 94% ± 4%."</p>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">This is not the same skill as Session 7</strong>
+      Session 7 taught you to <em>compute</em> a metric from a confusion matrix. This session teaches you to
+      <em>trust</em> that metric — to know how large and representative your test set needs to be before the
+      number means anything, and how to express the uncertainty that's always present.
+    </div>
+  </div>
+
+  <h2>3. Building a statistical acceptance criterion</h2>
+  <p>A precondition for statistical performance testing is having acceptance criteria defined in statistical
+    terms in the first place. Instead of a bare target like "98% accuracy," a proper requirement names three
+    things:</p>
+  <div class="grid-2">
+    <div class="card">
+      <strong>A performance metric</strong>
+      <p class="small" style="margin-top:.4rem;">The thing being measured — accuracy, recall, precision, F1, or
+        another metric appropriate to the task.</p>
+    </div>
+    <div class="card">
+      <strong>A margin of error (MoE)</strong>
+      <p class="small" style="margin-top:.4rem;">How much the true value could plausibly differ from the measured
+        value — e.g., "±4%." Smaller MoE means a more precise result.</p>
+    </div>
+    <div class="card">
+      <strong>A confidence level (CL)</strong>
+      <p class="small" style="margin-top:.4rem;">How sure you are that the true value actually falls within that
+        margin — e.g., "95% confidence." Higher CL means a more certain result.</p>
+    </div>
+    <div class="card">
+      <strong>A resulting sample size</strong>
+      <p class="small" style="margin-top:.4rem;">Once metric, MoE, and CL are fixed, statistics tells you the
+        minimum number of independent test cases required to back up the claim.</p>
+    </div>
+  </div>
+
+  <p>The syllabus walks through a worked example: a criterion of <strong>"98% accuracy with a MoE of ±4% at a
+    95% CL"</strong> requires a sample size of <strong>601 test cases</strong>, of which at least <strong>589
+    must pass</strong> to meet the 98% target. That 601 figure comes from the conservative assumption that the
+    true accuracy could be anywhere from 0–100% — the largest possible uncertainty, which guarantees the ±4% MoE
+    holds no matter what the real number turns out to be. If, after running all 601, the model actually does hit
+    98%, the <em>true</em> MoE at 95% CL turns out to be much tighter — about ±1.1% — because variance shrinks as
+    accuracy gets closer to the extremes.</p>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div class="body">
+      <strong class="title">You will not be asked to derive these numbers</strong>
+      The syllabus is explicit: the formulas and exact figures in this example are for illustration and
+      understanding only. You need to know <em>what</em> metric, MoE, CL, and sample size mean and how they
+      trade off against each other — not how to compute a sample-size formula by hand.
+    </div>
+  </div>
+
+  <h2>4. The CL/MoE trade-off, and stopping early</h2>
+  <p>Once you're running tests, there are exactly two ways to spend additional test cases:</p>
+  <ul>
+    <li><strong>Fix the confidence level, let the margin of error shrink.</strong> More tests at the same
+      confidence make the result more <em>precise</em>.</li>
+    <li><strong>Fix the margin of error, let the confidence level grow.</strong> More tests at the same precision
+      make the result more <em>certain</em>.</li>
+  </ul>
+  <p>You don't always have to run the full fixed sample either. <strong>Sequential testing</strong> is a formal
+    statistical framework for early stopping: instead of committing to run all 601 cases up front, it analyzes
+    results as they accumulate and stops as soon as there's sufficient evidence to support — or reject — the
+    accuracy target. In the syllabus's example, if the observed accuracy stays consistently high, the required
+    ±4% MoE at 95% CL can be reached after only about <strong>170 test cases</strong> instead of the full 601 —
+    a real efficiency gain in practice, not just a theoretical nicety.</p>
+
+  <h2>5. Data requirements: independence and representativeness</h2>
+  <p>None of this statistical machinery means anything if the test data is wrong. Two requirements carry over
+    directly from Sessions 5 and 15:</p>
+  <ul>
+    <li>The test dataset must be <strong>completely independent</strong> of the training and validation
+      datasets — reusing data the model has already seen inflates the score and invalidates the statistical
+      claim entirely.</li>
+    <li>The test dataset must be <strong>representative of the real operational input domain</strong> (5.1.4) —
+      a statistically rigorous result computed on the wrong population is precise and confident about the wrong
+      thing.</li>
+  </ul>
+  <p>Execution then happens within an ML development framework capable of the statistical analysis itself — this
+    isn't something you'd track by hand in a spreadsheet at real scale.</p>
+
+  <h2>6. Reporting results with statistical confidence</h2>
+  <p>The final test report reflects all of this: instead of a bare pass/fail ratio, you report something like
+    <em>"the model achieved an accuracy of 94% ± 4% at the 95% CL."</em> That phrasing gives stakeholders the
+    actual range of expected operational performance, which is what they need to make an informed go/no-go
+    deployment decision — a single number without its uncertainty is, strictly speaking, incomplete information.</p>
+  <p>Safety-critical systems typically demand tighter criteria. The syllabus's example: <strong>"99% reliability
+    with 95% confidence"</strong> requires 299 test cases, <strong>all of which must pass</strong> — notice the
+    shift from "589 of 601 may pass" to "zero failures tolerated," which is what "99% reliability" as a hard
+    floor actually implies at that sample size.</p>
+
+  <h2>7. Lab: margin-of-error explorer</h2>
+  <p>This lab computes a real (simplified) margin of error for a proportion — the same kind of calculation
+    behind the 601-case example above — so you can feel how sample size and observed accuracy interact.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: margin of error vs. sample size</span></div>
+    <div class="lab-sub">Confidence level is fixed at 95% (z ≈ 1.96). Drag the sliders and watch the margin of
+      error respond — this is the same trade-off described in section 4 above, made tangible.</div>
+    <div class="controls">
+      <label>Sample size (n)
+        <input type="range" id="moe-n" min="20" max="1000" step="1" value="601">
+      </label>
+      <label>Observed accuracy (p)
+        <input type="range" id="moe-p" min="50" max="100" step="1" value="98">
+      </label>
+    </div>
+    <div class="stat-row">
+      <div class="stat-tile"><div class="label">Sample size</div><div class="value" id="moe-n-val">601</div></div>
+      <div class="stat-tile"><div class="label">Observed accuracy</div><div class="value" id="moe-p-val">98%</div></div>
+      <div class="stat-tile"><div class="label">Margin of error (95% CL)</div><div class="value" id="moe-out">±1.1%</div></div>
+    </div>
+    <div class="readout" id="moe-readout">Try dragging sample size down to ~50 and watch how much the margin of error widens — small test sets make weak statistical claims, even at high observed accuracy.</div>
+  </div>
+
+  <h2>8. Adversarial testing: fooling a model on purpose</h2>
+  <p>Switch gears entirely for 6.1.4. Adversarial testing deliberately feeds a model <strong>perturbations</strong>
+    — small, often carefully engineered changes to otherwise legitimate input — specifically designed to make it
+    produce an incorrect prediction. Crucially, these perturbations are frequently <strong>imperceptible to a
+    human</strong>: a handful of pixel values nudged in an image, a few characters altered in text, changes a
+    person wouldn't notice or would dismiss as noise. When a perturbed input successfully fools the model, it's
+    called an <strong>adversarial example</strong>.</p>
+  <p>Not every adversarial example is malicious. The syllabus distinguishes:</p>
+  <div class="grid-2">
+    <div class="card">
+      <strong>Accidental adversarial examples</strong>
+      <p class="small" style="margin-top:.4rem;">Naturally occurring inputs the model happens to encounter in
+        production that happen to sit right on its blind spots — no attacker involved, just bad luck meeting a
+        fragile decision boundary.</p>
+    </div>
+    <div class="card">
+      <strong>Adversarial attacks</strong>
+      <p class="small" style="margin-top:.4rem;">The deliberate, malicious use of adversarial examples by
+        someone trying to make the model fail on purpose — evade a spam filter, defeat a fraud detector, cause a
+        vision system to misclassify a real-world object.</p>
+    </div>
+  </div>
+  <p>Finding these vulnerabilities through testing lets developers add safeguards and make the model more
+    robust. The catch: generating genuinely effective adversarial test inputs is technically complex, and attack
+    techniques keep evolving, so staying current is an ongoing challenge rather than a one-time task.</p>
+
+  <h2>9. Black-box vs. white-box adversarial testing</h2>
+  <div class="grid-2">
+    <div class="card">
+      <strong>Black-box adversarial testing</strong>
+      <p class="small" style="margin-top:.4rem;">Works from input/output behavior only, with no knowledge of the
+        model's internals. One common trick: build an <em>equivalent surrogate model</em> you fully understand,
+        craft adversarial examples against it, then apply them to the real target — relying on
+        <strong>transferability</strong>, the observation that similar models often share similar classification
+        boundaries. A brute-force alternative simply throws a large volume of random perturbations at the model,
+        hoping some coincide with an adversarial example.</p>
+    </div>
+    <div class="card">
+      <strong>White-box adversarial testing</strong>
+      <p class="small" style="margin-top:.4rem;">Uses direct knowledge of the model's architecture, parameters,
+        and training process. Understanding the internals typically makes it substantially easier to craft
+        effective adversarial examples, since you can reason about exactly where the model's decision boundary
+        is weakest.</p>
+    </div>
+  </div>
+  <p>Either approach can be carried out manually — a tester hand-crafts specific adversarial examples — or through
+    automated algorithms that generate large numbers of candidate perturbations to search for ones that succeed.</p>
+
+  <h2>10. Lab: watch an adversarial perturbation flip a prediction</h2>
+  <p>This is a simplified, illustrative simulation — not a real model — but the dynamic it shows is accurate to
+    how adversarial examples work: a small, engineered nudge to the input shifts the model's internal confidence
+    scores, and past a threshold, the predicted class flips entirely.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: adversarial perturbation demo</span></div>
+    <div class="lab-sub">To make the effect visible, this demo exaggerates the noise far beyond a real adversarial
+      perturbation, which is usually imperceptible to a human. To a person, this still looks like a stop sign at
+      every setting — that's exactly the point.</div>
+    <div id="adv-svg-wrap" style="display:flex; justify-content:center; margin:1rem 0;"></div>
+    <div class="controls">
+      <label>Perturbation strength
+        <input type="range" id="adv-slider" min="0" max="100" step="1" value="0">
+      </label>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:.6rem; max-width:420px; margin:0 auto;">
+      <div>
+        <div class="small" id="adv-label-stop">Model confidence: STOP sign — 97%</div>
+        <div class="progress-bar"><span id="adv-fill-stop" style="width:97%;"></span></div>
+      </div>
+      <div>
+        <div class="small" id="adv-label-yield">Model confidence: Speed Limit 45 sign — 3%</div>
+        <div class="progress-bar"><span id="adv-fill-yield" style="width:3%; background:linear-gradient(90deg,var(--warning),var(--danger));"></span></div>
+      </div>
+    </div>
+    <div class="readout" id="adv-readout" style="margin-top:.9rem;">Slide the perturbation strength up and watch the model's confidence shift — and eventually flip.</div>
+  </div>
+
+  <div class="callout danger">
+    <div class="icon">🛡</div>
+    <div class="body">
+      <strong class="title">Why humans aren't fooled but models are</strong>
+      A human classifies a stop sign using robust, high-level features — shape, color, context. A trained model's
+      decision boundary is a complex, high-dimensional surface shaped entirely by its training data; a
+      carefully chosen perturbation can cross that boundary while staying nowhere near any boundary a human
+      perceptually relies on. That mismatch between what the model "sees" and what a human sees is the entire
+      adversarial-example phenomenon in one sentence.
+    </div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s18");
+    App.buildSessionNav("session-nav", "s18");
+    App.wireMarkComplete("mark-complete", "s18");
+
+    // ---- Margin of error calculator (normal approximation for a proportion) ----
+    const nSlider = document.getElementById("moe-n");
+    const pSlider = document.getElementById("moe-p");
+    const nVal = document.getElementById("moe-n-val");
+    const pVal = document.getElementById("moe-p-val");
+    const moeOut = document.getElementById("moe-out");
+    const moeReadout = document.getElementById("moe-readout");
+    const Z95 = 1.96;
+
+    function updateMoe() {
+      const n = parseInt(nSlider.value, 10);
+      const pPct = parseInt(pSlider.value, 10);
+      const p = pPct / 100;
+      const moe = Z95 * Math.sqrt((p * (1 - p)) / n) * 100;
+      nVal.textContent = n;
+      pVal.textContent = pPct + "%";
+      moeOut.textContent = "±" + moe.toFixed(1) + "%";
+      let msg;
+      if (n < 100) {
+        msg = `With only ${n} test cases, the margin of error is wide (±${moe.toFixed(1)}%) — this sample is too small to back up a confident acceptance decision, even though the observed accuracy is ${pPct}%.`;
+      } else if (n >= 550) {
+        msg = `At n=${n}, the margin of error (±${moe.toFixed(1)}%) is close to the syllabus's worked example — this is roughly the sample size needed for a ±4% MoE claim under conservative assumptions.`;
+      } else {
+        msg = `At n=${n} with an observed accuracy of ${pPct}%, the true accuracy is estimated as ${pPct}% ± ${moe.toFixed(1)}% at 95% confidence. More test cases would narrow this further.`;
+      }
+      moeReadout.textContent = msg;
+    }
+    nSlider.addEventListener("input", updateMoe);
+    pSlider.addEventListener("input", updateMoe);
+    updateMoe();
+
+    // ---- Adversarial perturbation SVG + confidence demo ----
+    const svgWrap = document.getElementById("adv-svg-wrap");
+    let noiseMarkup = "";
+    const rand = (seed) => {
+      // simple deterministic pseudo-random so the noise pattern is stable across re-renders
+      let x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    };
+    for (let i = 0; i < 60; i++) {
+      const x = (rand(i * 3.1) * 160).toFixed(1);
+      const y = (rand(i * 7.7) * 160).toFixed(1);
+      const c = rand(i * 5.3) > 0.5 ? "var(--accent-2)" : "var(--danger)";
+      noiseMarkup += `<circle class="adv-noise-dot" data-i="${i}" cx="${x}" cy="${y}" r="2.4" fill="${c}" opacity="0"></circle>`;
+    }
+    svgWrap.innerHTML = `
+      <svg viewBox="0 0 160 160" width="220" height="220" role="img" aria-label="Stop sign with adversarial noise overlay">
+        <polygon points="55,8 105,8 152,55 152,105 105,152 55,152 8,105 8,55"
+          fill="#c0392b" stroke="#7a1f17" stroke-width="3"></polygon>
+        <text x="80" y="90" text-anchor="middle" font-size="30" font-weight="900" fill="#fff" font-family="Arial, sans-serif">STOP</text>
+        ${noiseMarkup}
+      </svg>`;
+
+    const advSlider = document.getElementById("adv-slider");
+    const stopFill = document.getElementById("adv-fill-stop");
+    const yieldFill = document.getElementById("adv-fill-yield");
+    const stopLabel = document.getElementById("adv-label-stop");
+    const yieldLabel = document.getElementById("adv-label-yield");
+    const advReadout = document.getElementById("adv-readout");
+    const dots = svgWrap.querySelectorAll(".adv-noise-dot");
+    // Confidence in the true class decays linearly with perturbation strength (from 97 at s=0);
+    // the flip point is derived from the same slope so the on-screen explanation always matches
+    // what the bars actually do, rather than relying on a hand-picked number.
+    const START_CONF = 97;
+    const STEEPNESS = 0.75;
+    const FLIP_POINT = Math.round((START_CONF - 50) / STEEPNESS);
+
+    function updateAdv() {
+      const s = parseInt(advSlider.value, 10);
+      const visibleDots = Math.round((s / 100) * dots.length);
+      dots.forEach((d, i) => {
+        d.setAttribute("opacity", i < visibleDots ? (0.25 + rand(i * 1.9) * 0.5).toFixed(2) : 0);
+      });
+
+      // Confidence in the true class decays with perturbation strength; the wrong class rises.
+      let stopConf = Math.max(2, Math.round(START_CONF - s * STEEPNESS));
+      let yieldConf = 100 - stopConf;
+      stopFill.style.width = stopConf + "%";
+      yieldFill.style.width = yieldConf + "%";
+      stopLabel.textContent = `Model confidence: STOP sign — ${stopConf}%`;
+      yieldLabel.textContent = `Model confidence: Speed Limit 45 sign — ${yieldConf}%`;
+
+      if (s === 0) {
+        advReadout.textContent = "No perturbation applied — the model correctly and confidently identifies the stop sign.";
+        stopLabel.style.color = "";
+      } else if (yieldConf < stopConf) {
+        advReadout.innerHTML = `The image still looks identical to a human at every setting on this slider, but the model's confidence is degrading. At strength ${s}, it's still (barely) correct — this is the "accidental adversarial example" zone: not yet a successful attack, but the decision boundary is getting close.`;
+      } else {
+        advReadout.innerHTML = `<strong>Misclassification.</strong> At perturbation strength ${s} (past the flip point around ${FLIP_POINT}), the model's top prediction has flipped from "STOP sign" to "Speed Limit 45 sign" — a successful adversarial example. A human looking at the same image would never make this mistake.`;
+      }
+    }
+    advSlider.addEventListener("input", updateAdv);
+    updateAdv();
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AI-6.1.3", k: "K2", type: "single",
+        prompt: "How does ML functional performance testing of a probabilistic system differ fundamentally from the classification-metric work in Session 7?",
+        choices: [
+          { text: "It moves beyond a single pass/fail score to statistically characterize performance (metric, margin of error, confidence level) across a large, representative dataset.", correct: true },
+          { text: "It no longer uses accuracy, precision, recall, or F1-score.", correct: false },
+          { text: "It only applies to reinforcement learning models.", correct: false },
+          { text: "It removes the need for a held-out test set.", correct: false },
+        ],
+        explain: "The metrics themselves (accuracy, recall, precision, F1) are unchanged from Session 7 — what changes is expressing the result with statistical rigor instead of as a single flat number." },
+      { lo: "AI-6.1.3", k: "K2", type: "single",
+        prompt: "In a statistical acceptance criterion, if the confidence level is held fixed and the sample size increases, what happens to the margin of error?",
+        choices: [
+          { text: "It decreases — the result becomes more precise.", correct: true },
+          { text: "It increases — the result becomes less precise.", correct: false },
+          { text: "It stays exactly the same.", correct: false },
+          { text: "It becomes undefined.", correct: false },
+        ],
+        explain: "More test cases at a fixed confidence level tighten (shrink) the margin of error, producing a more precise estimate." },
+      { lo: "AI-6.1.3", k: "K2", type: "single",
+        prompt: "In the same trade-off, if the margin of error is held fixed and the sample size increases, what happens to the confidence level?",
+        choices: [
+          { text: "It increases — the result becomes more certain.", correct: true },
+          { text: "It decreases — the result becomes less certain.", correct: false },
+          { text: "It has no relationship to sample size.", correct: false },
+          { text: "It always drops to 0%.", correct: false },
+        ],
+        explain: "Fixing the precision (MoE) and adding more test cases raises how confident you can be that the true value falls within that fixed margin." },
+      { lo: "AI-6.1.3", k: "K2", type: "single",
+        prompt: "Why must the test dataset for statistical ML functional performance testing be completely independent of the training and validation data?",
+        choices: [
+          { text: "Reusing data the model has already seen inflates the measured performance and invalidates the statistical claim.", correct: true },
+          { text: "Independent datasets are always larger.", correct: false },
+          { text: "It's required only for regression tasks, not classification.", correct: false },
+          { text: "It has no real effect on the result.", correct: false },
+        ],
+        explain: "A model can effectively \"memorize\" data it trained on; testing against that same data produces an artificially high, meaningless score." },
+      { lo: "AI-6.1.3", k: "K2", type: "single",
+        prompt: "What does sequential testing allow a team to do, in the context of ML functional performance testing?",
+        choices: [
+          { text: "Stop testing early, once enough evidence has accumulated to support or reject the accuracy target, instead of always running the full fixed sample.", correct: true },
+          { text: "Skip defining a margin of error entirely.", correct: false },
+          { text: "Test the model using only training data.", correct: false },
+          { text: "Guarantee 100% accuracy regardless of sample size.", correct: false },
+        ],
+        explain: "Sequential testing is a formal statistical framework for early stopping — analyzing results as they accumulate rather than committing to a fixed total up front." },
+      { lo: "AI-6.1.4", k: "K2", type: "single",
+        prompt: "What is an adversarial example?",
+        choices: [
+          { text: "An input, often a slightly and deliberately perturbed version of a legitimate input, that causes a model to make an incorrect prediction.", correct: true },
+          { text: "Any input that produces a low-confidence prediction.", correct: false },
+          { text: "A training example that was mislabeled by a human annotator.", correct: false },
+          { text: "A test case generated purely at random with no relation to real inputs.", correct: false },
+        ],
+        explain: "Adversarial examples are typically near-identical to a legitimate input — the perturbation is what makes them effective, and it's often imperceptible to a human." },
+      { lo: "AI-6.1.4", k: "K2", type: "multi",
+        prompt: "Which of the following statements about adversarial testing approaches are correct (select all that apply)?",
+        choices: [
+          { text: "Black-box adversarial testing relies only on the model's input/output behavior.", correct: true },
+          { text: "White-box adversarial testing uses knowledge of the model's internals to more easily craft adversarial examples.", correct: true },
+          { text: "Transferability is the idea that adversarial examples crafted on a similar surrogate model often fool the original target model too.", correct: true },
+          { text: "Adversarial testing is only possible if you have full access to the model's source code.", correct: false },
+        ],
+        explain: "Black-box testing (including transferability from a surrogate model) is explicitly possible without any internal access — that's the whole point of the black-box approach." },
+      { lo: "AI-6.1.4", k: "K2", type: "single",
+        prompt: "What distinguishes an \"adversarial attack\" from an accidental adversarial example?",
+        choices: [
+          { text: "Malicious intent — an adversarial attack is the deliberate, harmful use of adversarial examples against a system.", correct: true },
+          { text: "Adversarial attacks only occur during model training, never in production.", correct: false },
+          { text: "Accidental adversarial examples always involve image data.", correct: false },
+          { text: "There is no real distinction between the two.", correct: false },
+        ],
+        explain: "An accidental adversarial example is a naturally occurring input the model happens to mishandle; an adversarial attack is someone deliberately exploiting that weakness." },
+      { lo: "AI-6.1.4", k: "K2", type: "single",
+        prompt: "Why is adversarial testing described as an ongoing challenge rather than a one-time activity?",
+        choices: [
+          { text: "Generating effective adversarial inputs is technically complex, and attack techniques continue to evolve over time.", correct: true },
+          { text: "Regulators require it to be repeated exactly once per year.", correct: false },
+          { text: "Adversarial examples only exist for the first 24 hours after a model is deployed.", correct: false },
+          { text: "It's only relevant to models that are never updated.", correct: false },
+        ],
+        explain: "Staying current with evolving attack techniques, alongside the inherent technical complexity of crafting effective adversarial inputs, makes this a continuous discipline." },
+      { lo: "AI-6.1.3", k: "K2", type: "single",
+        prompt: "A safety-critical system's acceptance criterion is \"99% reliability with 95% confidence,\" requiring 299 test cases. Compared to the earlier 98% ± 4% MoE example (601 cases, 589 must pass), what's the key practical difference?",
+        choices: [
+          { text: "The stricter criterion requires fewer total test cases, but tolerates zero failures — every single one of the 299 must pass.", correct: true },
+          { text: "The stricter criterion always requires more test cases than a looser one.", correct: false },
+          { text: "Safety-critical systems don't require statistical acceptance criteria at all.", correct: false },
+          { text: "The confidence level for safety-critical systems is always 100%.", correct: false },
+        ],
+        explain: "Fewer cases (299 vs. 601) but a zero-failure bar — a reliability requirement stated this way leaves no room for a single failing test case, unlike the earlier example where up to 12 of 601 could still fail." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s18", passPct: 65 });
+  });
+</script>
+</body>
+</html>

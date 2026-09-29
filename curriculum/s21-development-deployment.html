@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 21 · ML Development &amp; Deployment Testing — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 21 · Chapter 7 — Machine Learning Development Testing</div>
+  <h1>ML Development &amp; Deployment Testing</h1>
+  <p class="lede">A short but sharp shift in focus: everything before this chapter tested the <em>model</em>.
+    This one tests the tools, choices, and pipeline around it — the framework, the hyperparameters, the data
+    splits, and finally the mechanics of getting a model safely into production.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~40 min</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">LOs: AI-7.1.1, AI-7.1.2</span>
+    <span class="chip">Exam weight: 2 questions for Chapter 7 (the lightest chapter, 30 min of official content)</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">ML development testing</span><span class="kw">shadow testing</span>
+    <span class="kw">canary testing</span><span class="kw">rollback testing</span>
+    <span class="kw">installability testing</span><span class="kw">model conversion testing</span>
+    <span class="kw">cross-device testing</span><span class="kw">API testing</span>
+  </div>
+
+  <h2>1. A different source of risk: the tools, not the model</h2>
+  <p>Chapter 6 was about risks that live inside a trained model — bias, overfitting, adversarial weaknesses.
+    This chapter is about risks introduced by <strong>how the model gets built and shipped</strong>: the ML
+    framework (TensorFlow, PyTorch, and similar), the hyperparameters chosen, how data was split into training/
+    validation/test sets, and the mechanics of getting a finished model running reliably in its target
+    environment.</p>
+  <p>It's a short chapter — 30 minutes of official content and only 2 exam questions — precisely because it's
+    narrow in scope. That doesn't make it unimportant: a defect introduced here (a mis-allocated validation
+    split, a silently-broken deployment) can invalidate everything Chapters 5 and 6 verified.</p>
+
+  <h2>2. ML development risks and their mitigations</h2>
+  <p>Rather than one big new technique, this section is mostly about recognizing where development-time risk
+    hides and reaching for a testing technique you likely already know — several of them straight from Chapter 6.</p>
+
+  <table class="data">
+    <thead><tr><th>Development risk</th><th>Typical mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Incorrect or unintended use of a library/framework API (e.g. TensorFlow, PyTorch)</td><td>API testing (7.1.2)</td></tr>
+      <tr><td>Sub-optimal framework selection</td><td>Framework suitability review</td></tr>
+      <tr><td>Defective framework installation or build</td><td>Smoke testing</td></tr>
+      <tr><td>Defect in a library the framework depends on</td><td>ML functional performance testing, back-to-back testing</td></tr>
+      <tr><td>Sub-optimal algorithm or hyperparameter selection (e.g. learning rate, network structure)</td><td>Algorithm suitability review, A/B testing, ML functional performance testing</td></tr>
+      <tr><td>Defective allocation of data to training/validation/test datasets</td><td>Data allocation review</td></tr>
+      <tr><td>Incorrect interpretation of results due to the stochastic nature of training</td><td>ML functional performance testing</td></tr>
+      <tr><td>Deployment defect (e.g. from building a platform-specific model variant)</td><td>Smoke testing, ML functional performance testing, A/B testing</td></tr>
+      <tr><td>Deployed model is incompatible with the operational environment</td><td>Smoke testing, MLS deployment testing (7.1.2)</td></tr>
+      <tr><td>Deployed model is no improvement over the current one</td><td>Shadow testing (7.1.2)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div class="body">
+      <strong class="title">Notice the pattern</strong>
+      Almost nothing here is a brand-new technique. It's the same toolbox from Chapters 3, 6, and this one
+      (reviews, smoke testing, A/B testing, ML functional performance testing) pointed at a different target:
+      the development process itself rather than the trained model's behavior.
+    </div>
+  </div>
+
+  <h2>3. ML system deployment testing</h2>
+  <p>Once a model is ready to ship, deploying it safely into its target environment — cloud, edge device, or
+    mobile — has its own dedicated set of test types, each addressing a specific deployment risk:</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Installability testing</strong>
+      <p class="small" style="margin-top:.4rem;">Confirms the MLS can be installed, configured, and uninstalled
+        across all supported environments, including dependencies like GPU drivers.</p>
+    </div>
+    <div class="card">
+      <strong>Rollback testing</strong>
+      <p class="small" style="margin-top:.4rem;">Confirms the system can revert to a previously stable state
+        after a failed or degraded deployment. Must be done <em>before</em> deployment, to confirm rollback
+        readiness in advance.</p>
+    </div>
+    <div class="card">
+      <strong>Canary testing</strong>
+      <p class="small" style="margin-top:.4rem;">Releases an updated model to a small slice of production
+        traffic (e.g. 5%) and watches real-time metrics — latency, accuracy, error rate — to catch regressions
+        before a full rollout.</p>
+    </div>
+    <div class="card">
+      <strong>Shadow testing</strong>
+      <p class="small" style="margin-top:.4rem;">Runs the new model in parallel with the live model, routing the
+        same requests to both without the new model's output ever reaching users — a low-risk way to compare
+        against live data and catch defects like performance regressions or data drift.</p>
+    </div>
+    <div class="card">
+      <strong>Model conversion testing</strong>
+      <p class="small" style="margin-top:.4rem;">Verifies a model still performs accurately and consistently,
+        with acceptable efficiency, after being converted from its training format into a deployment format.</p>
+    </div>
+    <div class="card">
+      <strong>Cross-device testing</strong>
+      <p class="small" style="margin-top:.4rem;">Confirms the MLS behaves correctly across every intended
+        deployment target — mobile, edge devices, cloud servers.</p>
+    </div>
+    <div class="card" style="grid-column: 1 / -1;">
+      <strong>API testing</strong>
+      <p class="small" style="margin-top:.4rem;">Confirms the MLS exposes well-defined, standards-compliant
+        interfaces — correct handling of inputs, outputs, error messages, and integration with external systems
+        such as data feeds, clients, and the surrounding pipeline.</p>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">Canary vs. shadow — the exam-favorite mix-up</strong>
+      Both compare a new model against reality using live traffic, but canary testing lets the new model
+      actually <em>serve</em> a small slice of real users, while shadow testing runs the new model silently
+      alongside the live one — its output is compared but never shown to anyone. Shadow is lower-risk; canary
+      catches issues that only show up when real users are actually affected.
+    </div>
+  </div>
+
+  <h2>4. Interactive: deployment gate simulator</h2>
+  <p>In practice these test types don't run in isolation — they're gates a release has to clear. Click through
+    each test type below to cycle it between <strong>Not run</strong>, <strong>Pass</strong>, and
+    <strong>Fail</strong>, then evaluate the gate the way a CI/CD pipeline would.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: CI/CD deployment gate</span></div>
+    <div class="lab-sub">Every gate item must be run and must pass before the pipeline allows deployment.</div>
+    <div id="gate-list"></div>
+    <div class="controls">
+      <button class="btn btn-primary" id="gate-evaluate">▶ Evaluate deployment gate</button>
+      <button class="btn btn-ghost" id="gate-reset">Reset all to Not run</button>
+    </div>
+    <div class="readout" id="gate-readout" style="margin-top:.8rem;">Set each test's status, then evaluate the gate.</div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s21");
+    App.buildSessionNav("session-nav", "s21");
+    App.wireMarkComplete("mark-complete", "s21");
+
+    // ============================================================
+    // Deployment gate simulator
+    // ============================================================
+    const GATE_ITEMS = [
+      { key: "install", name: "Installability testing", desc: "Installs, configures, and uninstalls cleanly across supported environments." },
+      { key: "rollback", name: "Rollback testing", desc: "Can revert to the previous stable state if the deployment degrades or fails." },
+      { key: "canary", name: "Canary testing", desc: "5% of live traffic shows no regression in latency, accuracy, or error rate." },
+      { key: "shadow", name: "Shadow testing", desc: "Parallel run against live traffic shows no unacceptable divergence from the current model." },
+      { key: "conversion", name: "Model conversion testing", desc: "Accuracy and efficiency held up after converting to the deployment format." },
+      { key: "crossdevice", name: "Cross-device testing", desc: "Verified across every intended target: mobile, edge, cloud." },
+      { key: "api", name: "API testing", desc: "Inputs, outputs, error handling, and integrations all behave as specified." },
+    ];
+    const gateState = {};
+    GATE_ITEMS.forEach(i => { gateState[i.key] = "pending"; });
+
+    function statusLabel(s) {
+      if (s === "pass") return "✔ Pass";
+      if (s === "fail") return "✘ Fail";
+      return "— Not run";
+    }
+    function statusColor(s) {
+      if (s === "pass") return "var(--success)";
+      if (s === "fail") return "var(--danger)";
+      return "var(--text-faint)";
+    }
+
+    function renderGateList() {
+      const wrap = document.getElementById("gate-list");
+      wrap.innerHTML = "";
+      GATE_ITEMS.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "card";
+        row.style.cssText = "display:flex; justify-content:space-between; align-items:center; gap:1rem; margin:.6rem 0; flex-wrap:wrap;";
+        const s = gateState[item.key];
+        row.innerHTML = `
+          <div style="flex:1; min-width:220px;">
+            <strong>${item.name}</strong>
+            <p class="small" style="margin-top:.25rem;">${item.desc}</p>
+          </div>
+          <button class="btn btn-ghost" data-key="${item.key}" style="min-width:130px; font-weight:800; color:${statusColor(s)}; border-color:${statusColor(s)};">
+            ${statusLabel(s)}
+          </button>`;
+        wrap.appendChild(row);
+      });
+      wrap.querySelectorAll("button[data-key]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const key = btn.dataset.key;
+          const order = ["pending", "pass", "fail"];
+          const next = order[(order.indexOf(gateState[key]) + 1) % order.length];
+          gateState[key] = next;
+          renderGateList();
+        });
+      });
+    }
+    renderGateList();
+
+    document.getElementById("gate-reset").addEventListener("click", () => {
+      GATE_ITEMS.forEach(i => { gateState[i.key] = "pending"; });
+      renderGateList();
+      document.getElementById("gate-readout").textContent = "Set each test's status, then evaluate the gate.";
+    });
+
+    document.getElementById("gate-evaluate").addEventListener("click", () => {
+      const failed = GATE_ITEMS.filter(i => gateState[i.key] === "fail");
+      const notRun = GATE_ITEMS.filter(i => gateState[i.key] === "pending");
+      const readout = document.getElementById("gate-readout");
+      if (failed.length > 0) {
+        readout.innerHTML = `<strong style="color:var(--danger);">🔴 Deployment blocked.</strong> Failing:
+          ${failed.map(i => i.name).join(", ")}. A CI/CD gate should never let a failing deployment test through,
+          no matter how many others passed.`;
+      } else if (notRun.length > 0) {
+        readout.innerHTML = `<strong style="color:var(--warning);">🟡 Cannot evaluate yet.</strong> Not yet run:
+          ${notRun.map(i => i.name).join(", ")}. An untested gate item is treated the same as a risk — it blocks
+          deployment until it has an actual result.`;
+      } else {
+        readout.innerHTML = `<strong style="color:var(--success);">🟢 Deployment approved.</strong> All ${GATE_ITEMS.length}
+          deployment test types passed. This is what a healthy release gate looks like — every risk in this
+          session's table has a corresponding green checkmark here.`;
+      }
+    });
+
+    // ============================================================
+    // Quiz
+    // ============================================================
+    const questions = [
+      { lo: "AI-7.1.1", k: "K2", type: "single",
+        prompt: "What is the main difference in scope between Chapter 6 (Model Testing) and Chapter 7 (ML Development Testing)?",
+        choices: [
+          { text: "Chapter 7 targets risks from development tools, frameworks, and deployment mechanisms, rather than the trained model's own behavior.", correct: true },
+          { text: "Chapter 7 only covers testing conventional, non-AI software.", correct: false },
+          { text: "Chapter 7 replaces the need for any model testing.", correct: false },
+          { text: "There is no meaningful difference — they test the same risks.", correct: false },
+        ],
+        explain: "Chapter 6 is about the model itself; Chapter 7 is about the surrounding development process and deployment mechanics." },
+      { lo: "AI-7.1.1", k: "K2", type: "single",
+        prompt: "A model performs unpredictably differently across repeated training runs, and testers misjudge whether a change actually improved it. What development risk does this best describe?",
+        choices: [
+          { text: "Incorrect interpretation of test results due to the stochastic nature of the training process.", correct: true },
+          { text: "Defective framework installation.", correct: false },
+          { text: "Poor usability of the framework.", correct: false },
+          { text: "Cross-device incompatibility.", correct: false },
+        ],
+        explain: "Training is inherently stochastic; testers need statistical, not single-run, functional performance testing to interpret results correctly." },
+      { lo: "AI-7.1.1", k: "K2", type: "single",
+        prompt: "Which mitigation is specifically associated with a “defective allocation of data to training, validation, and testing datasets”?",
+        choices: [
+          { text: "Data allocation review", correct: true },
+          { text: "Cross-device testing", correct: false },
+          { text: "Canary testing", correct: false },
+          { text: "API testing", correct: false },
+        ],
+        explain: "This risk has its own named mitigation: a review specifically of how data was split across the three datasets." },
+      { lo: "AI-7.1.2", k: "K2", type: "single",
+        prompt: "What does installability testing verify for an MLS?",
+        choices: [
+          { text: "That it can be successfully installed, configured, and uninstalled across all supported environments, including dependencies like GPU drivers.", correct: true },
+          { text: "That the model's accuracy meets its acceptance criteria.", correct: false },
+          { text: "That two model variants produce statistically different results.", correct: false },
+          { text: "That the model's internal architecture is documented.", correct: false },
+        ],
+        explain: "Installability testing is about the mechanics of getting the system running on supported environments, not the model's functional quality." },
+      { lo: "AI-7.1.2", k: "K2", type: "single",
+        prompt: "When should rollback testing be performed?",
+        choices: [
+          { text: "Before deployment, to confirm rollback readiness in advance.", correct: true },
+          { text: "Only after a production failure has already occurred.", correct: false },
+          { text: "Only during model training.", correct: false },
+          { text: "It never needs to be explicitly tested.", correct: false },
+        ],
+        explain: "Waiting until an actual failure to discover rollback doesn't work defeats the purpose — it must be verified beforehand." },
+      { lo: "AI-7.1.2", k: "K2", type: "single",
+        prompt: "What is the key difference between canary testing and shadow testing?",
+        choices: [
+          { text: "Canary testing exposes a small slice of real users to the new model's actual output; shadow testing runs the new model in parallel without its output ever reaching users.", correct: true },
+          { text: "Shadow testing is riskier because it always serves live traffic.", correct: false },
+          { text: "Canary testing never uses real production traffic.", correct: false },
+          { text: "They are two names for the same technique.", correct: false },
+        ],
+        explain: "Canary testing has real-world exposure (lower blast radius, but real); shadow testing has none — its comparison is silent." },
+      { lo: "AI-7.1.2", k: "K2", type: "single",
+        prompt: "A model is converted from its original training format into a lightweight format for running on a mobile device. Which test type specifically targets risk introduced by that conversion step?",
+        choices: [
+          { text: "Model conversion testing", correct: true },
+          { text: "Rollback testing", correct: false },
+          { text: "A/B testing", correct: false },
+          { text: "Back-to-back testing", correct: false },
+        ],
+        explain: "Model conversion testing verifies accuracy, consistency, and efficiency survived the format conversion — exactly this scenario." },
+      { lo: "AI-7.1.2", k: "K2", type: "single",
+        prompt: "What does API testing verify for a deployed MLS?",
+        choices: [
+          { text: "That the system exposes well-defined, standards-compliant interfaces and correctly handles inputs, outputs, error messages, and integrations.", correct: true },
+          { text: "That the model achieves 95% accuracy on a held-out test set.", correct: false },
+          { text: "That the model can run on every mobile device on the market.", correct: false },
+          { text: "That two variants of a marketing offer convert equally well.", correct: false },
+        ],
+        explain: "API testing is about the interface contract with clients and surrounding systems, not the model's predictive quality." },
+      { lo: "AI-7.1.2", k: "K2", type: "single",
+        prompt: "A newly deployed model appears to work but shows no measurable improvement over the model it replaced. Which risk-mitigation pairing from this session best matches that situation?",
+        choices: [
+          { text: "Deployed model is no improvement over the current model → shadow testing.", correct: true },
+          { text: "Deployed model is incompatible with the operational environment → cross-device testing.", correct: false },
+          { text: "Defective framework installation → smoke testing.", correct: false },
+          { text: "Sub-optimal hyperparameter selection → data allocation review.", correct: false },
+        ],
+        explain: "Running the new model in shadow alongside the old one, on live data, is exactly how you'd catch “no real improvement” before committing to a full rollout." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s21", passPct: 65 });
+  });
+</script>
+</body>
+</html>

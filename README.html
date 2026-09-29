@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How this course works — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-root="">
+<header class="topbar">
+  <a class="brand" href="index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">About this course</div>
+  <h1>How this course works</h1>
+
+  <h2>Running it</h2>
+  <p>Double-click <code>start-training.bat</code> in this folder. It starts a tiny local web server (using the
+    Python already installed on this machine, via <code>server.py</code>) and opens the dashboard in your
+    browser at <code>http://localhost:8420</code>. You don't need to close the command-window yourself — every
+    open tab quietly pings the server every few seconds, and once you close the last tab (or the whole browser),
+    the server notices within about 10 seconds and shuts itself down, which closes that window automatically.</p>
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div class="body">
+      <strong class="title">Why not just double-click index.html?</strong>
+      You can — everything still displays. But your quiz scores and "session complete" checkmarks are saved
+      per-page using your browser's local storage, and some browsers isolate that storage per file when there's
+      no server involved, so your dashboard progress bar may not update reliably. The local server avoids that.
+    </div>
+  </div>
+
+  <h2>Folder layout</h2>
+  <table class="data">
+    <thead><tr><th>Folder</th><th>Contents</th></tr></thead>
+    <tbody>
+      <tr><td><code>index.html</code></td><td>The dashboard — your roadmap, progress, and curriculum weighting.</td></tr>
+      <tr><td><code>curriculum/</code></td><td>One HTML file per session (lesson content, labs, end-of-lesson quiz).</td></tr>
+      <tr><td><code>exams/</code></td><td>Practice exams, the official sample exam walkthrough, and the final mock exam.</td></tr>
+      <tr><td><code>reference/</code></td><td>Glossary, abbreviations, and cheat sheets.</td></tr>
+      <tr><td><code>assets/</code></td><td>Shared CSS, JavaScript (quiz engine, progress tracking, course roadmap data), and any images.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Progress tracking</h2>
+  <p>Everything is stored locally in your browser (<code>localStorage</code>) — nothing is uploaded anywhere.
+    Each session tracks whether you marked it complete and your latest quiz score. The dashboard reads all of
+    that to compute your overall % and points you at your next session.</p>
+  <p class="small">Clearing your browser's site data for <code>localhost</code> (or for the file itself, if you're
+    opening files directly) will reset your progress.</p>
+
+  <h2>Sourcing</h2>
+  <p>Core structure and learning objectives are built from the official <strong>ISTQB Certified Tester AI
+    Testing (CT-AI) v2.0 syllabus</strong> and its companion exam-structure documents. Lesson content is
+    original writing grounded in that syllabus plus supplementary public material from sources like Microsoft
+    Learn, Azure AI documentation, Anthropic's model documentation, ISO/IEC standards summaries, NIST's AI Risk
+    Management Framework, and university open courseware — synthesized and cited, not copy-pasted, so the
+    material here is safe to keep and reuse offline.</p>
+
+  <div style="margin-top:2rem;"><a class="btn btn-primary" href="index.html">← Back to dashboard</a></div>
+</main>
+<script src="assets/js/course-data.js"></script>
+<script src="assets/js/glossary-data.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

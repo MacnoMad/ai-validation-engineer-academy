@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 16 · Dataset Constraints &amp; Label Correctness — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 16 · Chapter 5 — Input Data Testing for Machine Learning Systems (part 3 of 3)</div>
+  <h1>Dataset Constraints &amp; Label Correctness</h1>
+  <p class="lede">Chapter 5 closes with its two most hands-on techniques: checking that data obeys explicit rules
+    you can actually write down and automate, and checking that the labels a supervised model learns from are
+    actually correct. Both are things you'll do with real tabular data starting today, not just read about.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k3">K3 · Apply</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">LOs: AI-5.1.5 – AI-5.1.6</span>
+    <span class="chip">Exam weight: part of 6 questions for Chapter 5</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">dataset constraint testing</span><span class="kw">label correctness testing</span>
+    <span class="kw">multiple annotation</span><span class="kw">inter-annotator agreement</span>
+    <span class="kw">Cohen's Kappa</span>
+  </div>
+
+  <h2>1. Dataset constraint testing</h2>
+  <p><strong>Dataset constraint testing</strong> verifies that the data in a dataset adheres to predefined rules —
+    a logical model of what "correct" data looks like, playing the same role for an ML dataset that a database
+    schema plays for a relational database. There are three families of constraint, distinguished by how many
+    values they look at simultaneously.</p>
+
+  <table class="data">
+    <thead><tr><th>Family</th><th>Type</th><th>What it checks</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="3"><strong>Single-value</strong><br><span class="small">one attribute, one instance</span></td>
+        <td>Missing</td><td>Is a required value or attribute absent?</td><td>An applicant record with no <code>age</code> field at all.</td></tr>
+      <tr><td>Range</td><td>Does the value fall within a defined range?</td><td><code>age</code> of 154.</td></tr>
+      <tr><td>Type</td><td>Does the value match its specified type?</td><td><code>income</code> stored as the text "unknown" instead of a number.</td></tr>
+      <tr><td rowspan="5"><strong>Multi-value</strong><br><span class="small">one attribute, many instances</span></td>
+        <td>Sum</td><td>Does a total across instances equal/exceed/stay under a bound?</td><td>Total points awarded across an F1 season can't exceed 102.</td></tr>
+      <tr><td>Count</td><td>Does the count of non-null values meet a bound?</td><td>At least 95% of records must have a non-null <code>zip_code</code>.</td></tr>
+      <tr><td>Duplicate</td><td>Are there identical or near-identical rows beyond an allowed limit (often zero)?</td><td>Two records with the exact same ID and values.</td></tr>
+      <tr><td>Useful</td><td>Does an attribute actually vary, or is every value effectively unique (like an ID), giving the model no learnable pattern?</td><td>A "row hash" column with a different value on every row.</td></tr>
+      <tr><td>Outlier</td><td>Are there statistically anomalous values?</td><td>An <code>annual_income</code> of $50,000,000 in a retail-banking dataset.</td></tr>
+      <tr><td rowspan="2"><strong>Comparison</strong><br><span class="small">two attributes compared</span></td>
+        <td>Greater Than</td><td>Is one attribute's value reliably greater than another's?</td><td>Lines of code with defects can't exceed total lines of code.</td></tr>
+      <tr><td>Correlate</td><td>Do two attributes' values correlate as expected?</td><td>Students scoring far above the mean should also carry an 'A' grade.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <div class="icon">⚙</div>
+    <div class="body">
+      <strong class="title">This has to be automated</strong>
+      Checking constraints by hand is fine for a demo dataset. At real scale, constraint testing gets built
+      directly into the data pipeline (Session 15), running automatically and generating anomaly reports for
+      data scientists (training-data issues) or operations staff (live production-data issues).
+    </div>
+  </div>
+
+  <h2>2. Interactive: validate these records</h2>
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Lab: spot the constraint violation or label error</span></div>
+    <div class="lab-sub">Ten loan-applicant records below. Tick every record you think has a problem — either a
+      constraint violation or a likely incorrect label — then check your answers.</div>
+    <div id="records-table"></div>
+    <div class="controls">
+      <button class="btn btn-primary" id="records-check">Check my flags</button>
+      <button class="btn btn-ghost" id="records-reset">Reset</button>
+    </div>
+    <div class="readout" id="records-readout">Flag the rows you think are problematic, then press "Check my flags."</div>
+  </div>
+
+  <h2>3. Label correctness testing</h2>
+  <p>Supervised learning is only as good as its labels — an inaccurate or inconsistent label directly undermines
+    what the model learns to predict, and unlike a subtle feature-engineering choice, a wrong label actively
+    teaches the wrong lesson. The syllabus names seven complementary approaches to catching this:</p>
+
+  <ul>
+    <li><strong>Expert review</strong> — domain experts or trained annotators manually review a sample of labelled
+      data against their knowledge and the stated guidelines.</li>
+    <li><strong>Multiple annotation</strong> — the same data points are independently labelled by several
+      annotators and compared, essentially a form of back-to-back testing. Disagreements get investigated. The
+      degree of agreement is the <strong>inter-annotator agreement (IAA)</strong>, measured with metrics like
+      simple percentage agreement or <strong>Cohen's Kappa</strong>. A low IAA points to defects in the labelling
+      guidelines, ambiguous data, or inconsistent annotation.</li>
+    <li><strong>Risk-based prioritization</strong> — focus expert review and multiple annotation where mislabeling
+      is most likely (ambiguous, near-boundary cases) or where a mistake would matter most (high-impact or
+      safety-critical data).</li>
+    <li><strong>Data distribution analysis</strong> — when a comparable dataset exists, compare label
+      distributions between them; anomalies can point to incorrect labels.</li>
+    <li><strong>Automated rule-based tests</strong> — encode predefined label rules as automated checks, e.g.
+      verifying that bounding boxes in an image dataset don't overlap or extend past the image edge.</li>
+    <li><strong>Model loss analysis</strong> — data points where a trained model's predictions deviate sharply
+      from their stated label (high loss) are candidates for mislabeling — the model is struggling to learn an
+      assignment that may simply be wrong.</li>
+    <li><strong>Model confidence score analysis</strong> — data points where the model's prediction confidence is
+      low may be mislabeled, genuinely ambiguous, or outside the training distribution entirely.</li>
+  </ul>
+
+  <div class="card">
+    <strong>Worked example: reading Cohen's Kappa</strong>
+    <p class="small" style="margin-top:.4rem;">Two annotators independently label 50 images as "defect" or
+      "no defect." They agree on 42 of them — 84% raw agreement. That sounds solid, but raw agreement doesn't
+      account for the agreement you'd expect from chance alone (especially if "no defect" is the overwhelming
+      majority class). Cohen's Kappa corrects for that: it compares the observed agreement to the agreement
+      expected by chance, producing a score from roughly 0 (no better than chance) to 1 (perfect agreement).
+      A high raw-agreement percentage with a mediocre Kappa is exactly the kind of signal that should send you
+      back to tighten the labelling guidelines.</p>
+  </div>
+
+  <p>In practice these approaches are combined, not used in isolation: expert review establishes clear guidelines
+    early, multiple-annotation IAA scores refine the process as more data is labelled, and model-based signals
+    (loss and confidence analysis) keep surfacing potential defects even as the model itself matures.</p>
+
+  <div class="callout tip">
+    <div class="icon">🔗</div>
+    <div class="body">
+      <strong class="title">Callback to Session 14</strong>
+      Label correctness testing isn't only a data-quality technique — it also doubles as a bias-detection tool
+      (Session 14, §3). Mislabeling that's correlated with a sensitive attribute is one concrete way data bias
+      gets baked into a model.
+    </div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s16");
+    App.buildSessionNav("session-nav", "s16");
+    App.wireMarkComplete("mark-complete", "s16");
+
+    // ---- Records lab ----
+    const records = [
+      { id: 1, age: 34, income: 61000, zip: "30301", label: "Approved", problem: false,
+        why: "Clean record: age, income, and zip all fall in expected ranges/types, and the label is consistent with similar records." },
+      { id: 2, age: 154, income: 58000, zip: "30301", label: "Denied", problem: true,
+        why: "Range constraint violation — a human age of 154 is outside any plausible range." },
+      { id: 3, age: 29, income: "unknown", zip: "60614", label: "Denied", problem: true,
+        why: "Type constraint violation — income should be numeric, not the text “unknown”." },
+      { id: 4, age: 41, income: 88000, zip: "10001", label: "Approved", problem: false,
+        why: "Clean record — nothing here violates a constraint, and the label fits the pattern of similar applicants." },
+      { id: 5, age: 41, income: 88000, zip: "10001", label: "Approved", problem: true,
+        why: "Duplicate constraint violation — identical to record 4 in every field. Near-perfect duplicates like this inflate the effective weight of one data point." },
+      { id: 6, age: null, income: 45000, zip: "94103", label: "Denied", problem: true,
+        why: "Missing constraint violation — the age field is absent entirely." },
+      { id: 7, age: 52, income: 210000, zip: "02118", label: "Denied", problem: true,
+        why: "Likely a label error, not a constraint violation — a high-income, otherwise unremarkable applicant denied while comparable profiles elsewhere in the dataset are approved. This is exactly the kind of case model-loss or model-confidence analysis (§ above) would flag for expert review." },
+      { id: 8, age: 37, income: 50000000, zip: "77002", label: "Approved", problem: true,
+        why: "Outlier constraint violation — a $50,000,000 annual income is a statistical outlier for this dataset and should be reviewed before training." },
+      { id: 9, age: 26, income: 39000, zip: "48201", label: "Denied", problem: false,
+        why: "Clean record — values are all plausible and the label matches the pattern for similar applicants." },
+      { id: 10, age: 33, income: 71000, zip: "N/A", label: "Approved", problem: true,
+        why: "Missing/invalid constraint violation — “N/A” in a zip field that should hold a valid postal code." },
+    ];
+
+    const tblEl = document.getElementById("records-table");
+    let html = `<table class="data" id="records-tbl"><thead><tr>
+      <th>Flag?</th><th>ID</th><th>Age</th><th>Income</th><th>Zip</th><th>Label</th></tr></thead><tbody>`;
+    records.forEach(r => {
+      html += `<tr data-id="${r.id}">
+        <td><input type="checkbox" id="flag-${r.id}"></td>
+        <td>${r.id}</td>
+        <td>${r.age === null ? "<em>(missing)</em>" : r.age}</td>
+        <td>${typeof r.income === "number" ? "$" + r.income.toLocaleString() : r.income}</td>
+        <td>${r.zip}</td>
+        <td>${r.label}</td>
+      </tr>`;
+    });
+    html += "</tbody></table>";
+    tblEl.innerHTML = html;
+
+    function resetLab() {
+      records.forEach(r => {
+        const cb = document.getElementById(`flag-${r.id}`);
+        cb.checked = false;
+        cb.disabled = false;
+        const row = tblEl.querySelector(`tr[data-id="${r.id}"]`);
+        row.style.background = "";
+        const existingNote = row.querySelector(".row-explain");
+        if (existingNote) existingNote.remove();
+      });
+      document.getElementById("records-readout").textContent =
+        'Flag the rows you think are problematic, then press "Check my flags."';
+    }
+
+    document.getElementById("records-reset").addEventListener("click", resetLab);
+
+    document.getElementById("records-check").addEventListener("click", () => {
+      let correct = 0;
+      records.forEach(r => {
+        const cb = document.getElementById(`flag-${r.id}`);
+        const flagged = cb.checked;
+        cb.disabled = true;
+        const row = tblEl.querySelector(`tr[data-id="${r.id}"]`);
+        const isRight = flagged === r.problem;
+        if (isRight) correct++;
+        row.style.background = isRight ? "var(--success-soft)" : "var(--danger-soft)";
+        const note = document.createElement("tr");
+        note.className = "row-explain";
+        note.innerHTML = `<td colspan="6" style="font-size:.85rem; color:var(--text-dim); border-top:none;">
+          ${r.problem ? "⚑ Problem: " : "✓ Clean — "}${r.why}</td>`;
+        row.after(note);
+      });
+      const pct = Math.round((correct / records.length) * 100);
+      document.getElementById("records-readout").innerHTML =
+        `You correctly classified <strong>${correct} / ${records.length}</strong> records (${pct}%). Scroll up to
+         see the explanation under each row — green means your flag (or lack of one) was right, red means it
+         wasn't.`;
+    });
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AI-5.1.5", k: "K2", type: "single",
+        prompt: "What is the core purpose of dataset constraint testing?",
+        choices: [
+          { text: "Verifying that data in a dataset adheres to predefined rules, confirming its integrity and consistency.", correct: true },
+          { text: "Comparing model predictions against a baseline model.", correct: false },
+          { text: "Measuring agreement between two human annotators.", correct: false },
+          { text: "Detecting whether a model's outputs differ across sensitive groups.", correct: false },
+        ],
+        explain: "Constraint testing is about the data obeying defined rules — a logical model of correctness — not about model behavior or annotator agreement." },
+      { lo: "AI-5.1.5", k: "K3", type: "single",
+        prompt: "A dataset should never contain two rows with an identical customer ID. Which constraint type is this?",
+        choices: [
+          { text: "Duplicate", correct: true },
+          { text: "Range", correct: false },
+          { text: "Correlate", correct: false },
+          { text: "Missing", correct: false },
+        ],
+        explain: "This checks for identical or near-identical instances — the definition of a Duplicate constraint." },
+      { lo: "AI-5.1.5", k: "K3", type: "single",
+        prompt: "A stakeholder wants to verify that a Formula 1 season's total championship points awarded across all races never exceeds 102. Which constraint category applies, and why?",
+        choices: [
+          { text: "Multi-value — Sum, because it checks a total across many instances against a bound.", correct: true },
+          { text: "Single-value — Range, because it checks one value against a bound.", correct: false },
+          { text: "Comparison — Greater Than, because it compares two attributes.", correct: false },
+          { text: "Single-value — Type, because it checks a data type.", correct: false },
+        ],
+        explain: "A Sum constraint is a multi-value constraint: it aggregates a value across many instances of an attribute and checks the total against a bound." },
+      { lo: "AI-5.1.5", k: "K3", type: "single",
+        prompt: "A tester wants to confirm that students who score at least 1.33 standard deviations above the class mean also always receive a grade of 'A'. Which constraint type is this an example of?",
+        choices: [
+          { text: "Correlate", correct: true },
+          { text: "Outlier", correct: false },
+          { text: "Count", correct: false },
+          { text: "Useful", correct: false },
+        ],
+        explain: "This tests that the values of two different attributes (score and grade) move together as expected — the definition of a Correlate constraint." },
+      { lo: "AI-5.1.5", k: "K2", type: "single",
+        prompt: "An attribute holds a unique, never-repeating value for every single instance (like a row hash). Why is a “Useful” constraint check relevant here?",
+        choices: [
+          { text: "An attribute where every value is unique typically provides no learnable pattern for an ML model.", correct: true },
+          { text: "It means the attribute definitely contains a data type error.", correct: false },
+          { text: "It means the dataset has too many missing values.", correct: false },
+          { text: "It always indicates label mislabeling.", correct: false },
+        ],
+        explain: "The Useful constraint flags attributes where uniqueness (like an ID or timestamp) means the attribute carries no generalizable signal for the model to learn from." },
+      { lo: "AI-5.1.6", k: "K2", type: "single",
+        prompt: "What does a low inter-annotator agreement (IAA) score most directly suggest?",
+        choices: [
+          { text: "Possible defects in the labelling guidelines, ambiguous data, or inconsistent annotation.", correct: true },
+          { text: "The dataset definitely contains a dataset constraint violation.", correct: false },
+          { text: "The model is overfitting.", correct: false },
+          { text: "The pipeline has a system integration defect.", correct: false },
+        ],
+        explain: "Low IAA is a labelling-quality signal — it points back to the guidelines, the data's inherent ambiguity, or annotator inconsistency, not to a pipeline or constraint problem." },
+      { lo: "AI-5.1.6", k: "K2", type: "multi",
+        prompt: "Which of the following are named approaches to label correctness testing (select all that apply)?",
+        choices: [
+          { text: "Model confidence score analysis", correct: true },
+          { text: "Model loss analysis", correct: true },
+          { text: "Automated rule-based tests (e.g., bounding-box overlap checks)", correct: true },
+          { text: "Kolmogorov-Smirnov distribution comparison", correct: false },
+        ],
+        explain: "Kolmogorov-Smirnov is a statistical test used in data representativeness testing (Session 15), not one of the named label-correctness techniques." },
+      { lo: "AI-5.1.6", k: "K2", type: "single",
+        prompt: "Why might a data point with very low model confidence be flagged for label review?",
+        choices: [
+          { text: "It may be mislabeled, genuinely ambiguous, or outside the training data's distribution.", correct: true },
+          { text: "Low-confidence predictions are always correct.", correct: false },
+          { text: "It means the pipeline failed at the ingest stage.", correct: false },
+          { text: "It always indicates a duplicate record.", correct: false },
+        ],
+        explain: "Low confidence is a signal with several possible causes, and a wrong or ambiguous label is one of the most common — worth a human look." },
+      { lo: "AI-5.1.6", k: "K2", type: "single",
+        prompt: "How does risk-based prioritization improve label correctness testing?",
+        choices: [
+          { text: "It focuses expert review and multiple annotation on data most likely to be mislabeled or most impactful if wrong, rather than reviewing everything equally.", correct: true },
+          { text: "It replaces the need for any human review entirely.", correct: false },
+          { text: "It only applies to unsupervised learning problems.", correct: false },
+          { text: "It guarantees 100% label accuracy.", correct: false },
+        ],
+        explain: "Risk-based prioritization is about spending limited review effort where it matters most — ambiguous, boundary, or high-impact cases — not about eliminating review or guaranteeing perfection." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s16", passPct: 65 });
+  });
+</script>
+</body>
+</html>

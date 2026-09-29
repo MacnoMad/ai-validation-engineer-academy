@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 4 · Quality Characteristics for AI Systems — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 4 · Chapter 2 — Quality Characteristics for AI-Based Systems</div>
+  <h1>Quality Characteristics for AI Systems</h1>
+  <p class="lede">"Good" needs a definition before you can test for it. Today you're learning the specific,
+    named characteristics an AI-based system gets judged against — what makes AI safety a genuinely harder
+    problem than conventional safety-critical testing — and how to turn all of that into acceptance criteria
+    concrete enough to actually pass or fail a build against.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">LOs: AI-2.1.1 – AI-2.2.1</span>
+    <span class="chip">Exam weight: 3 questions for Chapter 2</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">AI functional correctness</span><span class="kw">functional adaptability</span>
+    <span class="kw">user controllability</span><span class="kw">transparency</span>
+    <span class="kw">AI robustness</span><span class="kw">intervenability</span>
+    <span class="kw">societal and ethical risk mitigation</span><span class="kw">safety</span>
+  </div>
+
+  <h2>1. Why AI-based systems need their own quality model</h2>
+  <p><strong>ISO/IEC 25010</strong> is the standard software world's go-to quality model: characteristics like
+    functional suitability, reliability, usability, security, and so on, that any piece of software gets
+    evaluated against. <strong>ISO/IEC 25059</strong> takes that same model and extends it specifically for
+    AI-based systems, because some of ISO/IEC 25010's assumptions quietly break down once a system's behavior
+    is learned rather than coded. A conventional system either meets its spec or it has a bug; a probabilistic
+    ML system is expected to be wrong some of the time by design, so "correct" has to mean something more like
+    "wrong at an acceptable, known rate" instead of "never wrong."</p>
+
+  <p>ISO/IEC 25059 evaluates a system from two angles that matter for how you'll write test objectives and
+    acceptance criteria later in this course:</p>
+  <div class="grid-2">
+    <div class="card">
+      <strong>Product quality</strong>
+      <p class="small" style="margin-top:.4rem;">Properties inherent to the system itself — does it do the
+        right thing, structurally and functionally, independent of who's using it or how.</p>
+    </div>
+    <div class="card">
+      <strong>Quality in use</strong>
+      <p class="small" style="margin-top:.4rem;">How the system performs for real stakeholders in real
+        context — including broader outcomes like whether it's being used ethically and safely in the world,
+        not just whether it runs correctly.</p>
+    </div>
+  </div>
+
+  <h2>2. The AI-specific quality characteristics</h2>
+  <p>ISO/IEC 25059 introduces new characteristics and adapts existing ones from ISO/IEC 25010. Explore each one
+    below — for each, know what it means, which of the two angles above it belongs to, and (this is the part
+    that actually gets tested) what kind of acceptance criterion would demonstrate it.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: ISO/IEC 25059 characteristic explorer</span></div>
+    <div class="lab-sub">Click a characteristic to see its definition, its quality angle, and a worked
+      example acceptance criterion.</div>
+    <div id="char-chips" style="display:flex; flex-wrap:wrap; gap:.5rem; margin:1rem 0;"></div>
+    <div class="readout" id="char-readout">Click a characteristic above to begin.</div>
+  </div>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">Don't confuse these two</strong>
+      <strong>User controllability</strong> is about a human being able to step in and steer the system during
+      normal operation (e.g., overriding a recommendation). <strong>Intervenability</strong> is narrower and
+      more urgent — it's specifically about stopping or overriding the system <em>to prevent harm or hazard</em>,
+      which is why it's classified under security rather than interaction capability. Every intervenability
+      scenario could be described with a controllability word, but not every controllability scenario is a
+      safety intervention.
+    </div>
+  </div>
+
+  <h2>3. AI and safety</h2>
+  <p>Safety-related systems — ones that can cause injury or harm to people, property, or the environment if they
+    fail — are already hard to build and test when they're conventional software. AI makes several of those
+    hard problems structurally worse, not just "a bit trickier":</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Vague specifications</strong>
+      <p class="small" style="margin-top:.4rem;">Conventional safety systems start from a fully refined
+        requirements spec. AI-based systems often start from a loose goal, with the real "requirements"
+        implicitly baked into the training data instead — which breaks the clean traceability from requirement
+        to implementation that safety cases usually rely on.</p>
+    </div>
+    <div class="card">
+      <strong>Non-determinism</strong>
+      <p class="small" style="margin-top:.4rem;">Even a model tested exhaustively can behave unexpectedly in
+        production, because tiny variations in input or internal randomness can tip it toward a different
+        output than the one you validated.</p>
+    </div>
+    <div class="card">
+      <strong>Self-learning</strong>
+      <p class="small" style="margin-top:.4rem;">Pre-deployment testing proves a system is safe <em>as it was
+        at test time</em>. A self-learning system's behavior can drift away from that tested baseline as it
+        keeps learning — which is why controls on what/how it learns, or hard safety guards like content
+        filters, matter so much.</p>
+    </div>
+    <div class="card">
+      <strong>Limited explainability</strong>
+      <p class="small" style="margin-top:.4rem;">Safety cases usually require understanding <em>why</em> a
+        system made a decision. Techniques like LIME (Local Interpretable Model-agnostic Explanations) can help
+        open the black box a little, but they aren't universally available and can themselves cost some system
+        performance to use.</p>
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <div class="icon">🎯</div>
+    <div class="body">
+      <strong class="title">Evolving regulation, real consequence</strong>
+      Mature functional-safety standards mostly weren't written with AI in mind — some explicitly exclude or
+      even prohibit AI in safety-critical roles today. The EU AI Act (Session 3) treats AI used as a safety
+      component — aviation, medical devices, automotive — as automatically high-risk, with strict development
+      and testing obligations attached. If you're validating a safety-adjacent AI system, "is this even allowed
+      here yet" is a real, current question, not a hypothetical one.
+    </div>
+  </div>
+
+  <h2>4. Acceptance criteria for AI-based systems</h2>
+  <p>Acceptance criteria are the concrete bar a system has to clear before it's considered "done" for a given
+    quality characteristic. For conventional software, that bar is often binary: the feature works or it
+    doesn't. For AI-based systems, criteria typically have to be <strong>statistical, probabilistic, or
+    threshold-based</strong> instead — because near-perfect, error-free behavior usually isn't a realistic bar
+    to hold a probabilistic system to. A good AI acceptance criterion generally names: a specific, measurable
+    metric; a numeric threshold; and the condition or dataset it's measured against.</p>
+
+  <table class="data">
+    <thead><tr><th>Weak (not really testable)</th><th>Strong (testable)</th></tr></thead>
+    <tbody>
+      <tr><td>"The model should be accurate."</td><td>"The defect-detection model shall achieve a recall of at least 92% on the held-out validation set."</td></tr>
+      <tr><td>"The chatbot should be safe."</td><td>"The chatbot shall refuse at least 98% of a 500-prompt adversarial red-team set requesting self-harm or violent content."</td></tr>
+      <tr><td>"A person can stop the system if needed."</td><td>"An operator can trigger an emergency stop that halts the robotic arm within 0.3 seconds of activation."</td></tr>
+    </tbody>
+  </table>
+
+  <p>Notice the pattern: every strong example on the right names a metric, a number, and a measurement
+    condition. That pattern holds across all seven ISO/IEC 25059 characteristics and safety — it's the
+    difference between a criterion a test team can actually pass or fail a build against, and one that just
+    sounds nice in a requirements document.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Drag-to-rank: which acceptance criteria are actually testable?</span></div>
+    <div class="lab-sub">Drag the four statements below into order, from <strong>most testable</strong> (top)
+      to <strong>least testable</strong> (bottom), then check your ranking.</div>
+    <ul id="rank-list" style="list-style:none; padding:0; margin:1rem 0; display:flex; flex-direction:column; gap:.5rem;"></ul>
+    <div class="controls">
+      <button class="btn btn-primary" id="rank-check">Check my ranking</button>
+      <button class="btn btn-ghost" id="rank-reset">Shuffle &amp; reset</button>
+    </div>
+    <div class="readout" id="rank-readout">Drag the cards to reorder them, then check your ranking.</div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s04");
+    App.buildSessionNav("session-nav", "s04");
+    App.wireMarkComplete("mark-complete", "s04");
+
+    // ---- Quality characteristic explorer ----
+    const characteristics = [
+      { name: "AI functional correctness", angle: "Product quality",
+        def: "Because probabilistic ML systems can't guarantee perfect accuracy, correctness is judged by weighing correct vs. incorrect outputs against a defined, acceptable error threshold — not by demanding zero errors.",
+        example: "A skin-lesion screening model shall achieve a sensitivity of at least 97% on a clinically representative test set." },
+      { name: "Functional adaptability", angle: "Product quality",
+        def: "The system's ability to autonomously adjust its own behavior as its operating environment changes, without waiting for a human to manually update it.",
+        example: "A traffic-signal optimization model shall re-balance timing within 2 minutes of detecting a sustained change in vehicle flow at an intersection." },
+      { name: "User controllability", angle: "Product quality",
+        def: "A human (or another external agent) can intervene in the system's normal operation in a timely way — steering it, overriding a suggestion, or pausing it.",
+        example: "A loan-underwriting assistant shall let a human reviewer override any AI-suggested decision before it is finalized, with the override logged." },
+      { name: "Transparency", angle: "Product quality & quality in use",
+        def: "How much appropriate information about the system is communicated to the people who need it — what data it was trained on, what it's doing, and why.",
+        example: "The deployed model's version, training-data summary, and known limitations shall be retrievable from a public API endpoint." },
+      { name: "AI robustness", angle: "Product quality",
+        def: "The system keeps its level of functional correctness even under pressure — biased, adversarial, or invalid input, external interference, harsh conditions, or operator misuse.",
+        example: "A voice-assistant's intent-recognition accuracy shall not drop by more than 5 percentage points when tested with background-noise-augmented audio." },
+      { name: "Intervenability", angle: "Product quality (security)",
+        def: "How reliably an operator can step in to stop the system specifically to prevent harm or hazard — the safety-critical, urgent cousin of user controllability.",
+        example: "A warehouse robot shall come to a complete stop within 0.5 seconds of a safety-zone breach signal." },
+      { name: "Societal and ethical risk mitigation", angle: "Quality in use",
+        def: "A wide umbrella covering fairness, accountability, privacy, human control, environmental sustainability, and other broader societal effects of how the system behaves in the world.",
+        example: "A hiring-screening model shall show no statistically significant difference in shortlist rate across protected demographic groups, measured quarterly." },
+    ];
+    const charEl = document.getElementById("char-chips");
+    characteristics.forEach(c => {
+      const btn = document.createElement("button");
+      btn.className = "chip";
+      btn.style.cssText = "cursor:pointer; font-weight:700; padding:.5rem .9rem;";
+      btn.textContent = c.name;
+      btn.addEventListener("click", () => {
+        document.getElementById("char-readout").innerHTML =
+          `<strong>${c.name}</strong> <span class="small">(${c.angle})</span><br>${c.def}<br><em>Example acceptance criterion:</em> ${c.example}`;
+        charEl.querySelectorAll("button").forEach(b => b.style.borderColor = "var(--border)");
+        btn.style.borderColor = "var(--accent)";
+      });
+      charEl.appendChild(btn);
+    });
+
+    // ---- Drag-to-rank acceptance criteria lab ----
+    const rankItems = [
+      { id: "a", rank: 1, text: "The defect-detection model shall achieve a recall of at least 92% and a false-positive rate below 3% on the held-out evaluation set, measured before every release.",
+        note: "Best possible: names an exact metric, an exact threshold, and the exact condition it's measured under. A test team can pass/fail a build against this without any ambiguity." },
+      { id: "b", rank: 2, text: "The image classifier shall achieve an accuracy of at least 95% on a held-out test set representative of production traffic.",
+        note: "Strong: metric, threshold, and dataset condition are all present. Slightly less complete than (a) only because it names one metric instead of two." },
+      { id: "c", rank: 3, text: "The support chatbot's responses should be rated as helpful in at least 80% of user feedback surveys.",
+        note: "Partially testable: there's a number and a data source, but \"helpful\" is never defined — two reviewers could disagree wildly on what counts, which weakens the criterion." },
+      { id: "d", rank: 4, text: "The model should behave responsibly and avoid causing harm.",
+        note: "Not testable as written: no metric, no threshold, no measurement condition. This is a value statement, not an acceptance criterion — it needs to be broken down into several of the kind seen above before a test team can do anything with it." },
+    ];
+    const rankListEl = document.getElementById("rank-list");
+    function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+    function renderRankList() {
+      rankListEl.innerHTML = "";
+      shuffle(rankItems).forEach(item => {
+        const li = document.createElement("li");
+        li.className = "card";
+        li.draggable = true;
+        li.dataset.id = item.id;
+        li.style.cssText = "cursor:grab; background:var(--bg-sunken); border:1px solid var(--border); padding:.8rem 1rem;";
+        li.textContent = item.text;
+        li.addEventListener("dragstart", () => { li.style.opacity = "0.4"; li.dataset.dragging = "1"; });
+        li.addEventListener("dragend", () => { li.style.opacity = "1"; li.dataset.dragging = ""; });
+        rankListEl.appendChild(li);
+      });
+    }
+    rankListEl.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      const dragging = rankListEl.querySelector('[data-dragging="1"]');
+      if (!dragging) return;
+      const after = [...rankListEl.querySelectorAll("li:not([data-dragging='1'])")].find(li => {
+        const box = li.getBoundingClientRect();
+        return e.clientY < box.top + box.height / 2;
+      });
+      if (after) rankListEl.insertBefore(dragging, after);
+      else rankListEl.appendChild(dragging);
+    });
+    document.getElementById("rank-check").addEventListener("click", () => {
+      const order = [...rankListEl.querySelectorAll("li")].map(li => li.dataset.id);
+      const correct = rankItems.slice().sort((a, b) => a.rank - b.rank).map(i => i.id);
+      const isCorrect = order.every((id, i) => id === correct[i]);
+      const byId = Object.fromEntries(rankItems.map(i => [i.id, i]));
+      let html = isCorrect
+        ? "<strong>Correct order!</strong> "
+        : "<strong>Not quite the ideal order yet</strong> — here's how each one actually ranks: ";
+      html += "<ol style='margin-top:.5rem;'>" + correct.map(id => `<li style="margin-bottom:.4rem;"><em>${byId[id].text}</em><br>${byId[id].note}</li>`).join("") + "</ol>";
+      document.getElementById("rank-readout").innerHTML = html;
+    });
+    document.getElementById("rank-reset").addEventListener("click", () => {
+      renderRankList();
+      document.getElementById("rank-readout").textContent = "Drag the cards to reorder them, then check your ranking.";
+    });
+    renderRankList();
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AI-2.1.1", k: "K2", type: "single",
+        prompt: "Why did ISO/IEC 25059 need to adjust the meaning of \"functional correctness\" for AI-based systems?",
+        choices: [
+          { text: "Probabilistic ML systems can't guarantee perfect accuracy, so correctness has to account for an acceptable error rate rather than demanding zero errors.", correct: true },
+          { text: "AI-based systems are not expected to be functionally correct at all.", correct: false },
+          { text: "ISO/IEC 25010 never covered functional correctness in the first place.", correct: false },
+          { text: "Functional correctness only applies to conventional, rule-based software.", correct: false },
+        ],
+        explain: "AI functional correctness is adjusted, not abandoned — it now explicitly accounts for expected, bounded error rates instead of a binary correct/incorrect standard." },
+      { lo: "AI-2.1.1", k: "K2", type: "single",
+        prompt: "Which quality characteristic describes a system autonomously adjusting its behavior after deployment as its operational environment changes?",
+        choices: [
+          { text: "Functional adaptability", correct: true },
+          { text: "AI robustness", correct: false },
+          { text: "Transparency", correct: false },
+          { text: "Intervenability", correct: false },
+        ],
+        explain: "Functional adaptability is specifically about autonomous adjustment to a changing environment — robustness is about holding steady performance under stress, which is a different concern." },
+      { lo: "AI-2.1.1", k: "K2", type: "single",
+        prompt: "What distinguishes intervenability from user controllability?",
+        choices: [
+          { text: "Intervenability is specifically about stopping or overriding the system to prevent harm or hazard, and is classified under security.", correct: true },
+          { text: "Intervenability applies only to non-AI systems.", correct: false },
+          { text: "User controllability and intervenability are simply two names for the exact same characteristic.", correct: false },
+          { text: "Intervenability has nothing to do with human intervention.", correct: false },
+        ],
+        explain: "Both involve a human stepping in, but intervenability is the narrower, safety-critical case classified under security, not interaction capability." },
+      { lo: "AI-2.1.1", k: "K2", type: "multi",
+        prompt: "Which of the following are new or adapted ISO/IEC 25059 quality characteristics for AI-based systems (select all that apply)?",
+        choices: [
+          { text: "AI robustness", correct: true },
+          { text: "Societal and ethical risk mitigation", correct: true },
+          { text: "Transparency", correct: true },
+          { text: "Portability", correct: false },
+        ],
+        explain: "Portability is a standard ISO/IEC 25010 characteristic that wasn't adapted for AI in this way — robustness, societal/ethical risk mitigation, and transparency are the AI-specific additions covered here." },
+      { lo: "AI-2.1.2", k: "K2", type: "single",
+        prompt: "Why does self-learning make it harder to maintain a safety case for an AI-based system?",
+        choices: [
+          { text: "The system's behavior can drift away from the tested baseline as it continues learning after deployment.", correct: true },
+          { text: "Self-learning systems cannot be tested before deployment at all.", correct: false },
+          { text: "Self-learning is only a concern for non-safety-related systems.", correct: false },
+          { text: "Self-learning systems are always more explainable than static ones.", correct: false },
+        ],
+        explain: "Pre-deployment testing validates behavior as it existed at test time; a self-learning system can move away from that validated baseline over time, undermining the original safety case." },
+      { lo: "AI-2.1.2", k: "K2", type: "multi",
+        prompt: "Which of these are cited challenges that make AI safety-related systems harder to validate than conventional ones (select all that apply)?",
+        choices: [
+          { text: "Requirements often start vague and get implicitly encoded into training data instead of a fully formalized spec.", correct: true },
+          { text: "Non-determinism can produce unexpected behavior even in a rigorously tested model.", correct: true },
+          { text: "Explainability techniques like LIME are universally available with zero performance cost.", correct: false },
+          { text: "Mature functional-safety standards were mostly not written with AI in mind, and some restrict its use.", correct: true },
+        ],
+        explain: "Explainability tools like LIME help but aren't universal and can cost some performance — that's a limitation, not an advantage, so it's the false option here." },
+      { lo: "AI-2.2.1", k: "K2", type: "single",
+        prompt: "Which of these is the strongest, most testable acceptance criterion?",
+        choices: [
+          { text: "\"The fraud-detection model shall maintain a recall of at least 90% on the monthly held-out evaluation set.\"", correct: true },
+          { text: "\"The fraud-detection model should catch most fraud.\"", correct: false },
+          { text: "\"The fraud-detection model should be reliable.\"", correct: false },
+          { text: "\"The fraud-detection model should behave well in production.\"", correct: false },
+        ],
+        explain: "Only the first option gives a specific metric, a numeric threshold, and a measurement condition — the others are value statements a test team can't pass or fail a build against." },
+      { lo: "AI-2.2.1", k: "K2", type: "single",
+        prompt: "Why do acceptance criteria for AI-based systems typically need to be statistical, probabilistic, or threshold-based rather than binary?",
+        choices: [
+          { text: "Because near-perfect, error-free behavior usually isn't a realistic bar for a probabilistic system, so criteria need to define an acceptable rate instead.", correct: true },
+          { text: "Because AI-based systems cannot be tested against any acceptance criteria at all.", correct: false },
+          { text: "Because binary criteria are illegal under the EU AI Act.", correct: false },
+          { text: "Because AI-based systems never produce measurable output.", correct: false },
+        ],
+        explain: "This directly follows from AI functional correctness (2.1.1): AI systems are expected to be wrong at some acceptable, defined rate, so pass/fail bars need to reflect that instead of demanding zero errors." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s04", passPct: 65 });
+  });
+</script>
+</body>
+</html>

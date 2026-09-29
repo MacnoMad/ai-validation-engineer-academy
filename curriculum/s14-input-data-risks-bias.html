@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 14 · Input Data Risks &amp; Testing for Bias — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 14 · Chapter 5 — Input Data Testing for Machine Learning Systems (part 1 of 3)</div>
+  <h1>Input Data Risks &amp; Testing for Bias</h1>
+  <p class="lede">Back in Session 1 you learned that an AI validation engineer tests three surfaces: data, model, and
+    pipeline. This session opens the first one properly. You'll build a risk-to-technique map for everything that
+    can go wrong with the data feeding a machine learning system, then go deep on the single riskiest failure
+    mode in that map: bias.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">LOs: AI-5.1.1 – AI-5.1.2</span>
+    <span class="chip">Exam weight: part of 6 questions for Chapter 5</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">input data testing</span><span class="kw">testing for bias</span>
+    <span class="kw">data bias</span><span class="kw">algorithmic bias</span>
+    <span class="kw">disparate impact analysis</span><span class="kw">data provenance testing</span>
+    <span class="kw">review</span>
+  </div>
+
+  <h2>1. Why input data gets its own testing discipline</h2>
+  <p>A machine learning system doesn't just <em>use</em> data — it is <strong>built out of</strong> data. The
+    training set doesn't just influence behavior the way a config file might; it literally becomes the model's
+    internal parameters. That means every defect sitting quietly in a dataset — a skewed sample, a mislabeled
+    row, a corrupted field — has a real chance of being baked permanently into the thing you ship. Input data
+    testing exists to catch those defects <em>before</em> they get baked in, using a mix of reviews, statistical
+    techniques, exploratory data analysis (EDA), and both static and dynamic testing of the pipeline that moves
+    the data around.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>"Garbage in, garbage out" — amplified</strong>
+      <p class="small" style="margin-top:.4rem;">In conventional software, bad input data usually just produces
+        one bad output. In an ML system, bad <em>training</em> data produces a bad <em>model</em> — one that then
+        generates bad outputs on every future input, forever, until it's retrained. The blast radius of a data
+        defect is the entire deployed system, not one transaction.</p>
+    </div>
+    <div class="card">
+      <strong>You can't code-review your way out of it</strong>
+      <p class="small" style="margin-top:.4rem;">The model's logic isn't hand-written, so reading source code
+        won't reveal a biased or unrepresentative dataset. You need techniques built specifically for
+        interrogating data at scale — which is exactly what the rest of this chapter teaches.</p>
+    </div>
+  </div>
+
+  <h2>2. Input data risks and their mitigations</h2>
+  <p>The syllabus lays out a set of recurring input-data failure modes, each paired with a specific testing
+    technique that mitigates it. Treat the table below as a map: it names every technique this chapter (and part
+    of Chapter 6) will teach, and tells you exactly which risk each one is aimed at.</p>
+
+  <table class="data">
+    <thead><tr><th>What can go wrong</th><th>Where it's tested</th></tr></thead>
+    <tbody>
+      <tr><td>Training data reflects unfair, non-random differences across sensitive groups (defects in the
+        training data itself, or in the algorithm/model/development framework that introduces systemic
+        unfairness)</td><td><strong>Testing for bias</strong> — this session, §3</td></tr>
+      <tr><td>Data pulled from an untrustworthy or poorly managed source, or deliberately tampered with
+        ("poisoned")</td><td><strong>Data provenance testing</strong>, EDA, and — later in the course — red-team
+        attacks (Session 12) and A/B testing (Session 20)</td></tr>
+      <tr><td>Internally inconsistent values, out-of-range numbers, wrong data types</td>
+        <td><strong>Dataset constraint testing</strong> — Session 16</td></tr>
+      <tr><td>Feature set that's redundant, irrelevant, or missing signal</td>
+        <td><strong>Feature testing</strong> — reviewed as part of data preparation</td></tr>
+      <tr><td>Imbalanced classes, skewed augmentation, missing data, or a dataset that only covers a narrow slice
+        of real-world use cases</td><td><strong>Data representativeness testing</strong> — Session 15</td></tr>
+      <tr><td>Ambiguous data, poor labelling guidelines, or inconsistent annotation</td>
+        <td><strong>Label correctness testing</strong> — Session 16</td></tr>
+      <tr><td>A poorly designed or poorly integrated pipeline — failures, quality regressions, performance
+        degradation, or unauthorized changes as data moves through it</td>
+        <td><strong>Data pipeline testing</strong> — Session 15</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <div class="icon">🗺</div>
+    <div class="body">
+      <strong class="title">How to use this table</strong>
+      Every "testing for X" name you meet across Sessions 14–16 corresponds to exactly one row above. If you can
+      recall which failure mode each technique is aimed at, you've already internalized most of what an exam (or
+      a real standup conversation about "why is our model unfair") will ask of you.
+    </div>
+  </div>
+
+  <h2>3. Testing for bias</h2>
+  <p><strong>Bias</strong>, in this context, means non-random, unfair differences in how a system treats people
+    based on a sensitive attribute — gender, age, race, disability status, and similar categories. It's not a
+    vague ethical concern: biased outcomes in areas like lending, hiring, or healthcare can be, and have been,
+    unlawful. Bias in an MLS traces back to two distinct sources, and knowing which one you're chasing changes
+    where you look:</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Data bias</strong>
+      <p class="small" style="margin-top:.4rem;">Defects <em>in the training data</em>: a sample that
+        under-represents a group, a historical pattern baked into decades of biased human decisions, or data that
+        was deliberately poisoned. The model isn't malfunctioning — it's faithfully learning a biased world.</p>
+    </div>
+    <div class="card">
+      <strong>Algorithmic bias</strong>
+      <p class="small" style="margin-top:.4rem;">Defects <em>in the algorithm, model, or development framework</em>
+        that introduce systemic unfairness even on clean data — for example, a single decision threshold for a
+        loan-approval model that happens to disadvantage one group's typical score distribution.</p>
+    </div>
+  </div>
+
+  <p>Because bias can enter from either direction, testing for it also needs to work from both static and dynamic
+    angles:</p>
+  <ul>
+    <li><strong>Workflow and data-prep reviews</strong> — walk the ML workflow, and the data preparation step in
+      particular, looking for places bias could be introduced.</li>
+    <li><strong>Dataset documentation review</strong> — examine how the data was collected and annotated, and
+      which populations it represents (or doesn't), to spot sources of unfairness before a single test runs.</li>
+    <li><strong>Static analysis</strong> of both the data-preparation code and the model implementation, hunting
+      for anti-patterns or mishandling of sensitive attributes.</li>
+    <li><strong>EDA</strong> — visualize and cluster the training data across sensitive attributes to surface
+      imbalances, skewed distributions, or anomalous groupings.</li>
+    <li><strong>Dynamic testing</strong> — feed a known-unbiased, representative dataset through the trained
+      system and check whether outcomes differ, in a statistically significant way, across sensitive groups. This
+      catches bias in the model's <em>output</em>, regardless of whether it originated in the data or the
+      algorithm.</li>
+    <li><strong>Label correctness testing</strong> (Session 16) — mislabeled data can teach the model incorrect
+      associations between an attribute and an outcome for a specific sensitive group.</li>
+  </ul>
+
+  <h3>Disparate impact analysis</h3>
+  <p>This is the most structured bias-detection technique in the syllabus, built around counterfactual
+    comparison:</p>
+  <ol>
+    <li>Identify the model's sensitive attributes (e.g., gender, age bracket).</li>
+    <li>Generate counterfactual examples — take a real case and flip just the sensitive attribute (change a loan
+      applicant's gender from male to female, all else held equal).</li>
+    <li>Run both versions through the model and record the outputs.</li>
+    <li>Repeat across many cases and analyze the results for a statistically significant shift — if flipping the
+      sensitive attribute reliably changes the outcome, that's evidence of bias.</li>
+  </ol>
+  <p>This technique also generalizes to <em>combinations</em> of sensitive attributes, which can reveal
+    intersectional bias hidden when you only test one attribute at a time (e.g., bias that only appears for
+    older women, not older applicants or women considered separately).</p>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">Watch for unrealistic counterfactuals</strong>
+      A counterfactual has to represent a plausible real-world case. If you generate a combination of attributes
+      that could never realistically occur together, the model's response to it tells you about an out-of-
+      distribution input, not about bias.
+    </div>
+  </div>
+
+  <h2>4. Interactive: see representational bias in a synthetic dataset</h2>
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Lab: loan-approval dataset explorer</span></div>
+    <div class="lab-sub">A synthetic 200-applicant dataset. Filter by demographic group and watch the approval
+      split shift — this is what EDA "across sensitive attributes" (§3 above) is actually looking for.</div>
+    <div class="controls" id="bias-controls"></div>
+    <div id="bias-chart"></div>
+    <div class="readout" id="bias-readout">Pick a view above to begin.</div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s14");
+    App.buildSessionNav("session-nav", "s14");
+    App.wireMarkComplete("mark-complete", "s14");
+
+    // ---- Bias-in-data lab ----
+    const groups = {
+      all:  { label: "All applicants",     approved: 110, denied: 90 },
+      a:    { label: "Group A (majority)",  approved: 78,  denied: 42 },
+      b:    { label: "Group B (minority)",  approved: 32,  denied: 48 },
+      cmp:  { label: "Compare A vs. B",     approved: 0,   denied: 0 },
+    };
+    const rate = g => Math.round((g.approved / (g.approved + g.denied)) * 100);
+
+    const controlsEl = document.getElementById("bias-controls");
+    const views = [
+      { key: "all", label: "All applicants" },
+      { key: "a", label: "Group A only" },
+      { key: "b", label: "Group B only" },
+      { key: "cmp", label: "Compare A vs. B" },
+    ];
+    const buttons = {};
+    views.forEach(v => {
+      const btn = document.createElement("button");
+      btn.className = "btn btn-ghost";
+      btn.textContent = v.label;
+      btn.addEventListener("click", () => renderBias(v.key));
+      buttons[v.key] = btn;
+      controlsEl.appendChild(btn);
+    });
+
+    function setActive(key) {
+      Object.keys(buttons).forEach(k => {
+        buttons[k].style.borderColor = k === key ? "var(--accent)" : "var(--border)";
+      });
+    }
+
+    function simpleBars(g) {
+      const w = 420, h = 220, padL = 50, padB = 40;
+      const max = Math.max(g.approved, g.denied);
+      const barW = 110;
+      const bars = [
+        { label: "Approved", val: g.approved, x: padL + 10 },
+        { label: "Denied",   val: g.denied,   x: padL + 10 + barW + 40 },
+      ];
+      let svg = `<svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="Approved vs denied counts">`;
+      svg += `<line x1="${padL}" y1="${h-padB}" x2="${w-20}" y2="${h-padB}" stroke="var(--border)"/>`;
+      bars.forEach(b => {
+        const barH = (b.val / max) * (h - padB - 30);
+        const y = h - padB - barH;
+        const color = b.label === "Approved" ? "var(--success)" : "var(--danger)";
+        svg += `<rect x="${b.x}" y="${y}" width="${barW}" height="${barH}" rx="4" fill="${color}" opacity="0.85"/>`;
+        svg += `<text x="${b.x + barW/2}" y="${y-8}" text-anchor="middle" font-size="14" font-weight="800" fill="var(--text)">${b.val}</text>`;
+        svg += `<text x="${b.x + barW/2}" y="${h-padB+20}" text-anchor="middle" font-size="12" fill="var(--text-faint)">${b.label}</text>`;
+      });
+      svg += "</svg>";
+      return svg;
+    }
+
+    function compareBars() {
+      const a = groups.a, b = groups.b;
+      const ra = rate(a), rb = rate(b);
+      const w = 460, h = 240, padL = 50, padB = 40, top = 20;
+      const scaleH = h - padB - top;
+      const barW = 110;
+      const xA = padL + 10, xB = padL + 10 + barW + 60;
+      const yA = h - padB - (ra/100)*scaleH, yB = h - padB - (rb/100)*scaleH;
+      const thresholdRate = ra * 0.8; // four-fifths rule reference line
+      const yThresh = h - padB - (thresholdRate/100)*scaleH;
+      let svg = `<svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="Approval rate comparison">`;
+      svg += `<line x1="${padL}" y1="${h-padB}" x2="${w-20}" y2="${h-padB}" stroke="var(--border)"/>`;
+      svg += `<line x1="${padL}" y1="${yThresh}" x2="${w-20}" y2="${yThresh}" stroke="var(--warning)" stroke-width="1.5" stroke-dasharray="6,4"/>`;
+      svg += `<text x="${w-22}" y="${yThresh-6}" text-anchor="end" font-size="11" fill="var(--warning)">80% of Group A's rate</text>`;
+      svg += `<rect x="${xA}" y="${yA}" width="${barW}" height="${h-padB-yA}" rx="4" fill="var(--accent)" opacity="0.85"/>`;
+      svg += `<text x="${xA+barW/2}" y="${yA-8}" text-anchor="middle" font-size="14" font-weight="800" fill="var(--text)">${ra}%</text>`;
+      svg += `<text x="${xA+barW/2}" y="${h-padB+20}" text-anchor="middle" font-size="12" fill="var(--text-faint)">Group A rate</text>`;
+      const barColorB = rb < thresholdRate ? "var(--danger)" : "var(--accent-2)";
+      svg += `<rect x="${xB}" y="${yB}" width="${barW}" height="${h-padB-yB}" rx="4" fill="${barColorB}" opacity="0.9"/>`;
+      svg += `<text x="${xB+barW/2}" y="${yB-8}" text-anchor="middle" font-size="14" font-weight="800" fill="var(--text)">${rb}%</text>`;
+      svg += `<text x="${xB+barW/2}" y="${h-padB+20}" text-anchor="middle" font-size="12" fill="var(--text-faint)">Group B rate</text>`;
+      svg += "</svg>";
+      return svg;
+    }
+
+    function renderBias(key) {
+      setActive(key);
+      const chartEl = document.getElementById("bias-chart");
+      const readoutEl = document.getElementById("bias-readout");
+      if (key === "cmp") {
+        chartEl.innerHTML = compareBars();
+        const ra = rate(groups.a), rb = rate(groups.b);
+        const ratio = (rb / ra);
+        const pct = Math.round(ratio * 100);
+        const flag = ratio < 0.8;
+        readoutEl.innerHTML = `Group A approval rate: <strong>${ra}%</strong>. Group B approval rate:
+          <strong>${rb}%</strong>. Group B's rate is <strong>${pct}%</strong> of Group A's.
+          ${flag
+            ? `<span style="color:var(--danger); font-weight:700;">That's below 80% — under the commonly used
+               "four-fifths rule" heuristic for disparate impact, this pattern is flagged for investigation, even
+               before you know whether the cause is data bias or algorithmic bias.</span>`
+            : `That's at or above 80%, so this simple heuristic wouldn't flag it on its own — though disparate
+               impact analysis (§3) can still surface subtler bias a single ratio misses.`}`;
+      } else {
+        const g = groups[key];
+        chartEl.innerHTML = simpleBars(g);
+        readoutEl.innerHTML = `<strong>${g.label}:</strong> ${g.approved} approved, ${g.denied} denied out of
+          ${g.approved + g.denied} — an approval rate of <strong>${rate(g)}%</strong>. Try "Compare A vs. B" to
+          see whether that rate holds steady across groups.`;
+      }
+    }
+    renderBias("all");
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AI-5.1.1", k: "K2", type: "single",
+        prompt: "Why does bad training data cause more lasting damage than bad input to a conventional program?",
+        choices: [
+          { text: "Training data becomes part of the model's learned parameters, so the defect is baked into every future prediction until retraining.", correct: true },
+          { text: "ML systems cannot be retrained once deployed.", correct: false },
+          { text: "Conventional programs never have bad-input problems.", correct: false },
+          { text: "Bad training data only affects the developer's local machine.", correct: false },
+        ],
+        explain: "A conventional bug usually affects one transaction; a data defect baked into training affects every prediction the model ever makes, until it's retrained on cleaner data." },
+      { lo: "AI-5.1.1", k: "K2", type: "multi",
+        prompt: "Which of the following are named as input data risks in the syllabus's risk-mitigation table (select all that apply)?",
+        choices: [
+          { text: "Training data acquired from an untrustworthy source", correct: true },
+          { text: "An internally inconsistent dataset (out-of-range values, wrong types)", correct: true },
+          { text: "Poor labelling guidelines leading to ambiguous or inconsistent labels", correct: true },
+          { text: "The model server running out of disk space", correct: false },
+        ],
+        explain: "Disk space is an infrastructure/ops concern, not an input-data risk. The other three map directly onto dataset constraint testing, data provenance testing, and label correctness testing respectively." },
+      { lo: "AI-5.1.1", k: "K2", type: "single",
+        prompt: "An imbalanced dataset caused by insufficient coverage of all target classes is best addressed by which technique?",
+        choices: [
+          { text: "Data representativeness testing", correct: true },
+          { text: "Data pipeline testing", correct: false },
+          { text: "Static code analysis", correct: false },
+          { text: "A/B testing", correct: false },
+        ],
+        explain: "Coverage and class-balance problems are exactly what data representativeness testing (Session 15) is designed to catch." },
+      { lo: "AI-5.1.2", k: "K2", type: "single",
+        prompt: "What is the key difference between data bias and algorithmic bias?",
+        choices: [
+          { text: "Data bias originates in the training data itself; algorithmic bias originates in the algorithm, model, or development framework.", correct: true },
+          { text: "Data bias only affects images; algorithmic bias only affects text.", correct: false },
+          { text: "Algorithmic bias cannot be tested for.", correct: false },
+          { text: "They are two names for the same thing.", correct: false },
+        ],
+        explain: "Same symptom (unfair outcomes), two very different root causes — which is why bias testing has to look both at the data and at the model/algorithm." },
+      { lo: "AI-5.1.2", k: "K2", type: "multi",
+        prompt: "Which of these are legitimate test approaches for detecting bias (select all that apply)?",
+        choices: [
+          { text: "EDA across sensitive attributes to spot imbalanced or skewed distributions", correct: true },
+          { text: "Reviewing dataset documentation to understand collection and annotation practices", correct: true },
+          { text: "Feeding a known-unbiased, representative dataset through the model and comparing outcomes across groups", correct: true },
+          { text: "Deleting the sensitive attribute column so the model can't see it, with no further testing", correct: false },
+        ],
+        explain: "Simply removing the sensitive attribute is not a testing technique, and it doesn't prevent bias — the model can still infer it from correlated features (a well-known failure called proxy discrimination)." },
+      { lo: "AI-5.1.2", k: "K2", type: "single",
+        prompt: "In disparate impact analysis, what is a “counterfactual” example?",
+        choices: [
+          { text: "The same case with only the sensitive attribute changed, all else held equal.", correct: true },
+          { text: "A randomly generated, unrelated data point.", correct: false },
+          { text: "A data point removed from the dataset for being an outlier.", correct: false },
+          { text: "The average of all cases in the dataset.", correct: false },
+        ],
+        explain: "Counterfactuals isolate the effect of the sensitive attribute by changing only it and re-running the case through the model." },
+      { lo: "AI-5.1.2", k: "K2", type: "single",
+        prompt: "Why should you be cautious about counterfactual examples that combine attributes unrealistically?",
+        choices: [
+          { text: "The model's response then reflects an out-of-distribution input, not necessarily bias.", correct: true },
+          { text: "Unrealistic counterfactuals always crash the model.", correct: false },
+          { text: "Regulators forbid generating any counterfactual data.", correct: false },
+          { text: "It makes the test run slower.", correct: false },
+        ],
+        explain: "If a combination of attributes could never plausibly occur, the model's unusual output may just reflect that it has never seen anything like it — not that it's biased." },
+      { lo: "AI-5.1.2", k: "K2", type: "single",
+        prompt: "How does label correctness testing relate to bias testing?",
+        choices: [
+          { text: "Mislabeled data can teach the model incorrect associations between an attribute and an outcome for a sensitive group, which is itself a source of bias.", correct: true },
+          { text: "They are unrelated — labels never affect model fairness.", correct: false },
+          { text: "Label correctness testing replaces the need for disparate impact analysis entirely.", correct: false },
+          { text: "Label correctness testing only applies to unsupervised learning.", correct: false },
+        ],
+        explain: "Bad labels are one concrete mechanism by which data bias enters a model — the model faithfully learns the mislabeled association." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s14", passPct: 65 });
+  });
+</script>
+</body>
+</html>

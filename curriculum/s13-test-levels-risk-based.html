@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 13 · Test Levels &amp; Risk-Based Testing for MLS — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 13 · Chapter 4 — Testing AI-Based Systems (part 3 of 3)</div>
+  <h1>Test Levels &amp; Risk-Based Testing for Machine Learning Systems</h1>
+  <p class="lede">You now know AI testing needs statistical thinking (Session 11) and specialized techniques for
+    GenAI (Session 12). Today you'll zoom out and answer two structural questions: <em>where</em> in the
+    development lifecycle does ML-specific testing actually happen, and <em>how much</em> effort should any
+    given part of a machine learning system get? This closes out Chapter 4 and sets up the roadmap for
+    everything from Session 14 onward.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k2">K2 · Understand</span>
+    <span class="chip">LOs: AI-4.3.1, AI-4.3.2</span>
+    <span class="chip">Exam weight: part of 7 questions for Chapter 4</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">input data testing</span><span class="kw">ML model testing</span>
+    <span class="kw">component testing</span><span class="kw">component integration testing</span>
+    <span class="kw">system testing</span><span class="kw">acceptance testing</span>
+    <span class="kw">risk-based testing</span><span class="kw">product risk</span><span class="kw">project risk</span>
+  </div>
+
+  <h2>1. Two test levels that only exist for machine learning</h2>
+  <p>A machine learning system (MLS) is still, underneath everything, a software system — so all the
+    conventional test levels you already know still apply to its non-AI parts: a login screen, a REST API, a
+    logging pipeline. But an MLS also carries risks conventional test levels were never designed to catch,
+    which is why the syllabus adds exactly <strong>two specialized test levels</strong> on top:</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Input data testing</strong>
+      <p class="small" style="margin-top:.4rem;">Concerned with the <em>training data</em> used to build the
+        model and the <em>production data</em> the deployed system uses to generate predictions. This is the
+        entire subject of Chapter 5 (Sessions 14–16).</p>
+    </div>
+    <div class="card">
+      <strong>ML model testing</strong>
+      <p class="small" style="margin-top:.4rem;">Concerned with the model itself — the ultimate output of the ML
+        development workflow you studied in Session 5. This is the entire subject of Chapter 6 (Sessions
+        17–20), the single heaviest-weighted chapter on the exam.</p>
+    </div>
+  </div>
+
+  <p>What makes these genuinely different from traditional levels is that they aren't defined by <em>how much
+    of the system is integrated</em> — the usual logic behind unit → integration → system → acceptance.
+    They're defined by <em>which category of ML-specific risk</em> they target: is the problem in what the
+    model learned from (data), or in the model that resulted (model)? Both can — and should — be tested well
+    before the whole system is wired together.</p>
+
+  <p>The conventional levels don't disappear; they just get reinterpreted for an ML context:</p>
+
+  <table class="data">
+    <thead><tr><th>Level</th><th>What it covers in an MLS</th></tr></thead>
+    <tbody>
+      <tr><td>Component testing</td><td>Any non-AI component in isolation — UI, data pipeline components, communication modules.</td></tr>
+      <tr><td>Component integration testing</td><td>Confirms the data pipeline's output reaches the model as expected, and the model's predictions reach the rest of the system (e.g. the UI) correctly. Where AI is consumed as a service, this is also where API testing of that service happens.</td></tr>
+      <tr><td>System testing</td><td>Confirms ML functional performance measured in model testing hasn't degraded once the model is embedded in the full system — especially important after deliberate model changes like compression. Also covers non-functional concerns, e.g. how long a full prediction actually takes end-to-end.</td></tr>
+      <tr><td>System integration testing</td><td>Verifies interfaces and data exchange between the AI-based system and external systems or services, in an environment representative of production.</td></tr>
+      <tr><td>Acceptance testing</td><td>Where AI is used as a service, confirms the service is actually suitable for its intended use — e.g. that ML functional performance criteria have genuinely been met.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div class="body">
+      <strong class="title">A useful mental shortcut</strong>
+      If a defect could only come from <em>what the model was trained on</em>, that's input data testing. If it
+      could only come from <em>how the trained model itself behaves</em>, that's ML model testing. Everything
+      else — did the pieces get wired together correctly, does the whole thing meet the business's acceptance
+      bar — is still handled by the conventional levels you already know from general software testing.
+    </div>
+  </div>
+
+  <h2>2. Risk-based testing of machine learning systems</h2>
+  <p>Risk-based testing (RBT) — prioritizing test effort by likelihood and impact of failure — applies to every
+    system, AI or not. What changes for an MLS is the <em>shape</em> of the risks themselves, and most
+    regulatory frameworks for AI now explicitly require a risk-based approach to development and testing.</p>
+
+  <p>There's no single official taxonomy for ML risk, but the syllabus organizes it around the ML workflow
+    itself, splitting risk into three areas:</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Development (project risk)</strong>
+      <p class="small" style="margin-top:.4rem;">Risk in the ML algorithm choice, model development process,
+        and the development framework itself. Examples: a sub-optimal algorithm for the problem, a poorly
+        chosen evaluation approach, security vulnerabilities in the framework. Covered further in Chapter 7.</p>
+    </div>
+    <div class="card">
+      <strong>Input data (product risk)</strong>
+      <p class="small" style="margin-top:.4rem;">Risk in the training data and the production data feeding the
+        deployed model. Examples: biased training data, data-pipeline defects, unrepresentative training data.
+        Covered in depth in Chapter 5 (Sessions 14–16).</p>
+    </div>
+    <div class="card">
+      <strong>Model (product risk)</strong>
+      <p class="small" style="margin-top:.4rem;">Risk in the resulting model itself. Examples: failing to meet
+        required ML functional performance, an overfitted model, susceptibility to adversarial examples.
+        Covered in depth in Chapter 6 (Sessions 17–20).</p>
+    </div>
+    <div class="card">
+      <strong>An alternative lens: quality characteristics</strong>
+      <p class="small" style="margin-top:.4rem;">Risks can also be categorized against the AI-specific quality
+        characteristics defined in ISO/IEC 25059 (introduced back in Session 4) — useful when you want to argue
+        risk in terms of "which quality attribute is threatened" rather than "which stage produced it."</p>
+    </div>
+  </div>
+
+  <p><strong>Project risk</strong> threatens whether the ML system gets built successfully at all (timelines,
+    approach, tooling); <strong>product risk</strong> threatens the quality of the resulting system once it's
+    built. Both matter, and a mature risk-based test strategy tracks both categories rather than only the
+    product side. Specialized techniques — data pipeline testing, adversarial testing, and review of
+    algorithm/model suitability, among others — exist specifically to target these ML risk categories, and
+    you'll get hands-on with most of them across Chapters 5–7.</p>
+
+  <h2>3. Lab: build a risk-based test priority matrix</h2>
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: risk matrix builder</span></div>
+    <div class="lab-sub">For each ML system scenario, rate its likelihood and impact of failure. The matrix
+      converts your rating into a test-priority recommendation — then compare it against how a working AI
+      validation engineer would typically call it, and see why.</div>
+
+    <div id="risk-scenarios"></div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s13");
+    App.buildSessionNav("session-nav", "s13");
+    App.wireMarkComplete("mark-complete", "s13");
+
+    // ---- Risk matrix lab ----
+    const LEVELS = ["Low", "Medium", "High"];
+    const MATRIX = {
+      "Low-Low": "Low", "Low-Medium": "Low", "Low-High": "Medium",
+      "Medium-Low": "Low", "Medium-Medium": "Medium", "Medium-High": "High",
+      "High-Low": "Medium", "High-Medium": "High", "High-High": "Critical",
+    };
+    const PRIORITY = {
+      Low: { label: "Low priority", advice: "Cover with baseline regression / sampling-based checks; revisit if the risk profile changes." },
+      Medium: { label: "Medium priority", advice: "Include in the regular test plan with a meaningful sample size; monitor in production." },
+      High: { label: "High priority", advice: "Dedicate focused test design and a larger statistically significant sample; consider targeted techniques (adversarial, metamorphic, bias testing)." },
+      Critical: { label: "Critical — top priority", advice: "Exhaustive risk-based coverage before release, expert/domain review, and ongoing production monitoring — this is where the majority of test effort should go." },
+    };
+    const scenarios = [
+      {
+        title: "Spam filter occasionally routes a promotional newsletter to spam instead of the inbox.",
+        expert: { likelihood: "High", impact: "Low" },
+        rationale: "This misclassification happens often (spam/ham boundaries are genuinely fuzzy) but the consequence is mild and recoverable — the user checks the spam folder occasionally. Low impact keeps this out of the top priority tier even with high likelihood."
+      },
+      {
+        title: "A diagnostic imaging model occasionally misses a malignant tumor on a scan.",
+        expert: { likelihood: "Low", impact: "High" },
+        rationale: "A well-trained model should miss this rarely — but the consequence of a miss is severe and potentially life-threatening. Even at low likelihood, a high-impact failure like this pushes the combined risk into the top priority tier."
+      },
+      {
+        title: "A loan-approval model shows a measurable difference in approval rates across demographic groups, traceable to biased historical training data.",
+        expert: { likelihood: "High", impact: "High" },
+        rationale: "Biased historical data is a well-documented, common failure mode (high likelihood), and the consequence spans real financial harm plus regulatory and reputational exposure (high impact) — a genuinely critical combination."
+      },
+      {
+        title: "A product recommendation engine occasionally suggests a mildly irrelevant item.",
+        expert: { likelihood: "High", impact: "Low" },
+        rationale: "Irrelevant recommendations happen fairly often in any recommender, but the cost of being wrong is just a slightly worse suggestion — low impact keeps this a low/medium priority despite the frequency."
+      },
+      {
+        title: "An autonomous vehicle's pedestrian-detection model fails to detect a pedestrian under rare, unusual lighting conditions.",
+        expert: { likelihood: "Low", impact: "High" },
+        rationale: "This should be rare if the system is well engineered, but a miss here can be fatal — exactly the profile (rare but catastrophic) that risk-based testing insists on treating as top priority rather than deprioritizing because it's rare."
+      },
+      {
+        title: "A customer-support chatbot occasionally responds in a slightly too-casual tone for a formal enterprise client.",
+        expert: { likelihood: "High", impact: "Low" },
+        rationale: "Tone drift happens often in generative text and is genuinely annoying, but rarely does real harm — a good candidate for ongoing monitoring and quick fixes rather than heavy pre-release test investment."
+      },
+    ];
+
+    const wrap = document.getElementById("risk-scenarios");
+    scenarios.forEach((s, si) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.marginBottom = "1rem";
+      card.innerHTML = `
+        <strong>Scenario ${si + 1}.</strong> ${s.title}
+        <div class="controls" style="margin-top:.7rem; flex-wrap:wrap;">
+          <span class="small" style="align-self:center; font-weight:700;">Likelihood:</span>
+          <span class="controls" data-role="likelihood" style="gap:.4rem;"></span>
+        </div>
+        <div class="controls" style="margin-top:.5rem; flex-wrap:wrap;">
+          <span class="small" style="align-self:center; font-weight:700;">Impact:</span>
+          <span class="controls" data-role="impact" style="gap:.4rem;"></span>
+        </div>
+        <div class="readout" data-role="result" style="margin-top:.8rem;">Rate likelihood and impact above to see a test-priority recommendation.</div>
+      `;
+      wrap.appendChild(card);
+
+      const state = { likelihood: null, impact: null };
+      const likeEl = card.querySelector('[data-role="likelihood"]');
+      const impEl = card.querySelector('[data-role="impact"]');
+      const resultEl = card.querySelector('[data-role="result"]');
+
+      function evaluate() {
+        if (!state.likelihood || !state.impact) return;
+        const combined = MATRIX[`${state.likelihood}-${state.impact}`];
+        const p = PRIORITY[combined];
+        const expertCombined = MATRIX[`${s.expert.likelihood}-${s.expert.impact}`];
+        const matches = combined === expertCombined;
+        resultEl.innerHTML = `
+          <strong>Your rating → ${p.label}.</strong> ${p.advice}<br>
+          <span class="small" style="display:block; margin-top:.5rem;">
+            <strong>${matches ? "✓ This matches" : "A working AI validation engineer would typically rate this"}</strong>
+            ${matches ? "" : ` as <strong>${s.expert.likelihood}</strong> likelihood / <strong>${s.expert.impact}</strong> impact`}
+            — ${s.rationale}
+          </span>`;
+      }
+
+      function buildButtons(container, role) {
+        LEVELS.forEach(level => {
+          const btn = document.createElement("button");
+          btn.className = "btn btn-ghost";
+          btn.textContent = level;
+          btn.addEventListener("click", () => {
+            state[role] = level;
+            container.querySelectorAll("button").forEach(b => {
+              b.style.borderColor = "var(--border)";
+              b.style.fontWeight = "400";
+            });
+            btn.style.borderColor = "var(--accent)";
+            btn.style.fontWeight = "700";
+            evaluate();
+          });
+          container.appendChild(btn);
+        });
+      }
+      buildButtons(likeEl, "likelihood");
+      buildButtons(impEl, "impact");
+    });
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AI-4.3.1", k: "K2", type: "multi",
+        prompt: "Which two test levels are specific to machine learning systems (select both)?",
+        choices: [
+          { text: "Input data testing", correct: true },
+          { text: "ML model testing", correct: true },
+          { text: "Component testing", correct: false },
+          { text: "Acceptance testing", correct: false },
+        ],
+        explain: "Input data testing (Chapter 5) and ML model testing (Chapter 6) are the two ML-specific levels. Component and acceptance testing are conventional levels that still apply, just reinterpreted for an ML context." },
+      { lo: "AI-4.3.1", k: "K2", type: "single",
+        prompt: "How do the two ML-specific test levels differ conceptually from traditional levels like unit, integration, system, and acceptance?",
+        choices: [
+          { text: "They're organized by which category of ML-specific risk they target (data vs. model), not by how much of the system is integrated.", correct: true },
+          { text: "They only apply after the system has been fully deployed to production.", correct: false },
+          { text: "They replace the need for any conventional test levels entirely.", correct: false },
+          { text: "They are only used for locked AI-based systems, never adaptive ones.", correct: false },
+        ],
+        explain: "Traditional levels scale with integration breadth (unit → system); input data testing and ML model testing instead target two specific ML risk sources, and can happen well before full system integration." },
+      { lo: "AI-4.3.1", k: "K2", type: "single",
+        prompt: "A team wants to confirm that predictions generated by a model are correctly received and used by the user interface. Which conventional test level covers this in an MLS?",
+        choices: [
+          { text: "Component integration testing", correct: true },
+          { text: "Input data testing", correct: false },
+          { text: "ML model testing", correct: false },
+          { text: "Acceptance testing", correct: false },
+        ],
+        explain: "Component integration testing confirms the handoffs between components — data pipeline into the model, and model predictions into the rest of the system such as the UI." },
+      { lo: "AI-4.3.1", k: "K2", type: "single",
+        prompt: "After a deployed DNN is compressed to reduce its size, which test level specifically confirms the ML functional performance from model testing hasn't degraded once it's embedded in the full system?",
+        choices: [
+          { text: "System testing", correct: true },
+          { text: "Component testing", correct: false },
+          { text: "Input data testing", correct: false },
+          { text: "System integration testing", correct: false },
+        ],
+        explain: "System testing includes confirmation testing that ML functional performance measured during model testing still holds once the model is embedded in the complete system — especially important after a deliberate change like compression." },
+      { lo: "AI-4.3.2", k: "K2", type: "single",
+        prompt: "Why does risk-based testing look different for machine learning systems compared to conventional software?",
+        choices: [
+          { text: "Because ML-based systems carry risks unique to how they're built (from data and learned models) that conventional systems don't have.", correct: true },
+          { text: "Because risk-based testing doesn't apply to AI-based systems at all.", correct: false },
+          { text: "Because ML systems have no meaningful risks to prioritize.", correct: false },
+          { text: "Because regulators explicitly prohibit risk-based approaches for AI.", correct: false },
+        ],
+        explain: "Risk-based testing applies to every system, but ML introduces genuinely new risk categories (data risk, model risk) on top of the conventional ones — and most AI regulatory frameworks now require a risk-based approach." },
+      { lo: "AI-4.3.2", k: "K2", type: "multi",
+        prompt: "Which of these are examples of ML-specific product risk, as opposed to project risk (select all that apply)?",
+        choices: [
+          { text: "Biased training data", correct: true },
+          { text: "An overfitted model", correct: true },
+          { text: "Susceptibility to adversarial examples", correct: true },
+          { text: "Sub-optimal algorithm selection during development", correct: false },
+        ],
+        explain: "Biased data, overfitting, and adversarial susceptibility are product risks in the delivered system. Sub-optimal algorithm selection is a project risk — it threatens the development process, not the resulting product directly." },
+      { lo: "AI-4.3.2", k: "K2", type: "single",
+        prompt: "A rare failure mode with catastrophic real-world consequences (e.g. missing a pedestrian in unusual lighting) should generally be treated as:",
+        choices: [
+          { text: "High priority for testing, because impact — not just likelihood — drives risk.", correct: true },
+          { text: "Low priority, because it happens rarely.", correct: false },
+          { text: "Irrelevant to testing, since it can't be fully prevented.", correct: false },
+          { text: "Only relevant to input data testing, never model testing.", correct: false },
+        ],
+        explain: "Risk-based testing weighs likelihood and impact together — a low-likelihood, high-impact failure can still land in the highest-priority tier, which is exactly the profile of many safety-critical ML failure modes." },
+      { lo: "AI-4.3.2", k: "K2", type: "single",
+        prompt: "Besides the development / input data / model breakdown, what's another way the syllabus suggests categorizing AI-related risk?",
+        choices: [
+          { text: "By the AI-specific quality characteristics defined in ISO/IEC 25059.", correct: true },
+          { text: "By the programming language the model is implemented in.", correct: false },
+          { text: "By the number of team members who worked on the model.", correct: false },
+          { text: "There is no alternative categorization mentioned.", correct: false },
+        ],
+        explain: "Risks can also be organized by which ISO/IEC 25059 quality characteristic they threaten — a useful complementary lens to the development/data/model workflow-based breakdown." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s13", passPct: 65 });
+  });
+</script>
+</body>
+</html>

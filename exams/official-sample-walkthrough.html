@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 29 · Official Sample Exam Walkthrough — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">ISTQB Prep (Optional) · Session 29</div>
+  <h1>Official Sample Exam Walkthrough</h1>
+  <p class="lede">Every question from the real, official ISTQB CT-AI v2.0 sample exam (Set A), worked through
+    one at a time — attempt each question yourself first, then see whether you were right and read a
+    full explanation grounded in the official answer key's reasoning, written in plain language rather than
+    copied straight from the source.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~90 min (untimed self-study)</span>
+    <span class="chip k2">Official ISTQB sample exam</span>
+    <span class="chip">46 official questions · 53 quiz items</span>
+    <a class="chip" href="source-pdfs.html">📄 View the original PDF</a>
+  </div>
+
+  <div class="callout exam">
+    <div class="icon">📄</div>
+    <div class="body">
+      <strong class="title">What you're looking at</strong>
+      This page reproduces the question stems and answer choices from ISTQB's official
+      <em>CT-AI v2.0 Sample Exam — Set A</em> (Questions #1–40 plus the Appendix's Additional Questions
+      A1–A6) essentially as published — that's the intended, self-study use of this document. The
+      per-question <strong>explanations below are original writing</strong>, grounded in the reasoning from
+      ISTQB's official answer key but expressed in my own words rather than reproducing its exact
+      sentences. To check anything here against the primary source, or to read the official justification
+      text directly, <a href="source-pdfs.html">view the original PDF</a> — the unmodified questions and
+      answers documents are both linked there, with full attribution to ISTQB.
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="icon">💡</div>
+    <div class="body">
+      <strong class="title">How this is organized</strong>
+      The source document already sorts its 40 main questions by the learning objective (LO) they target,
+      which lines up cleanly with the seven syllabus chapters — so the questions below are grouped under
+      the same chapter headers you've seen throughout this course, in their original order, followed by a
+      final "Appendix" section for the six Additional Questions (A1–A6). Two of those appendix questions
+      (A1 and A4) were originally drag-and-drop matching exercises in the PDF; since this course's quiz
+      format is attempt-one-question-at-a-time, each matched pair is presented here as its own separate
+      question instead — so the appendix has more quiz cards (13) than official question numbers (6). See
+      the note at the start of the appendix section below for details, including the one question (A5) whose
+      original answer content couldn't be recovered from the source text and was reconstructed from the
+      syllabus instead.
+    </div>
+  </div>
+
+  <h2>Check your understanding — the full sample exam</h2>
+  <p>Read each question, make your selection(s), then press "Check my answers" for that question's card
+    to reveal whether you were correct and to read the explanation. There's no timer — take as long as you
+    need on each one.</p>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s29");
+    App.buildSessionNav("session-nav", "s29");
+    App.wireMarkComplete("mark-complete", "s29");
+
+    const questions = [
+      // ============================= CHAPTER 1 — Introduction to AI (Q1-6) =============================
+      { lo: "AI-1.1.1", k: "K2", type: "single",
+        prompt: "<strong>Official Question #1.</strong> Which of the following statements BEST highlights the difference between conventional and AI-based systems?",
+        choices: [
+          { text: "AI-based systems tend to learn from patterns in data and can adapt to new scenarios, while conventional systems follow predefined rules and produce consistent outputs for the same inputs", correct: true },
+          { text: "AI-based systems tend to be faster than conventional systems because they do not rely on explicit programming, while conventional systems are slower due to rigid rule-based processing", correct: false },
+          { text: "AI-based systems tend to be deterministic and explainable, while conventional systems are probabilistic and often difficult to interpret", correct: false },
+          { text: "AI-based systems tend to be more suitable for critical tasks where explainability is crucial, while conventional systems are better at handling complex tasks in unregulated areas", correct: false },
+        ],
+        explain: "The defining split is how behavior is determined: conventional systems execute rules a developer wrote, so the same input always gives the same output; AI-based systems, especially ML ones, infer their behavior from training data and can generalize to inputs they weren't explicitly programmed for. Speed isn't a reliable distinguishing factor, and the other two options simply swap the real properties around — it's AI systems that tend to be probabilistic and harder to explain, which is exactly why conventional systems remain preferred where explainability is legally or safety critical." },
+
+      { lo: "AI-1.1.2", k: "K2", type: "multi",
+        prompt: "<strong>Official Question #2.</strong> Which TWO of the following statements BEST distinguish between narrow AI, general AI, and super AI?",
+        choices: [
+          { text: "Narrow AI is self-learning, general AI focuses on solving specialized problems, and super AI is limited to tasks defined during its development", correct: false },
+          { text: "Narrow AI operates independently of human input, general AI is used only in advanced robotics, and super AI improves human decision-making in specialized fields", correct: false },
+          { text: "Narrow AI performs specific tasks efficiently, general AI can handle a wide range of intellectual tasks like a human, and super AI surpasses human intelligence", correct: true },
+          { text: "Narrow AI is task-specific, general AI is a concept with limited real-world applications, and super AI describes cutting-edge generative AI models", correct: false },
+          { text: "Narrow AI is the current state of AI, achievement of general AI is uncertain, but once general AI is achieved, super AI is likely to happen", correct: true },
+        ],
+        explain: "One correct option matches the standard capability ladder: narrow = task-specific, general = human-like breadth, super = beyond human. The other correct option is also defensible: every deployed system today is narrow AI, nobody knows if or when general AI will arrive, but many argue that reaching general AI would make super AI likely to follow soon after. The remaining three options each mislabel at least one tier — for instance, one wrongly calls super AI 'cutting-edge generative AI,' which is actually frontier AI, a narrow-AI subset, not a separate tier." },
+
+      { lo: "AI-1.1.3", k: "K2", type: "single",
+        prompt: "<strong>Official Question #3.</strong> Which of the following statements BEST describes the relationship between AI, ML, and DL?",
+        choices: [
+          { text: "ML is a subset of AI, and DL is a further subset of ML, representing a hierarchy of specialized technologies", correct: true },
+          { text: "DL is the foundational technology, and both ML and AI are specialized applications built upon its principles.", correct: false },
+          { text: "DL and ML are essentially interchangeable terms, while AI represents a separate approach to problem-solving", correct: false },
+          { text: "AI encompasses both ML and DL as distinct but important methodologies, working in parallel to solve complex problems", correct: false },
+        ],
+        explain: "Think of it as nested circles: AI is the broad umbrella (any technique that makes machines behave intelligently), ML is one specific way to achieve that (learning from data instead of hand-coded rules), and DL is a further specialization of ML that specifically uses multi-layer neural networks. The correct picture is a strict hierarchy, not a 'parallel' or 'foundational' relationship — DL depends on ML/AI concepts, not the other way around, and DL and ML are not interchangeable since DL is only one family of ML techniques." },
+
+      { lo: "AI-1.1.4", k: "K2", type: "single",
+        prompt: "<strong>Official Question #4.</strong> Which of the following statements BEST explains generative AI?",
+        choices: [
+          { text: "It is designed to analyze and understand existing data, such as text or images, allowing machines to categorize information and extract key insights", correct: false },
+          { text: "It creates new content, such as text, images, or audio, by learning patterns from training data and generating outputs similar in nature", correct: true },
+          { text: "It focuses mainly on improving existing content, such as text, images, or audio, by optimizing it for classification or prediction tasks", correct: false },
+          { text: "It creates models that are limited to generating text and images and cannot be used for creative tasks like drug discovery or data simulation", correct: false },
+        ],
+        explain: "GenAI's defining trait is production, not perception: it learns the statistical patterns in a training set well enough to produce brand-new outputs that plausibly belong to that same distribution — new sentences, new images, new molecules. The other wrong options describe analysis/classification systems instead, which is the opposite job, or understate GenAI's reach — the same generative techniques (GANs, diffusion, transformers) are already applied well beyond text and images, including scientific and simulation domains." },
+
+      { lo: "AI-1.1.5", k: "K2", type: "single",
+        prompt: "<strong>Official Question #5.</strong> Which of the following statements BEST compares the hardware options available for implementing machine learning systems?",
+        choices: [
+          { text: "GPUs are well-suited for training and running ML models due to their ability to handle massively parallel processing, while CPUs are better for general-purpose computing", correct: true },
+          { text: "CPUs are more efficient than GPUs for ML tasks because they have faster clock speeds and can handle complex operations", correct: false },
+          { text: "AI-specific hardware, such as ASICs, is primarily used for training ML models, while GPUs are better suited for edge computing", correct: false },
+          { text: "Neuromorphic processors are a form of AI hardware specifically optimized for running on the von Neumann architecture", correct: false },
+        ],
+        explain: "ML workloads are dominated by huge numbers of simple, parallel operations like matrix multiplication — exactly what a GPU's thousands of simpler cores are built for, whereas a CPU's few, powerful cores are optimized for complex, sequential, general-purpose work. One wrong option has the roles backwards (ASICs are typically the edge/inference option, while cloud GPUs dominate training), and another is self-contradictory since neuromorphic chips are specifically a brain-inspired departure from the von Neumann design, not an implementation of it." },
+
+      { lo: "AI-1.1.6", k: "K2", type: "single",
+        prompt: "<strong>Official Question #6.</strong> Given the following statements about AI model development and hosting:<br><br>i. It achieves lower development costs by using public cloud resources, eliminating the need for local hardware investment<br>ii. It uses local development of data preparation components for sensitive data for increased security before moving to the cloud for training of the full system<br>iii. It results in lower costs because laptops are used for local development and there are low upfront hardware costs by hosting AI models on public clouds<br>iv. It simplifies development and hosting by standardizing processes on local servers, removing the need for complex cloud-based configurations<br>v. It guarantees the highest security by hosting AI models on private clouds, thereby avoiding the risks associated with local hardware vulnerabilities<br><br>Which of the following BEST reflects advantages of using a hybrid approach for this development and hosting?",
+        choices: [
+          { text: "i, ii and v", correct: false },
+          { text: "ii and iii", correct: true },
+          { text: "iii and iv", correct: false },
+          { text: "i, iv and v", correct: false },
+        ],
+        explain: "A hybrid approach by definition mixes local and cloud elements. Statement ii is hybrid because it keeps sensitive data preparation local while moving training to the cloud; statement iii is hybrid because it combines a local laptop for development with public-cloud hosting. The others aren't hybrid at all: two describe an all-cloud setup (public or private respectively), and one describes an all-local setup — none of the rejected statements mix the two environments." },
+
+      // ============================= CHAPTER 2 — Quality Characteristics for AI-Based Systems (Q7-9) =============================
+      { lo: "AI-2.1.1", k: "K2", type: "single",
+        prompt: "<strong>Official Question #7.</strong> Given the following ISO/IEC 25059 quality characteristics:<br>1. AI Robustness<br>2. User controllability<br>3. Functional adaptability<br>4. Intervenability<br><br>And the following examples of quality characteristic measures:<br>A. The success rate of a remote operator in forcing a drone into the safe-landing protocol when its AI navigation system exhibits hazardous behavior<br>B. The average time required to successfully override a fraud management system's automated decision to block a customer's transaction<br>C. The F1-score of an object detection model in an autonomous car in heavy rain<br>D. The time required for an e-commerce recommendation engine to update its suggestions to reflect a new, rapidly emerging fashion trend<br><br>Which of the following BEST matches the quality characteristics with the example measures?",
+        choices: [
+          { text: "1D – 2A – 3C – 4B", correct: false },
+          { text: "1C – 2D – 3B – 4A", correct: false },
+          { text: "1C – 2B – 3D – 4A", correct: true },
+          { text: "1A – 2D – 3C – 4B", correct: false },
+        ],
+        explain: "Match each measure to what it's actually testing: an accuracy score under a tough operating condition (heavy rain) is robustness — holding functional correctness up under adverse circumstances. How fast a human can override an automated decision is user controllability. How quickly the system reshapes its own behavior after its environment changes is functional adaptability. A human forcibly intervening to stop hazardous behavior is intervenability. So the mapping is 1C-2B-3D-4A." },
+
+      { lo: "AI-2.1.2", k: "K2", type: "single",
+        prompt: "<strong>Official Question #8.</strong> Which of the following statements BEST describes a key challenge when AI is used in safety-related systems?",
+        choices: [
+          { text: "When the requirements are too detailed, it leaves little room for the ML system to learn from the implicit goals contained within the training data", correct: false },
+          { text: "The potential for non-determinism and self-learning makes some AI-based systems unpredictable as they diverge from their original tested state", correct: true },
+          { text: "Because self-learning safety-related systems stop adapting after deployment, safety is often compromised by the need for manual updates of the operational AI-based system", correct: false },
+          { text: "The mature safety-related standards tend to be out-of-date and require the use of outdated AI technologies, which hinders innovative AI solutions in AI-based systems", correct: false },
+        ],
+        explain: "The core tension in safety-critical AI is that you can rigorously test a model before release, but a non-deterministic or self-learning system's actual behavior can drift away from that tested baseline over time — undermining the safety case you built. One wrong option has it backwards (the real problem is requirements that are too vague, not too detailed); another is also backwards — self-learning systems keep adapting after deployment, which is precisely the risk; and the last mischaracterizes the standards gap: mature safety standards mostly don't address AI at all yet, rather than mandating outdated AI techniques." },
+
+      { lo: "AI-2.2.1", k: "K2", type: "single",
+        prompt: "<strong>Official Question #9.</strong> Which of the following examples is LEAST likely to be a valid acceptance criterion for AI-specific quality characteristics defined in the ISO 25059 standard for an AI-based system?",
+        choices: [
+          { text: "The security guard in the museum control room can trigger an immediate 'all-stop' command that causes the patrol robot to cease all motion within 0.5 seconds to prevent collision with a sculpture", correct: false },
+          { text: "A greenhouse control system reacts within 20 minutes when the measured humidity is greater than 10% from the optimum humidity", correct: false },
+          { text: "The spam alert control system is easy for the user to set up and requires minimal technical expertise to maintain", correct: true },
+          { text: "When the analysis tool flags a retinal scan for severe diabetic retinopathy, it shall display a visual heatmap overlay on the image, highlighting the key features", correct: false },
+        ],
+        explain: "A good acceptance criterion for an AI-specific quality characteristic needs to be objective, measurable, and tied to one of the ISO/IEC 25059 sub-characteristics (intervenability, functional adaptability, transparency, etc.). The museum robot example is a measurable intervenability criterion, the greenhouse example is a measurable functional-adaptability criterion, and the retinal-scan example is a measurable transparency criterion. The spam-alert example, by contrast, is really describing ease-of-setup — a generic usability trait that applies to almost any software, is subjective ('easy', 'minimal expertise'), and isn't tied to any AI-specific characteristic from the standard, which is why it's the weakest fit." },
+
+      // ============================= CHAPTER 3 — Machine Learning (Q10-16) =============================
+      { lo: "AI-3.1.1", k: "K2", type: "single",
+        prompt: "<strong>Official Question #10.</strong> Given the following forms of ML:<br>1. Clustering<br>2. Reinforcement learning<br>3. Classification<br>4. Regression<br><br>And the following examples:<br>A. The mobile game app updates its feedback, response timing, and the number of user options it provides based on how much the players spend<br>B. The language translation app searches the internet to find text provided in multiple languages to improve its translation function<br>C. A manufacturing company predicts when equipment is likely to fail based on sensor data and historical maintenance records<br>D. A social network platform groups its users into communities based on their interactions with each other and their stated interests<br><br>Which of the following BEST matches the examples with the forms of ML?",
+        choices: [
+          { text: "1B – 2D – 3A – 4C", correct: false },
+          { text: "1C – 2A – 3D – 4B", correct: false },
+          { text: "1D – 2A – 3B – 4C", correct: true },
+          { text: "1D – 2C – 3B – 4A", correct: false },
+        ],
+        explain: "Work from what each example is actually optimizing for: the game app treats player spend as a reward signal it adapts toward — that's reinforcement learning. The translation app trains on matched source/target language pairs to predict the right translation category — that's classification, since it's mapping inputs to a discrete correct output rather than a continuous number. The manufacturing example predicts a continuous 'time until failure' from sensor readings — that's regression. The social network example groups similar users without predefined labels — that's clustering. So the mapping is 1D-2A-3B-4C." },
+
+      { lo: "AI-3.1.2", k: "K2", type: "single",
+        prompt: "<strong>Official Question #11.</strong> Given the following activities from the ML workflow:<br>1. Deploy the Model<br>2. Prepare &amp; Test Data<br>3. Test the Model<br>4. Evaluate the Model<br><br>And, given the following descriptions:<br>A. Model performance is tested using validation data<br>B. The origin of the test data used to test the model is identified<br>C. Test data are used to verify the agreed performance criteria are met<br>D. The model is tested on the target platform<br><br>Which of the following BEST matches the descriptions with the activities in the ML workflow?",
+        choices: [
+          { text: "1A – 2C – 3B – 4D", correct: false },
+          { text: "1C – 2D – 3B – 4A", correct: false },
+          { text: "1D – 2B – 3A – 4C", correct: false },
+          { text: "1D – 2B – 3C – 4A", correct: true },
+        ],
+        explain: "Deploying a model means putting it on the real target platform, so that description belongs to Deploy the Model. Identifying where test data came from is a data-preparation concern, so that belongs to Prepare & Test Data. Verifying agreed performance criteria are met with test data is literally what 'Test the Model' means. Checking performance against validation data, as part of iterative tuning, is the Evaluate the Model step. That gives 1D-2B-3C-4A." },
+
+      { lo: "AI-3.1.4", k: "K2", type: "single",
+        prompt: "<strong>Official Question #12.</strong> Which of the following statements about the use of pre-trained models is CORRECT?",
+        choices: [
+          { text: "When applied to a neural network, the RAG approach works by adding additional layers that hold documentation specifically related to the prompt", correct: false },
+          { text: "Fine-tuning a biased LLM with high-quality, task-specific data prevents unfair outputs based on sensitive attributes", correct: false },
+          { text: "To successfully adapt a pre-trained neural network, fine-tuning requires that additional training with new data is applied to all layers of the network", correct: false },
+          { text: "The RAG approach requires the identification and acquisition of data relevant to the task up front, but requires no changes to the pre-trained model", correct: true },
+        ],
+        explain: "RAG works at the input side: you curate and index an external knowledge source ahead of time, then at query time retrieve relevant snippets and hand them to the model alongside the prompt — the pre-trained model's own weights and architecture are never touched. One wrong option incorrectly describes RAG as adding new network layers, which is a fine-tuning-style change, not what RAG does. Another overstates fine-tuning — it's common to freeze most layers and only retrain a subset. The last overpromises what fine-tuning can guarantee: better data can reduce bias, but it can't 'prevent' unfair outputs outright, since bias can persist or even be reintroduced during fine-tuning." },
+
+      { lo: "AI-3.2.1", k: "K2", type: "single",
+        prompt: "<strong>Official Question #13.</strong> Which of the following statements BEST describes a key activity in data preparation for machine learning?",
+        choices: [
+          { text: "Data preparation comprises the identification and gathering of data from various sources, providing the algorithm with raw data to learn from", correct: false },
+          { text: "Feature engineering of the data is performed after an ML model has been trained to optimize its performance for real-world deployment", correct: false },
+          { text: "Data pre-processing includes augmentation and sampling, which either add or reduce the number of examples in the training data respectively", correct: true },
+          { text: "Exploratory data analysis (EDA) is a form of exploratory testing applied to the data preparation activities of acquisition, pre-processing and labelling", correct: false },
+        ],
+        explain: "Augmentation and sampling are a clean matched pair — augmentation synthesizes more training examples, sampling selects a subset to shrink the dataset — so this option correctly names two real pre-processing techniques and correctly describes their opposite directions. One wrong option only covers data acquisition and leaves out cleaning/transforming/feature engineering, so it's incomplete as a description of 'data preparation' as a whole. Another has the sequencing backwards: feature engineering happens before or during training, not after. The last mislabels EDA — it's an analytical activity to understand the data's characteristics, not a form of exploratory testing." },
+
+      { lo: "AI-3.2.3", k: "K2", type: "single",
+        prompt: "<strong>Official Question #14.</strong> Which of the following statements BEST contrasts the roles of training, validation, and test datasets in ML model development?",
+        choices: [
+          { text: "The training dataset is used to optimize hyperparameters, the validation dataset is used to tune predictions, and the test dataset is used to generate training data", correct: false },
+          { text: "The training dataset is used to create the model, the validation dataset is used to tune the model, and the test dataset evaluates its performance on unseen data", correct: true },
+          { text: "The training dataset is used for final model evaluation, the validation dataset ensures the model does not overfit, and the test dataset is used for tuning hyperparameters", correct: false },
+          { text: "The training dataset ensures the model generalizes well, the validation dataset is used to deploy the model, and the test dataset is used for initial evaluation", correct: false },
+        ],
+        explain: "Each dataset has one job and they run in sequence: training data fits the model's parameters, validation data steers tuning decisions (like hyperparameters) without contaminating the final judgment, and test data — never seen during training or tuning — gives an honest read of real-world performance at the end. The other three options all shuffle these jobs around; for example, using the test set for tuning would defeat its purpose by letting the model indirectly 'see' it before the final evaluation." },
+
+      { lo: "AI-3.3.1", k: "K3", type: "single",
+        prompt: "<strong>Official Question #15.</strong> Consider the confusion matrix for an image classifier. Of the items the classifier predicted as positive, 78 were true positives and 22 were false positives (100 predictions were classified positive in total).<br><br>Which of the following options represents the CORRECT formula for calculating the precision of the classifier?",
+        choices: [
+          { text: "(20/120) * 100", correct: false },
+          { text: "(78/120) * 100", correct: false },
+          { text: "(78/100) * 100", correct: true },
+          { text: "(22/100) * 100", correct: false },
+        ],
+        explain: "Precision only asks: of everything the model called positive, how much of it was actually positive? That's true positives divided by everything predicted positive (true positives plus false positives), so 78 / (78 + 22) = 78/100. It deliberately ignores the actual negatives and false negatives entirely — those matter for recall and other metrics, but not for precision — which is why the other options, which pull in the total of 120 or use the false-positive count as the numerator, don't fit the definition." },
+
+      { lo: "AI-3.4.1", k: "K2", type: "single",
+        prompt: "<strong>Official Question #16.</strong> During the training of a deep neural network, the network produces an output, and the loss is calculated.<br><br>Which of the following CORRECTLY describes the next step in the training process?",
+        choices: [
+          { text: "The weights and biases across the network are adjusted to reduce the calculated loss", correct: true },
+          { text: "The same training data is passed through the network again to confirm the loss value", correct: false },
+          { text: "The activation functions are altered to different non-linear formulas to find a better fit", correct: false },
+          { text: "The network's hidden layers are reset with new random weight values", correct: false },
+        ],
+        explain: "Once the loss for a batch is known, training moves into backpropagation: that loss signal is propagated back through the network to work out how each weight and bias contributed to the error, and those parameters are nudged in the direction that reduces the loss. Re-running the same batch isn't part of the loop, activation functions are a design choice fixed before training, and resetting weights only happens once, at initialization — not after every loss calculation." },
+
+      // ============================= CHAPTER 4 — Testing AI-Based Systems (Q17-23) =============================
+      { lo: "AI-4.1.1", k: "K2", type: "single",
+        prompt: "<strong>Official Question #17.</strong> Given the following examples of AI-based systems:<br>i. A system that learns from real-time data to improve its failure predictions and automatically updates maintenance schedules<br>ii. A spam filter for an email app, which identifies spam based on predefined rules<br>iii. A recommendation engine on a streaming service that updates its suggestions based on a user's changing viewing habits and preferences<br>iv. A personal assistant that learns continuously from its user<br>v. A rule-based system for medical diagnosis<br><br>Which of the following BEST describes the systems which can be considered to be locked AI-based systems?",
+        choices: [
+          { text: "ii and v", correct: true },
+          { text: "i, iii, and iv", correct: false },
+          { text: "i, and iii", correct: false },
+          { text: "ii, iv, and v", correct: false },
+        ],
+        explain: "A locked system's behavior stays fixed between releases — it only changes when a developer deliberately rebuilds or updates it. Both the rule-based spam filter and the rule-based diagnosis system fit that description exactly, since they follow fixed rules rather than learning on the fly. The other three examples all explicitly keep learning and updating themselves from new data after deployment, which is the definition of an adaptive system, not a locked one." },
+
+      { lo: "AI-4.1.2", k: "K2", type: "single",
+        prompt: "<strong>Official Question #18.</strong> Which of the following options BEST explains why a statistical approach is necessary when testing an AI-based system?",
+        choices: [
+          { text: "The system is typically large and complex, making test automation impractical without the use of statistical sampling", correct: false },
+          { text: "The system exhibits non-deterministic behavior, requiring large and representative test datasets to draw meaningful conclusions", correct: true },
+          { text: "A single test case is sufficient to determine if a model is well-calibrated, but only statistical methods can verify accuracy", correct: false },
+          { text: "The system is trained on real-world data and therefore does not require a separate test dataset; instead, it requires statistical validation", correct: false },
+        ],
+        explain: "Because many AI-based systems are probabilistic, a single input can legitimately produce different outputs, or an output that's 'close enough' rather than exactly right — so a single pass/fail test case can't tell you whether the system is actually working well. You need to run it across a large, representative sample and look at the aggregate result statistically. One wrong option is about automation practicality rather than the real underlying reason; another directly contradicts the point, since one test case is never enough; and the last is simply wrong — a held-out test dataset, separate from training data, is still essential." },
+
+      { lo: "AI-4.1.3", k: "K2", type: "single",
+        prompt: "<strong>Official Question #19.</strong> Which of the following BEST describes why self-learning AI systems can suffer from the test oracle problem?",
+        choices: [
+          { text: "The exploratory nature of the development of these AI systems means that the system requirements often change during development", correct: false },
+          { text: "The expected behavior of these AI systems changes after the initial release with no corresponding changes to the system specification", correct: true },
+          { text: "Each of these AI systems can learn in different ways, making the correctness of these systems a matter of subjective judgment", correct: false },
+          { text: "The complexity of these AI systems means that manually determining their expected outputs can be especially difficult", correct: false },
+        ],
+        explain: "The oracle problem is about not having a reliable way to know what the 'correct' output should be. For a self-learning system this is especially acute because the system keeps evolving after release, so what counts as correct behavior drifts away from whatever was documented at launch — there's no longer a fixed specification to check outputs against. One wrong option is about pre-release requirements churn, a different issue; another wrongly frames it as subjective rather than a documentation/specification gap; and the last describes a general testing-difficulty problem that isn't specific to self-learning systems the way the correct answer is." },
+
+      { lo: "AI-4.2.1", k: "K2", type: "single",
+        prompt: "<strong>Official Question #20.</strong> Which of the following statements BEST describes a common approach to testing GenAI models?",
+        choices: [
+          { text: "GenAI models are tested by verifying that their outputs exactly match predefined expected results", correct: false },
+          { text: "It involves manipulating diverse inputs and parameters and then assessing the output's adherence to rules, because a direct input-to-output match is not feasible", correct: true },
+          { text: "Since GenAI models are probabilistic, formal testing is unnecessary because outputs will always vary and cannot be evaluated effectively", correct: false },
+          { text: "GenAI models are mainly tested through manual review, as automated testing does not apply to creative AI outputs", correct: false },
+        ],
+        explain: "Because a GenAI model can validly produce many different acceptable outputs for the same prompt, testing shifts away from exact-match checking and toward varying the inputs and parameters and judging whether each output stays coherent and within the rules it's supposed to follow. One wrong option assumes a deterministic exact-match approach that doesn't fit GenAI's variability. Another draws the wrong conclusion from that same variability — probabilistic output makes testing harder, not unnecessary. The last is also wrong: automated approaches (other GenAI-based evaluators, image classifiers, rule checkers) are widely used alongside manual review, not instead of testing altogether." },
+
+      { lo: "AI-4.2.2", k: "K3", type: "single",
+        prompt: "<strong>Official Question #21.</strong> Your organization plans to deploy a GenAI-powered legal document generator. During implementation planning, the security team argues for focusing red teaming efforts on preventing prompt injection attacks, while the compliance team wants to prioritize bias detection in legal advice generation. The development team suggests running red teaming after the system goes live to save time.<br><br>Which of the following is the MOST effective red teaming implementation strategy for this scenario?",
+        choices: [
+          { text: "Prioritize security vulnerabilities first, then address bias issues in a separate phase after deployment", correct: false },
+          { text: "Focus on bias detection since legal advice accuracy is more critical than security concerns", correct: false },
+          { text: "Deploy immediately and conduct red teaming reactively based on incidents and user feedback", correct: false },
+          { text: "Use attack scenarios covering both security and bias vulnerabilities before deployment", correct: true },
+        ],
+        explain: "Red teaming is meant to be a proactive, pre-release activity, and there's no reason here to treat security and bias as mutually exclusive — nothing in the scenario says one risk outweighs the other, so the safest and most complete strategy is to cover both attack categories in one pre-deployment effort. Two of the wrong options each arbitrarily pick one risk over the other and push the rest to a separate or later phase, and the third abandons proactive testing altogether by waiting for real users to discover the problems in production, which is exactly the failure mode red teaming exists to prevent." },
+
+      { lo: "AI-4.3.1", k: "K2", type: "single",
+        prompt: "<strong>Official Question #22.</strong> An ML-based weather prediction system provides excellent results for most locations; however, it has been noticed that the predictions for areas in the UK with an altitude greater than 1250 meters are regularly inaccurate.<br><br>Which of the following test levels should have been performed MORE thoroughly?",
+        choices: [
+          { text: "System testing", correct: false },
+          { text: "Input data testing", correct: true },
+          { text: "Component integration testing", correct: false },
+          { text: "ML model testing", correct: false },
+        ],
+        explain: "The symptom is that one specific slice of the real world — high-altitude UK locations — is underserved, which points straight at the training data not representing that slice well enough, rather than at a defect in the model's logic or the system's plumbing. That's squarely input data testing's job (checking data quality and representativeness), and catching it there is both the most direct fit and the earliest point in the pipeline it could have been caught. System testing and model testing might eventually have surfaced the symptom too, but only after the root cause had already been baked in; component integration testing is about component interfaces, not data content, so it isn't a fit at all." },
+
+      { lo: "AI-4.3.2", k: "K2", type: "single",
+        prompt: "<strong>Official Question #23.</strong> Which of the following statements about applying risk-based testing to ML systems is CORRECT?",
+        choices: [
+          { text: "Security and usability risks can apply to any system, while risks associated with data bias and ML model performance are specific to ML systems", correct: true },
+          { text: "Conventional systems handle risks related to data bias, whereas ML systems focus on risks related to algorithmic bias", correct: false },
+          { text: "Risk management in conventional systems is a static approach, while in a self-learning system risk needs to be adjusted dynamically", correct: false },
+          { text: "In conventional systems, functional correctness is the primary risk factor, whereas functional adaptability is the primary risk factor for an ML system", correct: false },
+        ],
+        explain: "Risk-based testing for ML has to add ML-specific risk categories (data bias, model performance) on top of the generic risks (security, usability) that any software system already carries — it doesn't replace the generic risks, it extends them. One wrong option is incorrect because data bias isn't a conventional-system risk at all — it only exists where a system learns from data. Another wrongly claims conventional risk management is 'static'; in reality both approaches should be revisited, though self-learning systems need it more continuously. The last overgeneralizes — which quality characteristic is the 'primary' risk really depends on the specific system and its context, not a fixed rule tied to whether it's conventional or ML-based." },
+
+      // ============================= CHAPTER 5 — Input Data Testing for ML Systems (Q24-29) =============================
+      { lo: "AI-5.1.1", k: "K2", type: "single",
+        prompt: "<strong>Official Question #24.</strong> The team developing a new machine learning model has received a dataset from a new, unverified third-party vendor. They are uncertain about the origin of this dataset and concerned that the raw data may have been tampered with.<br><br>Which of the following test approaches is MOST suitable for addressing this specific risk?",
+        choices: [
+          { text: "Data provenance testing", correct: true },
+          { text: "Data representativeness testing", correct: false },
+          { text: "Feature testing", correct: false },
+          { text: "Dataset constraint testing", correct: false },
+        ],
+        explain: "The concern here is specifically about where the data came from and whether it can be trusted and verified — that's exactly what data provenance testing checks: tracing and validating a dataset's origin and chain of custody. Representativeness testing asks a different question (does the data reflect the real-world population), and dataset constraint testing checks internal consistency (ranges, types, relationships) rather than origin — neither can tell you whether the raw data was tampered with before it arrived." },
+
+      { lo: "AI-5.1.2", k: "K2", type: "single",
+        prompt: "<strong>Official Question #25.</strong> A financial services company has developed an ML system for loan approval. A tester responsible for testing this system wants to determine if there is potential bias in the system related to factors such as gender and age attributes.<br><br>Which of the following approaches would be MOST suitable for detecting bias in the training data early?",
+        choices: [
+          { text: "Conducting static analysis of the model's source code to identify how its operations on the age and gender related attributes could lead to bias", correct: false },
+          { text: "Testing using a dataset that is representative and analyzing the predictions for statistically significant differences in outcomes across age and gender", correct: false },
+          { text: "Reviewing the overall ML workflow and data preparation processes to identify potential sources of bias introduction", correct: true },
+          { text: "Performing disparate impact analysis using counterfactuals based on gender, age or both", correct: false },
+        ],
+        explain: "The question specifically asks about catching bias early, in the training data itself — that points to reviewing how the data was prepared (sourcing, sampling, labeling choices) to spot where bias could have been introduced, before a model is even trained on it. One wrong option inspects the model's code, not the data. The other two both evaluate a model's predictions or outcomes after training — useful, but that's downstream detection of bias effects, not early detection of bias in the data itself." },
+
+      { lo: "AI-5.1.3", k: "K2", type: "single",
+        prompt: "<strong>Official Question #26.</strong> What is a KEY difference in the test strategy for a data pipeline built for training versus one designed for an operational system?",
+        choices: [
+          { text: "Testing an operational pipeline would focus mainly on validating individual transformation scripts, whereas a training pipeline's testing would prioritize end-to-end system testing", correct: false },
+          { text: "A training pipeline would rely almost exclusively on fault injection and back-to-back tests, while an operational pipeline would be limited to unit and component integration testing", correct: false },
+          { text: "Configuration management reviews would be critical for operational pipelines but are considered unnecessary for the less formal nature of exploratory training pipelines", correct: false },
+          { text: "Testing a training pipeline would primarily focus on determining that data is handled correctly, while an operational pipeline's testing would emphasize high performance and reliability under load", correct: true },
+        ],
+        explain: "The two pipelines serve different purposes, so their testing priorities differ accordingly: a training pipeline exists to produce clean, correctly transformed data for building a model, so testing it is mostly about data-handling correctness; an operational (live/production) pipeline exists to serve real traffic reliably at scale, so its testing leans much more heavily on performance, scalability, and robustness under load. The other options either overstate one pipeline's approach as exclusive, reverse the priorities, or dismiss configuration management for training pipelines entirely, when in fact consistent, tracked configuration matters for both." },
+
+      { lo: "AI-5.1.4", k: "K2", type: "single",
+        prompt: "<strong>Official Question #27.</strong> What is the purpose of creating a 'reference dataset' during data representativeness testing?",
+        choices: [
+          { text: "It serves as a universally applicable dataset derived from trusted industry benchmarks", correct: false },
+          { text: "It functions as a quantitative baseline for formally comparing the statistical properties of the training data", correct: true },
+          { text: "It is used to apply stratified sampling directly to the training data to verify that all subgroups are covered", correct: false },
+          { text: "It serves as the primary dataset for performing the final model validation and testing with high independence", correct: false },
+        ],
+        explain: "A reference dataset is essentially a stand-in for 'what the real operational world actually looks like,' built and curated for a specific system's context, so you have something concrete to statistically compare your training data's distributions and feature correlations against. One wrong option overstates it as a universal, industry-wide benchmark rather than something tailored to this system's population. Another misplaces where stratified sampling is applied — it's used to build the reference dataset itself, not applied directly to the training data. The last confuses this with the test dataset's role in final model evaluation, which is a separate concept entirely." },
+
+      { lo: "AI-5.1.5", k: "K3", type: "single",
+        prompt: "<strong>Official Question #28.</strong> You are testing an ML dataset for a banking loan approval system. The dataset contains: applicant_id (integer, unique), annual_income (decimal, USD), loan_amount (decimal, USD), credit_score (integer, 300–850), employment_years (integer, 0–50), monthly_payment (decimal, USD).<br><br>Business rules: loan amount cannot exceed 5x annual income; monthly_payment = loan_amount / 324 (for 30-year loans); credit scores must be within the standard range; all monetary values must be positive.<br><br>When applying dataset constraint testing to validate the 'monthly_payment' for 30-year loans, which type of constraint would be MOST appropriate?",
+        choices: [
+          { text: "Single-value range constraint", correct: false },
+          { text: "Multi-value count constraint", correct: false },
+          { text: "Comparison correlate constraint", correct: true },
+          { text: "Multi-value duplicate constraint", correct: false },
+        ],
+        explain: "Checking that monthly_payment always equals loan_amount / 324 is checking a mathematical relationship between two different attributes, which is exactly what a correlate (comparison) constraint is for — it verifies that one field's value stays consistent with another field's value according to a defined rule. A range constraint only checks a single attribute against fixed bounds (like credit_score's 300–850 range), which wouldn't catch a wrong calculation between two columns. Count constraints and duplicate constraints are about how many values exist or whether values repeat — neither has anything to do with verifying a formula." },
+
+      { lo: "AI-5.1.6", k: "K2", type: "single",
+        prompt: "<strong>Official Question #29.</strong> Which of the following BEST explains the role of multiple annotations in data label correctness testing?",
+        choices: [
+          { text: "Multiple annotations can be used to automate label verification to ensure consistency", correct: false },
+          { text: "Multiple annotations can point to label defects based on the comparison of annotations", correct: true },
+          { text: "Multiple annotations compare label distributions across datasets to detect potential defects", correct: false },
+          { text: "Multiple annotations point to defects in data points with high model loss", correct: false },
+        ],
+        explain: "Having several independent human annotators label the same data points and then comparing those labels surfaces disagreements — and a disagreement between annotators is a strong signal that a label might be wrong or the labeling guideline is ambiguous. One wrong option mischaracterizes the technique as automated, when it's fundamentally about independent human judgment being cross-checked. Another describes a distribution-comparison technique, a different data-quality check entirely. The last describes flagging suspicious points via model loss, which relies on having a trained model already — a separate technique from comparing human annotations." },
+
+      // ============================= CHAPTER 6 — Model Testing for ML Systems (Q30-38) =============================
+      { lo: "AI-6.1.1", k: "K2", type: "single",
+        prompt: "<strong>Official Question #30.</strong> Given the following test techniques and test types:<br>1. ML functional performance testing<br>2. Testing for bias<br>3. Adversarial testing<br>4. Drift testing<br><br>And the following risks:<br>A. The ML model might perform differently for different demographic groups<br>B. Slightly modified inputs to the ML model might cause quite different and unexpected responses<br>C. Predictions made by the ML model might be inaccurate in some cases<br>D. ML model accuracy might have significantly decreased since it was deployed<br><br>Which of the following options BEST matches the test techniques and test types with the risks?",
+        choices: [
+          { text: "1A – 2D – 3C – 4B", correct: false },
+          { text: "1C – 2A – 3B – 4D", correct: true },
+          { text: "1B – 2A – 3C – 4D", correct: false },
+          { text: "1A – 2C – 3D – 4B", correct: false },
+        ],
+        explain: "Match each risk to the technique built to catch it: general prediction inaccuracy is what ML functional performance testing measures directly. Different outcomes across demographic groups is fairness — testing for bias. Small input changes causing wildly different outputs is the classic signature adversarial testing hunts for. Accuracy declining after deployment is drift — caught by drift testing. That gives 1C-2A-3B-4D." },
+
+      { lo: "AI-6.1.2", k: "K2", type: "single",
+        prompt: "<strong>Official Question #31.</strong> Which of the following statements about the documentation of ML models is CORRECT?",
+        choices: [
+          { text: "Information related to the speed of model prediction is a part of the documentation of an AI component", correct: true },
+          { text: "Interaction of AI and non-AI components is within the scope of the model documentation", correct: false },
+          { text: "Bias-related characteristics of input data are challenging to assess as the model documentation doesn't contain the source of the training data", correct: false },
+          { text: "Changes made by self-learning ML systems are fully documented at the time of the update to ensure up-to-date documentation", correct: false },
+        ],
+        explain: "Model documentation (like a model card) is scoped to the AI component itself — things like its expected inference speed, intended use, and performance characteristics belong there. One wrong option reaches too far by pulling in how AI and non-AI components interact, which is a system-level integration concern rather than something the model's own documentation covers. Another is factually backwards — good model documentation is expected to record the training data's source, which is actually what makes bias assessment possible. The last is unrealistic — a self-learning system's ongoing changes generally aren't captured in real time by documentation the way that option implies; that's part of why self-learning systems are hard to keep transparent." },
+
+      { lo: "AI-6.1.3", k: "K2", type: "single",
+        prompt: "<strong>Official Question #32.</strong> Upon release, an ML model provided correct predictions fewer times than expected. Additional tests have been conducted, and the level of accuracy for these tests was measured at 83%.<br><br>Previously, the ML model had achieved an accuracy of 83% ± 4% at a confidence level of 94%.<br><br>Which of the following options is MOST likely to represent the current situation?",
+        choices: [
+          { text: "accuracy of 83% ± 2% at 94% confidence level", correct: true },
+          { text: "accuracy of 83% ± 4% at 92% confidence level", correct: false },
+          { text: "accuracy of 83% ± 6% at 94% confidence level", correct: false },
+          { text: "accuracy of 85% ± 4% at 94% confidence level", correct: false },
+        ],
+        explain: "Running more tests while measuring the same 83% accuracy gives you a bigger sample, and a bigger sample tightens your statistical estimate — so if you hold the confidence level fixed at 94%, the margin of error should shrink, not grow or stay the same. That fits the correct answer: same accuracy, same confidence, but a tighter ±2% margin. One wrong option confuses the relationship (more data should let you be at least as confident, not less); another moves the margin the wrong direction; and the last doesn't match the given information at all — the scenario states the additional tests measured 83% accuracy, not 85%." },
+
+      { lo: "AI-6.1.4", k: "K2", type: "single",
+        prompt: "<strong>Official Question #33.</strong> Which of the following statements BEST summarizes adversarial testing of machine learning systems?",
+        choices: [
+          { text: "It is a form of black-box testing, ignoring knowledge of the internals of the machine learning system to create adversarial examples", correct: false },
+          { text: "It focuses on generating manual adversarial examples, without automation, to test the vulnerability of machine learning systems", correct: false },
+          { text: "It identifies model vulnerabilities through adversarial examples, which are minimally perturbed inputs that induce misclassification", correct: true },
+          { text: "It verifies the machine learning system's functionality by using previously working tests to avoid ML model failures during evaluation and tuning", correct: false },
+        ],
+        explain: "Adversarial testing's whole point is to find inputs that are only very slightly changed from a normal, correctly-handled input, but which still trick the model into a wrong output — those crafted inputs are adversarial examples, and finding them exposes real model vulnerabilities. One wrong option is too restrictive: knowing the model's internals (white-box) can actually make adversarial-example generation more targeted, so it isn't limited to black-box approaches. Another is also too restrictive — automated generation of adversarial examples is common and often more effective than manual crafting. The last describes something closer to regression testing with a fixed test suite, which isn't what adversarial testing is about." },
+
+      { lo: "AI-6.1.5", k: "K3", type: "single",
+        prompt: "<strong>Official Question #34.</strong> An AI-based mobile phone search system recommends phones based on the user's previous usage and stated preferences.<br><br>Source test case — inputs: price range $200–$300, 3D camera: don't care, screen size: mid to large, OS: Android or iOS, battery life: don't care.<br>Source outputs: SnapHappy_X1, SnapHappy_M2, SnapHappy_M3, ClickNow_1000x, ClickNow_1000xs.<br><br>Metamorphic testing is applied with two follow-up test cases that keep every input the same as the source EXCEPT the 3D camera field:<br>T1: 3D camera changed to 'yes' (must have a 3D camera)<br>T2: 3D camera changed to 'no' (must not have a 3D camera)<br><br>Which of the following options is MOST likely to be a valid list of recommended phones for the follow-up test cases?",
+        choices: [
+          { text: "T1: SnapHappy_X1, SnapHappy_M2 / T2: ClickNow_1000x, ClickNow_1000xs", correct: false },
+          { text: "T1: SnapHappy_M2, SnapHappy_M3, ClickNow_1000xs / T2: SnapHappy_X1, ClickNow_1000x", correct: true },
+          { text: "T1: SnapHappy_X1, SnapHappy_M2, SnapHappy_M3, ClickNow_1000x, ClickNow_1000xs / T2: SnapHappy_X1, SnapHappy_M2, SnapHappy_M3", correct: false },
+          { text: "T1: all five source phones / T2: all five source phones", correct: false },
+        ],
+        explain: "This is a metamorphic relation: T1 and T2 each narrow the source's 'don't care' camera field into a strict requirement, one requiring a 3D camera and the other explicitly forbidding one — so together they should partition the original five results into two non-overlapping groups that add back up to the original five, with no phone appearing in both lists and none missing. Only the correct option satisfies that, covering all five phones exactly once each. The others each drop a phone entirely, or let phones appear in both lists, which would mean the same phone is simultaneously required and forbidden to have a 3D camera — a contradiction." },
+
+      { lo: "AI-6.1.7", k: "K2", type: "single",
+        prompt: "<strong>Official Question #35.</strong> An organization uses an ML model to predict customer churn but has no mechanism to get direct user feedback or track when customers leave. They want to test for drift by analyzing the data being fed into the live ML model.<br><br>Which test type would be MOST appropriate in this situation and why?",
+        choices: [
+          { text: "Dynamic drift testing, because it can infer the current ground truth by analyzing the input data's statistical properties", correct: false },
+          { text: "Static drift testing, because it identifies drift by detecting changes in the data distributions without requiring ground truth", correct: true },
+          { text: "Dynamic drift testing, because comparing ML model predictions to actual results is the most direct way to measure performance degradation", correct: false },
+          { text: "Static drift testing, because it compares the ML model's live performance metrics against a predefined acceptance threshold", correct: false },
+        ],
+        explain: "Dynamic drift testing needs ground truth (actual outcomes) to compare predictions against — and this organization has explicitly said it has no way to know whether a customer actually churned, so that approach is off the table. Static drift testing sidesteps that requirement entirely by instead watching whether the statistical shape of the incoming input data has shifted away from what the model was trained on, which is exactly what's available here. Two of the wrong options both require ground truth the organization doesn't have, and the last mislabels what static drift testing actually compares — it's about input data distributions, not live performance metrics against a threshold." },
+
+      { lo: "AI-6.1.8", k: "K2", type: "single",
+        prompt: "<strong>Official Question #36.</strong> When testing a trained ML model, the development team found that the model was highly accurate when evaluated using validation data but performed poorly with independent test data.<br><br>Which of the following options is MOST likely to cause this situation?",
+        choices: [
+          { text: "Underfitting", correct: false },
+          { text: "Concept drift", correct: false },
+          { text: "Overfitting", correct: true },
+          { text: "Low acceptance criteria", correct: false },
+        ],
+        explain: "A model that shines on the data it was tuned against but stumbles on genuinely unseen data is the textbook signature of overfitting — it has effectively memorized quirks of the validation data rather than learning patterns that generalize. Underfitting would show up as poor performance everywhere, including on the validation data itself, which isn't the case here. Concept drift is a post-deployment phenomenon caused by the real world changing over time — it doesn't apply to a gap observed between two evaluation datasets during development. Acceptance criteria are a pass/fail threshold you set, not something that could itself cause a performance gap between two datasets." },
+
+      { lo: "AI-6.1.9", k: "K2", type: "single",
+        prompt: "<strong>Official Question #37.</strong> Which of the following statements BEST describes how A/B testing is used in the context of a machine learning system (MLS)?",
+        choices: [
+          { text: "A/B testing is primarily used to generate diverse test cases that cover all possible inputs for an MLS", correct: false },
+          { text: "A/B testing is used to verify that all components within an MLS interact correctly with each other", correct: false },
+          { text: "A/B testing determines if an updated version of an MLS performs better than the previous version", correct: true },
+          { text: "A/B testing focuses on analyzing the internal algorithm structure of an MLS to identify potential defects", correct: false },
+        ],
+        explain: "A/B testing's role for an MLS is comparative: run the current version and a candidate update side by side (or split real traffic between them) and see which one actually performs better on the metrics that matter — it's a live, outcome-based comparison, not a way of generating coverage. One wrong option misdescribes it as a test-case generation technique, which it isn't — it uses whatever operational inputs arrive naturally. Another describes component integration testing instead. The last describes something closer to white-box or structural analysis, whereas A/B testing treats each variant as a black box and only compares their outputs." },
+
+      { lo: "AI-6.1.10", k: "K2", type: "single",
+        prompt: "<strong>Official Question #38.</strong> Which of the following descriptions of the creation of a pseudo-oracle used to support the back-to-back testing of an ML model is MOST likely to be CORRECT?",
+        choices: [
+          { text: "By varying the hyperparameters used for training the ML model that is being tested", correct: false },
+          { text: "By fine-tuning the ML model that is being tested", correct: false },
+          { text: "By supplementing the ML model that is being tested with retrieval-augmented generation", correct: false },
+          { text: "By using a different ML development framework than the ML model that is being tested", correct: true },
+        ],
+        explain: "A pseudo-oracle only works well if it's genuinely independent of the system under test — otherwise the two are likely to share the same blind spots and defects, defeating the purpose of comparing them. Building it with an entirely different ML development framework (different libraries, algorithm implementations, training environment) gets you the most independence of the four options. Varying hyperparameters or fine-tuning both keep the same underlying model and framework, so they're really minor variants of the same system rather than an independent second opinion. Adding RAG still layers on top of the same base model and architecture, so it doesn't create real independence either." },
+
+      // ============================= CHAPTER 7 — Machine Learning Development Testing (Q39-40) =============================
+      { lo: "AI-7.1.1", k: "K2", type: "multi",
+        prompt: "<strong>Official Question #39.</strong> Which TWO of the following scenarios describe ML development risks that can be EFFECTIVELY mitigated by performing ML functional performance testing?",
+        choices: [
+          { text: "A team notices that their ML development framework becomes slow and even unresponsive when processing large batches of data", correct: false },
+          { text: "A new version of a core library used by the ML development framework appears to be causing the ML model to produce unexpected and inaccurate results", correct: true },
+          { text: "After a new installation, the development team needs a quick test to determine if the ML development framework's essential services are running correctly", correct: false },
+          { text: "A single test result is difficult to reproduce during evaluation, showing slight variations in ML functional performance with each execution", correct: true },
+          { text: "A project leader needs to decide between two potential algorithms based on their suitability for the project's goals", correct: false },
+        ],
+        explain: "ML functional performance testing is squarely about whether the model's predictions are accurate and consistent, so it directly applies to a library update silently corrupting prediction quality — exactly the kind of thing this testing would surface — and to repeated runs needing statistical analysis to properly characterize output variability across executions. One wrong option is really a performance-efficiency (speed/responsiveness) problem, a different test type. Another calls for a quick smoke test after installation, not a full functional-performance evaluation. The last is an upfront algorithm-selection decision, better supported by a suitability review or comparative testing like A/B testing than by functional performance testing of a single, not-yet-chosen algorithm." },
+
+      { lo: "AI-7.1.2", k: "K2", type: "single",
+        prompt: "<strong>Official Question #40.</strong> Which of the following statements CORRECTLY describes how shadow testing differs from canary testing in the deployment of ML models?",
+        choices: [
+          { text: "Shadow testing affects the responses from real users, while canary testing does not involve real users", correct: false },
+          { text: "Shadow testing mirrors traffic without impacting users, while canary testing provides responses from the new ML model", correct: true },
+          { text: "Canary testing is used for performance testing, while shadow testing is mainly used for component integration testing", correct: false },
+          { text: "Canary testing compares ML models running offline, while shadow testing is based on the use of live user data", correct: false },
+        ],
+        explain: "Both techniques run a new model against live production traffic, but they differ in whether the new model's output actually reaches anyone: shadow testing quietly mirrors real traffic to the new model and only logs its output for comparison, so users never see it and there's zero risk to them; canary testing deliberately exposes a small slice of real users to the new model's actual responses, trading a little controlled risk for a genuine read on real-world impact. One wrong option reverses these roles. Another mislabels both techniques' purposes — neither is fundamentally about performance testing or component integration. The last is wrong on canary testing specifically — it's an online technique using live data, not an offline comparison." },
+
+      // ============================= APPENDIX — Additional Questions (A1-A6) =============================
+      { lo: "AI-1.1.2", k: "K2", type: "single",
+        prompt: "<strong>Official Question A1</strong> (item 1 of 5 — originally a matching exercise: assign each example system to narrow AI, general AI, or super AI). Which category of AI BEST describes the following example system?<br><br><em>'An artificial mind that generates entirely new forms of art, music, and mathematics that are incomprehensible to humans.'</em>",
+        choices: [
+          { text: "Narrow AI", correct: false },
+          { text: "General AI (AGI)", correct: false },
+          { text: "Super AI", correct: true },
+        ],
+        explain: "This system isn't just matching human-level breadth — its output is described as beyond human comprehension entirely, which pushes it past 'as capable as a human across domains' (general AI) into 'surpasses human intelligence altogether,' the defining trait of super AI." },
+
+      { lo: "AI-1.1.2", k: "K2", type: "single",
+        prompt: "<strong>Official Question A1</strong> (item 2 of 5). Which category of AI BEST describes the following example system?<br><br><em>'A system that manages complex daily schedules, learns new recipes from a video, and holds conversations about novels it has just read.'</em>",
+        choices: [
+          { text: "Narrow AI", correct: false },
+          { text: "General AI (AGI)", correct: true },
+          { text: "Super AI", correct: false },
+        ],
+        explain: "This system moves fluidly across several unrelated intellectual tasks — scheduling, learning a new skill from a video, and literary discussion — without being retrained for each one, which is the hallmark of general (human-like) intelligence rather than a single specialized capability." },
+
+      { lo: "AI-1.1.2", k: "K2", type: "single",
+        prompt: "<strong>Official Question A1</strong> (item 3 of 5). Which category of AI BEST describes the following example system?<br><br><em>'A system that can independently learn any field of science and collaborate with human scientists by proposing novel hypotheses and original experiments.'</em>",
+        choices: [
+          { text: "Narrow AI", correct: false },
+          { text: "General AI (AGI)", correct: true },
+          { text: "Super AI", correct: false },
+        ],
+        explain: "Flexibly learning arbitrary scientific domains and doing genuine creative, collaborative reasoning across them is broad, human-like versatility — general AI — rather than the narrow, task-bound competence of today's deployed systems, and it stops short of the 'beyond human, self-improving' framing that defines super AI." },
+
+      { lo: "AI-1.1.2", k: "K2", type: "single",
+        prompt: "<strong>Official Question A1</strong> (item 4 of 5). Which category of AI BEST describes the following example system?<br><br><em>'A system that examines radiological images to detect the specific signatures of cancerous tumors.'</em>",
+        choices: [
+          { text: "Narrow AI", correct: true },
+          { text: "General AI (AGI)", correct: false },
+          { text: "Super AI", correct: false },
+        ],
+        explain: "This is a single, well-defined task — pattern recognition within one type of medical image — with no claim of broader reasoning or adaptability outside that domain, which is exactly what narrow AI means: every AI-based system deployed today, however sophisticated, is narrow in this sense." },
+
+      { lo: "AI-1.1.2", k: "K2", type: "single",
+        prompt: "<strong>Official Question A1</strong> (item 5 of 5). Which category of AI BEST describes the following example system?<br><br><em>'A language translation model that can convert written text from French to Spanish.'</em>",
+        choices: [
+          { text: "Narrow AI", correct: true },
+          { text: "General AI (AGI)", correct: false },
+          { text: "Super AI", correct: false },
+        ],
+        explain: "Translating between two specific languages is a single bounded function; the system isn't claimed to reason, plan, or generalize beyond that one task, so it's another clear example of narrow AI, just like every other AI system in production today." },
+
+      { lo: "AI-1.1.7", k: "K2", type: "single",
+        prompt: "<strong>Official Question A2.</strong> Which of the following options BEST describes an advantage of using ML development frameworks when building and training machine learning models?",
+        choices: [
+          { text: "They provide support for specifying the ML model architecture design, such as the structure of a decision tree", correct: true },
+          { text: "They eliminate the need for data preprocessing by automatically optimizing the data before the training", correct: false },
+          { text: "They require the data scientists who use them to be advanced programmers with in-depth coding skills", correct: false },
+          { text: "They make model development highly efficient, but lock in any developed ML models to the ML development framework", correct: false },
+        ],
+        explain: "One of a framework's core jobs is model building support — giving you libraries and tools to define the model's structure (how many layers, what type of algorithm, and so on), which is exactly what the correct option describes. Another option overstates what frameworks do for data handling — they assist with preprocessing, they don't eliminate the need for it. A third is backwards: frameworks exist at different abstraction levels precisely so that less experienced users can rely on higher-level APIs, lowering the coding bar rather than raising it. The last is also false — trained models generally remain portable and can be deployed outside the framework that built them, within reason." },
+
+      { lo: "AI-1.1.8", k: "K2", type: "single",
+        prompt: "<strong>Official Question A3.</strong> An organization is developing an AI-based system for unmanned autonomous driving without considering the risks associated with the system.<br><br>Which of the following standards is MOST likely being violated in this scenario, which could result in severe penalties?",
+        choices: [
+          { text: "ISO/IEC/IEEE TR 29119-11", correct: false },
+          { text: "OECD AI Principles", correct: false },
+          { text: "EU AI Act", correct: true },
+          { text: "ISO/IEC 25059", correct: false },
+        ],
+        explain: "The EU AI Act is the one binding, enforceable regulation among these four options — it takes a risk-based approach and imposes real financial penalties on organizations, like an autonomous-driving system's developer, that fail to manage risk appropriately for a high-risk AI application. The other three are all guidance rather than law: TR 29119-11 is a testing-guidance standard, the OECD AI Principles are voluntary soft-law, and ISO/IEC 25059 is a quality-characteristics standard — none of them carry legal penalties for non-compliance the way a regulation like the EU AI Act does." },
+
+      { lo: "AI-3.1.1", k: "K2", type: "single",
+        prompt: "<strong>Official Question A4</strong> (item 1 of 4 — originally a matching exercise: pair each form of ML with an example system). Which form of machine learning is being used in the following example?<br><br><em>'A healthcare research system mines large volumes of unlabeled patient records to uncover dependencies between attributes — for example, a relationship between a particular gene and a disease — without predicting a specific class for each record.'</em>",
+        choices: [
+          { text: "Association", correct: true },
+          { text: "Classification", correct: false },
+          { text: "Clustering", correct: false },
+          { text: "Regression", correct: false },
+        ],
+        explain: "The system isn't sorting records into categories or predicting a number — it's uncovering relationships and dependencies between attributes in unlabeled data, which is exactly what association-style unsupervised learning does, the same family of technique used for things like 'customers who bought X also bought Y.'" },
+
+      { lo: "AI-3.1.1", k: "K2", type: "single",
+        prompt: "<strong>Official Question A4</strong> (item 2 of 4). Which form of machine learning is being used in the following example?<br><br><em>'A diagnostic system learns from a dataset of medical images that have each been pre-labeled \"healthy\" or \"diseased,\" and its job is to sort new, unseen images into one of those two categories.'</em>",
+        choices: [
+          { text: "Classification", correct: true },
+          { text: "Regression", correct: false },
+          { text: "Clustering", correct: false },
+          { text: "Reinforcement learning", correct: false },
+        ],
+        explain: "Pre-labeled data plus the goal of assigning new inputs to one of a fixed set of discrete categories is the definition of classification — a form of supervised learning, distinguished from regression by producing a category rather than a continuous number." },
+
+      { lo: "AI-3.1.1", k: "K2", type: "single",
+        prompt: "<strong>Official Question A4</strong> (item 3 of 4). Which form of machine learning is being used in the following example?<br><br><em>'A warehouse robot learns to place items correctly through direct interaction with its physical environment, receiving a reward for correct placement and a penalty for incorrect placement, rather than learning from a pre-existing labeled dataset.'</em>",
+        choices: [
+          { text: "Reinforcement learning", correct: true },
+          { text: "Supervised learning", correct: false },
+          { text: "Clustering", correct: false },
+          { text: "Association", correct: false },
+        ],
+        explain: "There's no dataset here at all — the system learns purely from trial-and-error interaction with its environment, shaped by rewards and penalties tied to its own actions. That trial-and-error, reward-driven learning loop is the defining mechanism of reinforcement learning." },
+
+      { lo: "AI-3.1.1", k: "K2", type: "single",
+        prompt: "<strong>Official Question A4</strong> (item 4 of 4). Which form of machine learning is being used in the following example?<br><br><em>'A utility company trains a model on labeled historical data to predict a specific continuous quantity — the amount of electricity that will be consumed — rather than assigning records to a category.'</em>",
+        choices: [
+          { text: "Regression", correct: true },
+          { text: "Classification", correct: false },
+          { text: "Clustering", correct: false },
+          { text: "Association", correct: false },
+        ],
+        explain: "Predicting a continuous numeric quantity (an amount of electricity) rather than a discrete label is exactly what distinguishes regression from classification within supervised learning — the output is a value on a scale, not a category." },
+
+      { lo: "AI-3.1.2", k: "K2", type: "single",
+        prompt: "<strong>Official Question A5.</strong> <em>(This question was originally a drag-and-drop ordering exercise in the source PDF, and its specific answer content wasn't recoverable from the extracted text — this version is reconstructed directly from the ML workflow described in the syllabus, so treat it as a faithful stand-in rather than the literal original wording.)</em><br><br>Which of the following correctly orders these ML workflow activities from EARLIEST to LATEST: <strong>Train the Model</strong>, <strong>Prepare &amp; Test Data</strong>, <strong>Deploy the Model</strong>, <strong>Evaluate the Model</strong>?",
+        choices: [
+          { text: "Prepare & Test Data → Train the Model → Evaluate the Model → Deploy the Model", correct: true },
+          { text: "Train the Model → Prepare & Test Data → Deploy the Model → Evaluate the Model", correct: false },
+          { text: "Deploy the Model → Evaluate the Model → Train the Model → Prepare & Test Data", correct: false },
+          { text: "Prepare & Test Data → Evaluate the Model → Train the Model → Deploy the Model", correct: false },
+        ],
+        explain: "The ML workflow has to prepare and test its data before there's anything to train on; training comes next so the model actually has learned parameters; only then can it be meaningfully evaluated against held-out data; and deployment is necessarily the last step, since you wouldn't put an untrained or unevaluated model into production. Every other ordering here puts a later stage before something it structurally depends on — for instance, evaluating a model before it's been trained, or deploying before evaluating." },
+
+      { lo: "AI-3.4.3", k: "K2", type: "single",
+        prompt: "<strong>Official Question A6.</strong> What is a key reason that structural coverage alone is NOT SUFFICIENT as the basis for testing neural networks?",
+        choices: [
+          { text: "It tends to overestimate performance on tasks involving human feedback", correct: false },
+          { text: "It cannot account for differences in model size when comparing test results", correct: false },
+          { text: "It does not reveal whether the network relies on misleading or irrelevant features", correct: true },
+          { text: "It replaces the need to assess the usefulness of individual model outputs", correct: false },
+        ],
+        explain: "Structural coverage measures, like neuron or neuron-boundary coverage, only tell you which parts of the network's structure were exercised during testing — they say nothing about whether the network activated those parts for the right reasons. A model can achieve high coverage while actually keying off a spurious, irrelevant correlation in the data, and structural coverage alone would never catch that. One wrong option isn't really the core issue, since coverage is typically expressed as a percentage, making it comparable across model sizes. The other has it backwards — structural coverage is meant to supplement, not replace, checks on whether outputs are actually correct and useful." },
+    ];
+
+    Quiz.render("quiz-mount", questions, { sessionId: "s29", passPct: 65 });
+
+    // ---- Insert chapter headers into the rendered quiz for readability ----
+    const chapterBreaks = [
+      { idx: 0, title: "Chapter 1 — Introduction to Artificial Intelligence", sub: "Official Questions #1–6" },
+      { idx: 6, title: "Chapter 2 — Quality Characteristics for AI-Based Systems", sub: "Official Questions #7–9" },
+      { idx: 9, title: "Chapter 3 — Machine Learning", sub: "Official Questions #10–16" },
+      { idx: 16, title: "Chapter 4 — Testing AI-Based Systems", sub: "Official Questions #17–23" },
+      { idx: 23, title: "Chapter 5 — Input Data Testing for Machine Learning Systems", sub: "Official Questions #24–29" },
+      { idx: 29, title: "Chapter 6 — Model Testing for Machine Learning Systems", sub: "Official Questions #30–38" },
+      { idx: 38, title: "Chapter 7 — Machine Learning Development Testing", sub: "Official Questions #39–40" },
+      { idx: 40, title: "Appendix — Additional Questions", sub: "Official Questions A1–A6 · A1 and A4 were originally drag-and-drop matching exercises, split here into one question per example so each can be attempted individually; A5's original options were reconstructed from the syllabus (see note on that question)." },
+    ];
+    chapterBreaks.forEach(b => {
+      const card = document.querySelector('#quiz-mount .qcard[data-qi="' + b.idx + '"]');
+      if (!card) return;
+      const header = document.createElement("div");
+      header.style.cssText = "margin:2.2rem 0 1rem; padding-top:1.4rem; border-top:1px solid var(--border);";
+      header.innerHTML = '<h2 style="margin-bottom:.2rem;">' + b.title + '</h2><p class="small">' + b.sub + '</p>';
+      card.parentElement.insertBefore(header, card);
+    });
+  });
+</script>
+</body>
+</html>

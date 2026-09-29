@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 23 · Instrumentation & CI/CD for AI Evals — AI Validation Engineer Academy</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-root="../" data-readable="true">
+<header class="topbar">
+  <a class="brand" href="../index.html"><span class="mark">AI</span> Validation Engineer Academy</a>
+  <span class="spacer"></span>
+  <span class="session-tag" id="session-tag"></span>
+  <div class="progress-mini"><span id="progress-mini-fill"></span></div>
+  <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☾</button>
+</header>
+
+<main class="page">
+  <div class="eyebrow">Session 23 · Applied Practice — core skill</div>
+  <h1>Instrumentation & CI/CD for AI Evals</h1>
+  <p class="lede">An AI system you can't observe is an AI system you can't test in production, and a regression you
+    only catch after a customer complains is a regression you caught too late. Today you learn what a well-built
+    AI system logs and why, how to design a trace so a failure can actually be reproduced, and how to wire an
+    automated eval suite into CI/CD so bad changes get stopped before they ship at all.</p>
+
+  <div class="meta-row">
+    <span class="chip">⏱ ~60 min</span>
+    <span class="chip k3">K2–K3 · Understand & Apply</span>
+    <span class="chip">Applied Practice — core skill</span>
+  </div>
+
+  <div class="kw-list">
+    <span class="kw">telemetry</span><span class="kw">trace ID</span><span class="kw">span</span>
+    <span class="kw">structured logging</span><span class="kw">eval suite</span>
+    <span class="kw">regression gate</span><span class="kw">model version pinning</span>
+  </div>
+
+  <h2>1. What to log in an AI system, and why</h2>
+  <p>Conventional software logging habits (log errors, log request timing) undersell what an AI system needs.
+    Because the "logic" is a trained model instead of readable code, the log is often the <em>only</em> record of
+    what actually happened for a given request — you can't just re-read the source to reconstruct it later.</p>
+
+  <table class="data">
+    <thead><tr><th>What to log</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr><td>Input (raw or redacted)</td><td>The starting point for reproducing any bug or bad output — without it, "it did something weird" is unfalsifiable.</td></tr>
+      <tr><td>Output</td><td>What the user actually saw; needed for after-the-fact scoring and for building new eval cases from real failures.</td></tr>
+      <tr><td>Confidence / probability scores</td><td>Lets you correlate low confidence with actual errors, and is often the trigger for fallback cascades (Session 22) and human escalation.</td></tr>
+      <tr><td>Latency, broken down by stage</td><td>Distinguishes a slow model call from a slow retrieval step from slow post-processing — critical for both debugging and latency-budget gates (Session 24).</td></tr>
+      <tr><td>Model version / prompt template version</td><td>Without this, you cannot tell whether a quality change came from the model provider, a prompt edit, or something else entirely.</td></tr>
+      <tr><td>Trace ID</td><td>A single identifier that ties every step of one request together across services, so you can reconstruct the whole journey, not just one log line.</td></tr>
+      <tr><td>Errors, timeouts, retries</td><td>Reliability signals that are invisible if you only log "successful" outputs.</td></tr>
+      <tr><td>Cost / token counts</td><td>Feeds directly into the cost side of the frontier from Session 22 and into per-feature budget tracking.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <div class="icon">⚠</div>
+    <div class="body">
+      <strong class="title">Logging is not a license to hoard PII</strong>
+      Rich logging and responsible data handling aren't in conflict, but they do require deliberate design:
+      redact or hash sensitive fields before they hit a log store, apply retention limits, and restrict who can
+      query raw logs. An eval system that leaks the exact PII it was supposed to help you catch is a serious
+      failure in its own right.
+    </div>
+  </div>
+
+  <h2>2. Designing traces for reproducibility</h2>
+  <p>A <strong>trace</strong> is the complete record of one request's journey — from the raw input, through
+    context building or retrieval, through one or more model calls, through any post-processing or safety checks,
+    to the final output — all tagged with one shared <strong>trace ID</strong>. Within a trace, each step is
+    typically recorded as a <strong>span</strong>: its own start time, end time, and metadata, nested under the
+    trace so you can see exactly where the total time went and exactly which step produced or changed the
+    output.</p>
+
+  <p>A trace is <em>reproducible</em> when it captures everything needed to run the same request again and get a
+    comparable result. That means logging more than just "the prompt" — it means pinning:</p>
+  <ul>
+    <li><strong>The exact model identifier and version</strong> (not just "GPT-family" but the specific
+      checkpoint, since providers update models under the same name over time).</li>
+    <li><strong>The exact prompt template version</strong>, separate from the model version — prompts get edited
+      far more often than models get swapped, and a quality shift is just as often a prompt change as a model
+      change.</li>
+    <li><strong>Sampling parameters</strong> (temperature, top-k/top-p, and a random seed if the provider
+      supports deterministic decoding).</li>
+    <li><strong>The actual retrieved content</strong>, not just the retrieval query — if a system pulls context
+      from a document store, that store can change over time, so logging "we searched for X" isn't enough; you
+      need "and here is exactly what came back."</li>
+  </ul>
+
+  <div class="callout tip">
+    <div class="icon">🔁</div>
+    <div class="body">
+      <strong class="title">Reproducibility is what closes the loop</strong>
+      A well-designed trace turns a one-off production failure into a permanent, reusable regression test. Once
+      you can reliably replay a bad case, it belongs in the golden dataset that Session 24's evaluation pipeline
+      runs against — so the same mistake gets caught automatically from then on, instead of relying on someone
+      noticing it again.
+    </div>
+  </div>
+
+  <h2>3. Building a regression safety net into CI/CD</h2>
+  <p>An <strong>eval suite</strong> is a curated, versioned set of test inputs — usually paired with expected
+    outputs, an acceptable-answer rubric, or a scoring function — that gets run automatically against the system
+    under test. The safety-net idea is simple to state and easy to get wrong in practice: <strong>run the eval
+    suite automatically on every model, prompt, or pipeline change, and don't allow a merge that drops the score
+    below an agreed threshold.</strong></p>
+
+  <div class="grid-2">
+    <div class="card">
+      <strong>Fast suite on every PR</strong>
+      <p class="small" style="margin-top:.4rem;">A smaller "smoke" subset — the highest-signal, fastest-to-run
+        cases — runs on every pull request so contributors get feedback in minutes, not hours.</p>
+    </div>
+    <div class="card">
+      <strong>Full suite on a schedule</strong>
+      <p class="small" style="margin-top:.4rem;">The complete golden dataset runs nightly or before a release,
+        catching slower-to-surface or rarer regressions the fast suite would miss.</p>
+    </div>
+    <div class="card">
+      <strong>Threshold-based gating</strong>
+      <p class="small" style="margin-top:.4rem;">Blocking metrics (Session 22) get a hard numeric gate — merge is
+        refused if the score falls below the line, the same way a code-coverage or unit-test gate blocks a merge
+        in conventional CI/CD.</p>
+    </div>
+    <div class="card">
+      <strong>Trend tracking, not just pass/fail</strong>
+      <p class="small" style="margin-top:.4rem;">Every run's score gets recorded over time so a slow, gradual
+        drift is visible on a chart even on weeks where each individual PR technically passed the gate.</p>
+    </div>
+  </div>
+
+  <div class="callout danger">
+    <div class="icon">🎲</div>
+    <div class="body">
+      <strong class="title">Watch for eval flakiness</strong>
+      Because model output is often probabilistic, the exact same code can pass an eval today and fail it
+      tomorrow on nothing more than sampling variance. Design around this deliberately: score across multiple
+      samples instead of one, use similarity- or rubric-based scoring instead of brittle exact-match where
+      appropriate, and apply a statistical tolerance to the threshold rather than treating one run as ground
+      truth. Treat a flaky eval the way you'd treat a flaky unit test — investigate it, don't just re-run until
+      it goes green.
+    </div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="dot"></span><span class="lab-title">Interactive: walk a commit through the CI/CD eval gate</span></div>
+    <div class="lab-sub">Pick a scenario, then step through the pipeline one stage at a time to see how each
+      outcome plays out.</div>
+    <div class="controls">
+      <button class="btn btn-ghost pipeline-scenario" data-scenario="pass">Clean pass</button>
+      <button class="btn btn-ghost pipeline-scenario" data-scenario="fail">Regression caught (blocked)</button>
+      <button class="btn btn-ghost pipeline-scenario" data-scenario="flaky">Flaky failure (needs re-run)</button>
+    </div>
+    <div id="pipeline-svg" style="margin:1rem 0;"></div>
+    <div class="controls">
+      <button class="btn btn-primary" id="pipeline-step">▶ Step forward</button>
+      <button class="btn btn-ghost" id="pipeline-reset">Reset</button>
+    </div>
+    <div class="readout" id="pipeline-readout">Choose a scenario above, then press "Step forward" to advance
+      through Commit → Eval Suite → Gate → Deploy.</div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div id="quiz-mount"></div>
+
+  <hr class="rule">
+  <div style="display:flex; justify-content:center;">
+    <button class="btn btn-primary" id="mark-complete" style="min-width:260px;">Mark session complete</button>
+  </div>
+
+  <div class="session-nav" id="session-nav"></div>
+</main>
+
+<script src="../assets/js/course-data.js"></script>
+<script src="../assets/js/quiz-engine.js"></script>
+<script src="../assets/js/glossary-data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/read-aloud.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    App.initTopbar("s23");
+    App.buildSessionNav("session-nav", "s23");
+    App.wireMarkComplete("mark-complete", "s23");
+
+    // ---- CI/CD pipeline lab ----
+    const stages = ["Commit", "Eval Suite", "Gate", "Deploy"];
+    const scenarios = {
+      pass: {
+        label: "Clean pass",
+        steps: [
+          "A prompt-template change is committed and opens a pull request.",
+          "The fast eval suite runs against the golden dataset: 96% pass rate, no blocking-metric regressions.",
+          "The gate compares 96% against the 90% threshold — passes.",
+          "Merge is allowed and the change deploys automatically."
+        ],
+        finalStage: 3, finalOk: true,
+        verdict: "DEPLOYED — score cleared the threshold with room to spare."
+      },
+      fail: {
+        label: "Regression caught",
+        steps: [
+          "A model-version bump is committed and opens a pull request.",
+          "The fast eval suite runs: PII leak rate rose from 0.0% to 0.4% — a blocking metric.",
+          "The gate checks the blocking-metric threshold (must be 0%) — fails.",
+          "Merge is blocked automatically. Nothing deploys."
+        ],
+        finalStage: 2, finalOk: false,
+        verdict: "BLOCKED — a blocking-metric regression stopped the release before it reached production."
+      },
+      flaky: {
+        label: "Flaky failure",
+        steps: [
+          "A minor retrieval-config change is committed and opens a pull request.",
+          "The fast eval suite runs once: score is 88%, just under the 90% threshold — but this metric has known sampling variance.",
+          "The gate re-runs the suite across 5 samples per case instead of trusting one pass: average settles at 91%, within tolerance.",
+          "Merge is allowed and the change deploys, with the single low run flagged for the team to review."
+        ],
+        finalStage: 3, finalOk: true,
+        verdict: "DEPLOYED AFTER RE-CHECK — a single low sample looked like a regression; multi-sample scoring showed it was noise, not a real drop."
+      },
+    };
+
+    let activeScenario = "pass";
+    let stepIndex = -1;
+
+    function renderSvg() {
+      const w = 640, h = 140;
+      const nodeW = 130, nodeY = 40, nodeH = 56;
+      const gap = (w - 40 - nodeW * stages.length) / (stages.length - 1);
+      let nodes = "", arrows = "";
+      stages.forEach((name, i) => {
+        const x = 20 + i * (nodeW + gap);
+        let fill = "var(--bg-sunken)", stroke = "var(--border)", textColor = "var(--text-dim)";
+        if (i < stepIndex || (i === stepIndex && i === stages.length - 1)) {
+          const isGateFail = (i === 2 && stepIndex >= 2 && !scenarios[activeScenario].finalOk);
+          if (isGateFail) { fill = "var(--danger-soft)"; stroke = "var(--danger)"; textColor = "var(--danger)"; }
+          else { fill = "var(--success-soft)"; stroke = "var(--success)"; textColor = "var(--success)"; }
+        } else if (i === stepIndex) {
+          fill = "var(--accent-soft)"; stroke = "var(--accent)"; textColor = "var(--accent-strong)";
+        }
+        nodes += `<rect x="${x}" y="${nodeY}" width="${nodeW}" height="${nodeH}" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="2"></rect>
+          <text x="${x + nodeW/2}" y="${nodeY + nodeH/2 + 5}" text-anchor="middle" font-size="13" font-weight="800" fill="${textColor}">${name}</text>`;
+        if (i < stages.length - 1) {
+          const ax = x + nodeW, bx = x + nodeW + gap;
+          const blocked = (i === 2 && stepIndex > 2 && !scenarios[activeScenario].finalOk);
+          arrows += `<line x1="${ax}" y1="${nodeY + nodeH/2}" x2="${bx}" y2="${nodeY + nodeH/2}" stroke="${blocked ? 'var(--danger)' : 'var(--border)'}" stroke-width="2" marker-end="url(#arrowhead)"></line>`;
+        }
+      });
+      document.getElementById("pipeline-svg").innerHTML = `
+        <svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="CI/CD eval pipeline">
+          <defs>
+            <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="var(--text-faint)"></path>
+            </marker>
+          </defs>
+          ${nodes}${arrows}
+        </svg>`;
+    }
+
+    function renderReadout() {
+      const sc = scenarios[activeScenario];
+      const readout = document.getElementById("pipeline-readout");
+      if (stepIndex < 0) {
+        readout.textContent = `Scenario selected: “${sc.label}.” Press "Step forward" to begin.`;
+      } else {
+        const isLastRelevantStep = stepIndex >= 2 && !sc.finalOk;
+        let text = `<strong>${stages[Math.min(stepIndex, stages.length - 1)]}:</strong> ${sc.steps[stepIndex]}`;
+        if (stepIndex === (sc.finalOk ? 3 : 2)) {
+          text += `<br><br><strong>${sc.finalOk ? "✅" : "⛔"} ${sc.verdict}</strong>`;
+        }
+        readout.innerHTML = text;
+      }
+    }
+
+    function selectScenario(name) {
+      activeScenario = name; stepIndex = -1;
+      document.querySelectorAll(".pipeline-scenario").forEach(b => b.style.borderColor = b.dataset.scenario === name ? "var(--accent)" : "var(--border)");
+      renderSvg(); renderReadout();
+    }
+
+    document.querySelectorAll(".pipeline-scenario").forEach(btn => {
+      btn.addEventListener("click", () => selectScenario(btn.dataset.scenario));
+    });
+    document.getElementById("pipeline-step").addEventListener("click", () => {
+      const sc = scenarios[activeScenario];
+      const maxStep = sc.finalOk ? 3 : 2;
+      if (stepIndex < maxStep) stepIndex++;
+      renderSvg(); renderReadout();
+    });
+    document.getElementById("pipeline-reset").addEventListener("click", () => { stepIndex = -1; renderSvg(); renderReadout(); });
+
+    selectScenario("pass");
+
+    // ---- Quiz ----
+    const questions = [
+      { lo: "AP-23.1", k: "K2", type: "multi",
+        prompt: "Which of the following should generally be logged for every AI system request (select all that apply)?",
+        choices: [
+          { text: "The model/prompt-template version used to produce the response", correct: true },
+          { text: "A trace ID linking every step of the request together", correct: true },
+          { text: "Latency broken down by stage (retrieval, inference, post-processing)", correct: true },
+          { text: "Raw, unredacted PII with no access controls", correct: false },
+        ],
+        explain: "Version info, trace IDs, and stage-level latency are all essential for debugging and reproducibility. Sensitive data should be redacted/hashed and access-controlled, not logged raw and open." },
+      { lo: "AP-23.2", k: "K2", type: "single",
+        prompt: "Why is logging the model version separately from the prompt template version important?",
+        choices: [
+          { text: "Because a quality change could come from either one, and without both logged you can't tell which one caused it.", correct: true },
+          { text: "Because prompt templates never change once written.", correct: false },
+          { text: "Because model providers guarantee a model never changes behavior once named.", correct: false },
+          { text: "It isn't important — either one alone is always sufficient.", correct: false },
+        ],
+        explain: "Prompts get edited far more often than models get swapped, and providers can update a model under the same name — logging both separately is what lets you isolate the actual cause of a change." },
+      { lo: "AP-23.3", k: "K2", type: "single",
+        prompt: "What is a “span” within a trace?",
+        choices: [
+          { text: "One step of the request's journey (e.g., retrieval, model call), recorded with its own start/end time and metadata, nested under the shared trace ID.", correct: true },
+          { text: "A synonym for the entire trace.", correct: false },
+          { text: "A type of blocking metric.", correct: false },
+          { text: "The time between two separate, unrelated requests.", correct: false },
+        ],
+        explain: "A trace is the full journey; spans are its individual timed steps, which is what lets you see exactly where time went and which step produced or changed the output." },
+      { lo: "AP-23.4", k: "K3", type: "single",
+        prompt: "A team wants to be able to replay a production failure exactly and get a comparable result. Besides the input and model version, what else must the trace capture to make that possible for a retrieval-augmented system?",
+        choices: [
+          { text: "The actual content that was retrieved at the time, not just the query that was used to retrieve it.", correct: true },
+          { text: "Only the total request latency.", correct: false },
+          { text: "The name of the engineer who deployed the change.", correct: false },
+          { text: "Nothing else — input and model version are always sufficient.", correct: false },
+        ],
+        explain: "A document store can change over time, so logging the query alone doesn't guarantee the same context is retrieved later — you need the actual retrieved content to reliably reproduce the request." },
+      { lo: "AP-23.5", k: "K2", type: "single",
+        prompt: "What does it mean to “gate” a merge on eval score in CI/CD?",
+        choices: [
+          { text: "The pull request is automatically blocked from merging if the eval suite's score falls below an agreed threshold.", correct: true },
+          { text: "Every merge is manually approved by a single senior engineer regardless of eval results.", correct: false },
+          { text: "Eval results are recorded but can never affect whether code merges.", correct: false },
+          { text: "The eval suite only runs after code has already been deployed to production.", correct: false },
+        ],
+        explain: "Gating means the eval result has teeth — it can actually block the merge, the same way a failing unit test or a code-coverage gate would in conventional CI/CD." },
+      { lo: "AP-23.6", k: "K3", type: "single",
+        prompt: "Why do many teams run a smaller “smoke” eval subset on every pull request and reserve the full golden dataset for a nightly or pre-release run?",
+        choices: [
+          { text: "To balance fast contributor feedback (small, fast suite on every PR) against thorough coverage (full suite on a schedule) without making every PR wait on the slowest possible check.", correct: true },
+          { text: "Because the full golden dataset is never useful and should eventually be deleted.", correct: false },
+          { text: "Because smoke tests replace the need for any full evaluation entirely.", correct: false },
+          { text: "Because CI/CD systems cannot run more than one type of test.", correct: false },
+        ],
+        explain: "It's a deliberate tradeoff: fast, high-signal checks on every change; deeper, slower checks on a schedule so nothing important is missed just because it wasn't in the fast subset." },
+      { lo: "AP-23.7", k: "K4", type: "single",
+        prompt: "An eval passed on Monday and failed on Tuesday with no code changes in between, purely due to sampling variance in a probabilistic model. What is the most appropriate response?",
+        choices: [
+          { text: "Investigate it like a flaky test — consider multi-sample scoring or a statistical tolerance on the threshold, rather than trusting a single run either way.", correct: true },
+          { text: "Immediately roll back to the previous model version without further investigation.", correct: false },
+          { text: "Ignore all future results from this eval since it can't be trusted.", correct: false },
+          { text: "Simply re-run it repeatedly until it passes, then move on.", correct: false },
+        ],
+        explain: "Probabilistic outputs mean a single sample can be misleading in either direction — the fix is to design the eval to tolerate expected variance (multiple samples, statistical thresholds), not to blindly trust or blindly re-run a single result." },
+      { lo: "AP-23.8", k: "K2", type: "single",
+        prompt: "What is the main reason a reproducible trace of a production failure is valuable beyond debugging that one incident?",
+        choices: [
+          { text: "It can become a new, permanent test case added to the golden dataset, so the same failure is caught automatically in future evaluations.", correct: true },
+          { text: "It guarantees the bug can never happen again without any further testing.", correct: false },
+          { text: "It removes the need to log anything for future requests.", correct: false },
+          { text: "It is only useful to the single engineer who first found it.", correct: false },
+        ],
+        explain: "This is the feedback loop that connects instrumentation (Session 23) to the evaluation pipeline (Session 24) — real failures become permanent regression tests." },
+    ];
+    Quiz.render("quiz-mount", questions, { sessionId: "s23", passPct: 65 });
+  });
+</script>
+</body>
+</html>
