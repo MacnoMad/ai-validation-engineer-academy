@@ -194,6 +194,11 @@ main.page { max-width: var(--maxw); margin: 0 auto; padding: 2rem 1.25rem 6rem; 
 .card {
   background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 1.3rem 1.4rem; box-shadow: var(--shadow-sm); margin: 1.4rem 0;
+  /* Several lessons use <button class="card"> for clickable scenario/quiz-style
+     widgets — buttons don't inherit color/font from the page by default, so
+     without this they fall back to the browser's own (dark) button text
+     color and become unreadable against this card's dark-mode background. */
+  color: inherit; font: inherit; text-align: inherit;
 }
 .grid-2 { display:grid; grid-template-columns: 1fr; gap: 1rem; }
 @media (min-width: 720px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
